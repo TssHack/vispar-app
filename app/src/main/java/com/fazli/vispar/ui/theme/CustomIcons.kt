@@ -2,6 +2,7 @@ package com.fazli.vispar.ui.theme
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import com.fazli.vispar.R // این خط را اضافه کنید
 
 object CustomIcons {
     val Movie: ImageVector = vectorResource(R.drawable.ic_movie)
