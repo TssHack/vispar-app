@@ -29,17 +29,23 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,14 +60,17 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -80,6 +89,7 @@ private val VazirFontFamily = FontFamily(
     Font(R.font.vazir_bold, FontWeight.Bold)
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeriesScreen(
     viewModel: SeriesViewModel = viewModel(),
@@ -96,29 +106,58 @@ fun SeriesScreen(
         }
     }
     
-    // حذف Column wrapper برای استفاده از تمام فضای صفحه
-    when {
-        isLoading && series.isEmpty() -> {
-            // نمایش انیمیشن مدرن هنگام بارگذاری اولیه سریال‌ها
-            LoadingScreenSeries()
-        }
-        errorMessage != null && series.isEmpty() -> {
-            ErrorScreenSeries(
-                errorMessage = errorMessage,
-                onRetry = { viewModel.retry() }
-            )
-        }
-        else -> {
-            SeriesGrid(
-                series = series,
-                isLoading = isLoading,
-                isLoadingMore = isLoadingMore,
-                errorMessage = errorMessage,
-                onRetry = { viewModel.retry() },
-                onRefresh = { viewModel.refresh() },
-                onLoadMore = { viewModel.loadMoreSeries() },
-                navController = navController
-            )
+    // تنظیم جهت‌گیری راست‌چین برای کل صفحه
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalLayoutDirection provides LayoutDirection.Rtl
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column {
+                // نوار بالایی حرفه‌ای
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "سریال‌ها",
+                            fontFamily = VazirFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 22.sp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                when {
+                    isLoading && series.isEmpty() -> {
+                        // نمایش انیمیشن مدرن هنگام بارگذاری اولیه سریال‌ها
+                        LoadingScreenSeries()
+                    }
+                    errorMessage != null && series.isEmpty() -> {
+                        ErrorScreenSeries(
+                            errorMessage = errorMessage,
+                            onRetry = { viewModel.retry() }
+                        )
+                    }
+                    else -> {
+                        SeriesGrid(
+                            series = series,
+                            isLoading = isLoading,
+                            isLoadingMore = isLoadingMore,
+                            errorMessage = errorMessage,
+                            onRetry = { viewModel.retry() },
+                            onRefresh = { viewModel.refresh() },
+                            onLoadMore = { viewModel.loadMoreSeries() },
+                            navController = navController
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -129,7 +168,16 @@ fun LoadingScreenSeries() {
     val shimmerColorShade = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
     
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer,
+                        MaterialTheme.colorScheme.surface
+                    )
+                )
+            ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // اضافه کردن عنوان هنگام بارگذاری
@@ -193,8 +241,8 @@ fun ShimmerSeriesItem(
     Card(
         modifier = Modifier
             .fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         )
@@ -208,50 +256,56 @@ fun ShimmerSeriesItem(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(brush)
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
             // عنوان شیمر
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
-                    .height(20.dp)
+                    .height(24.dp)
                     .background(brush)
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             
             // سال شیمر
             Box(
                 modifier = Modifier
                     .width(60.dp)
-                    .height(16.dp)
+                    .height(18.dp)
                     .background(brush)
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             
             // ژانرها شیمر
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
-                    .height(16.dp)
+                    .height(18.dp)
                     .background(brush)
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             
             // امتیاز شیمر
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .background(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        RoundedCornerShape(20.dp)
+                    )
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(16.dp)
+                        .size(20.dp)
                         .background(brush)
                 )
                 
@@ -260,7 +314,7 @@ fun ShimmerSeriesItem(
                 Box(
                     modifier = Modifier
                         .width(40.dp)
-                        .height(16.dp)
+                        .height(18.dp)
                         .background(brush)
                 )
             }
@@ -285,10 +339,19 @@ fun SeriesGrid(
     val columns = DeviceUtils.getGridColumns(LocalContext.current.resources)
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer,
+                        MaterialTheme.colorScheme.surface
+                    )
+                )
+            ),
         contentPadding = PaddingValues(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         itemsIndexed(seriesList) { index, seriesItem ->
             SeriesItem(
@@ -310,7 +373,7 @@ fun SeriesGrid(
         }
         
         if (isLoadingMore) {
-            item {
+            item(span = { GridCells.Fixed(columns) }) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -324,7 +387,7 @@ fun SeriesGrid(
         }
         
         if (errorMessage != null) {
-            item {
+            item(span = { GridCells.Fixed(columns) }) {
                 ErrorItemSeries(
                     errorMessage = errorMessage,
                     onRetry = onRetry
@@ -334,7 +397,7 @@ fun SeriesGrid(
         
         // اضافه کردن فاصله کوچک در پایین برای جلوگیری از padding بیش از حد
         item {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
@@ -365,15 +428,29 @@ fun ModernCircularProgressIndicatorSeries() {
         ), label = "rotation_anim"
     )
     
-    CircularProgressIndicator(
-        progress = progress,
+    Card(
         modifier = Modifier
-            .size(48.dp)
-            .rotate(rotation), // اضافه کردن چرخش
-        strokeWidth = 4.dp,
-        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-        color = MaterialTheme.colorScheme.primary
-    )
+            .size(64.dp)
+            .rotate(rotation),
+        shape = CircleShape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            CircularProgressIndicator(
+                progress = progress,
+                modifier = Modifier.size(48.dp),
+                strokeWidth = 4.dp,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
 }
 
 @Composable
@@ -385,10 +462,10 @@ fun SeriesItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = MaterialTheme.colorScheme.surface,
         )
     ) {
         Column(
@@ -397,22 +474,27 @@ fun SeriesItem(
                 .padding(12.dp)
         ) {
             // پوستر سریال
-            Image(
-                painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current)
-                        .data(series.image)
-                        .crossfade(true)
-                        .build()
-                ),
-                contentDescription = series.title,
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
+                    .height(200.dp),
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        ImageRequest.Builder(LocalContext.current)
+                            .data(series.image)
+                            .crossfade(true)
+                            .build()
+                    ),
+                    contentDescription = series.title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
             // جزئیات سریال
             Column {
@@ -424,10 +506,10 @@ fun SeriesItem(
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontFamily = VazirFontFamily,
-                    fontSize = 16.sp
+                    fontSize = 18.sp
                 )
                 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
                     text = series.year.toString(),
@@ -437,7 +519,7 @@ fun SeriesItem(
                     fontSize = 14.sp
                 )
                 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 
                 // ژانرها
                 if (series.genres.isNotEmpty()) {
@@ -448,24 +530,31 @@ fun SeriesItem(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontFamily = VazirFontFamily,
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 
                 // امتیاز
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .background(
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            RoundedCornerShape(20.dp)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = "امتیاز",
                         tint = Color(0xFFFFC107),
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                     
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     
                     Text(
                         text = String.format("%.1f", series.imdb),
@@ -473,7 +562,7 @@ fun SeriesItem(
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontFamily = VazirFontFamily,
-                        fontSize = 14.sp
+                        fontSize = 16.sp
                     )
                 }
             }
@@ -489,10 +578,41 @@ fun ErrorScreenSeries(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer,
+                        MaterialTheme.colorScheme.surface
+                    )
+                )
+            )
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Card(
+            modifier = Modifier
+                .size(120.dp)
+                .padding(bottom = 24.dp),
+            shape = CircleShape,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+        
         Text(
             text = "خطا در بارگذاری سریال‌ها",
             style = MaterialTheme.typography.headlineSmall,
@@ -500,7 +620,7 @@ fun ErrorScreenSeries(
             modifier = Modifier.padding(bottom = 8.dp),
             fontFamily = VazirFontFamily,
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
+            fontSize = 22.sp,
             textAlign = TextAlign.Center
         )
         
@@ -508,7 +628,7 @@ fun ErrorScreenSeries(
             text = errorMessage,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 16.dp),
+            modifier = Modifier.padding(bottom = 24.dp),
             fontFamily = VazirFontFamily,
             fontSize = 16.sp,
             textAlign = TextAlign.Center
@@ -516,18 +636,24 @@ fun ErrorScreenSeries(
         
         Button(
             onClick = onRetry,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = 8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            shape = RoundedCornerShape(30.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Refresh,
                 contentDescription = "تلاش مجدد",
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "تلاش مجدد",
                 fontFamily = VazirFontFamily,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
             )
         }
     }
@@ -542,8 +668,8 @@ fun ErrorItemSeries(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,
         )
@@ -551,34 +677,37 @@ fun ErrorItemSeries(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "خطا در بارگذاری سریال‌های بیشتر",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.padding(bottom = 8.dp),
+                modifier = Modifier.padding(bottom = 12.dp),
                 fontFamily = VazirFontFamily,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                fontSize = 18.sp
             )
             
             Text(
                 text = errorMessage,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.padding(bottom = 16.dp),
-                fontFamily = VazirFontFamily,
-                textAlign = TextAlign.Center
+                modifier = Modifier.padding(bottom = 20.dp),
+                fontFamily = VazilFontFamily,
+                textAlign = TextAlign.Center,
+                fontSize = 14.sp
             )
             
             Button(
                 onClick = onRetry,
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.onErrorContainer,
                     contentColor = MaterialTheme.colorScheme.errorContainer
-                )
+                ),
+                shape = RoundedCornerShape(30.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
@@ -588,7 +717,8 @@ fun ErrorItemSeries(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "تلاش مجدد",
-                    fontFamily = VazirFontFamily
+                    fontFamily = VazirFontFamily,
+                    fontWeight = FontWeight.Medium
                 )
             }
         }
