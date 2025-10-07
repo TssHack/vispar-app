@@ -62,8 +62,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
@@ -78,14 +76,9 @@ import com.fazli.vispar.components.DownloadOptionsDialog
 import com.fazli.vispar.data.model.FavoriteItem
 import com.fazli.vispar.data.model.Movie
 import com.fazli.vispar.data.model.Source
+import com.fazli.vispar.ui.theme.VazirFontFamily  // import فونت از فایل مشترک
 import com.fazli.vispar.utils.DownloadUtils
 import com.fazli.vispar.utils.StorageUtils
-
-// تعریف فونت وزیری
-private val VazirFontFamily = FontFamily(
-    Font(R.font.vazir_regular, FontWeight.Normal),
-    Font(R.font.vazir_bold, FontWeight.Bold)
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -685,4 +678,8 @@ fun SourceOptionsDialog(
 
 fun openUrl(context: Context, url: String) {
     DownloadUtils.openUrl(context, url)
+}
+fun openUrl(context: Context, url: String) {
+    DownloadUtils.openUrl(context, url)
+
 }
