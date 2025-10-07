@@ -9,7 +9,7 @@ import com.fazli.vispar.ui.theme.CustomIcons
 sealed class AppScreens(
     val route: String,
     @StringRes val resourceId: Int,
-    val iconResource: Int? = null, // تغییر به Int? به جای ImageVector?
+    val iconResource: Int? = null,
     val showBottomBar: Boolean = true,
     val showSidebar: Boolean = true
 ) {
@@ -61,16 +61,16 @@ sealed class AppScreens(
     data object Favorites : AppScreens(
         route = "favorites",
         resourceId = R.string.favorites,
-        showBottomBar: Boolean = false,
-        showSidebar: Boolean = false
+        showBottomBar = false,
+        showSidebar = false
     )
 
     data object About : AppScreens(
         route = "about",
         resourceId = R.string.about,
         iconResource = CustomIcons.Settings,
-        showBottomBar: Boolean = false,
-        showSidebar: Boolean = false
+        showBottomBar = false,
+        showSidebar = false
     )
 
     companion object {
@@ -78,7 +78,6 @@ sealed class AppScreens(
     }
 }
 
-// تابع کمکی برای تبدیل منبع به ImageVector - خارج از companion object
 @Composable
 fun AppScreens.getIcon(): ImageVector? {
     return iconResource?.let { CustomIcons.toImageVector(it) }
