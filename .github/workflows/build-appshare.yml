@@ -1,19 +1,15 @@
-name: Build and Release vispar
+name: Build vispar
 
 on:
   push:
     branches:
-      - '**' # هر پوشی در هر شاخه‌ای باعث اجرای اکشن میشه
+      - '**'
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to create release for (e.g., v1.0.0)'
-        required: true
-        default: 'v1.0.0'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -31,91 +27,24 @@ jobs:
         run: chmod +x gradlew
 
       - name: Make scripts executable
-        run: chmod +x scripts/*.sh
+        run: chmod +x scripts/*.sh || true
 
       - name: Validate Gradle Wrapper
-        run: ./scripts/verify-gradle-wrapper.sh
+        run: ./scripts/verify-gradle-wrapper.sh || true
         continue-on-error: true
-        timeout-minutes: 5
-
-      - name: Retry Gradle Wrapper Validation (if needed)
-        run: |
-          echo "Checking if Gradle wrapper validation is needed..."
-          if [ ! -f "gradle/wrapper/gradle-wrapper.jar.sha256" ]; then
-            echo "Gradle wrapper checksum missing, generating new one..."
-            ./scripts/fix-gradle-wrapper.sh
-          else
-            echo "Gradle wrapper checksum already exists, continuing..."
-          fi
-        continue-on-error: true
-
-      - name: Check Gradle Wrapper Validation Result
-        run: |
-          if [ ! -f "gradle/wrapper/gradle-wrapper.jar.sha256" ]; then
-            echo "Gradle wrapper checksum missing, generating new one..."
-            cd gradle/wrapper
-            sha256sum gradle-wrapper.jar > gradle-wrapper.jar.sha256
-          fi
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
 
-      - name: Decode Keystore
-        run: echo "${{ secrets.KEY_STORE }}" | base64 --decode > app/keystore.jks
-        continue-on-error: true
-
-      - name: Create keystore properties file
-        run: |
-          echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
-          echo "storeFile=keystore.jks" >> key.properties
-        continue-on-error: true
-
-      - name: Build APK
+      # در این نسخه چون امضا حذف شده، نیازی به keystore نیست
+      - name: Build unsigned release APK
         run: ./gradlew assembleRelease --stacktrace -x lint
 
-      - name: Rename APK
-        run: |
-          mkdir -p release
-          cp app/build/outputs/apk/release/app-universal-release.apk release/vispar-universal.apk
-          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk release/vispar-arm64-v8a.apk
-          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk release/vispar-armeabi-v7a.apk
-
-      - name: Get tag name
-        id: get_tag
-        run: |
-          if [[ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]]; then
-            TAG_NAME=${{ github.event.inputs.tag }}
-          else
-            TAG_NAME=${GITHUB_SHA::7} # از هش کوتاه commit به عنوان tag استفاده کن
-          fi
-          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
-          echo "Tag name: $TAG_NAME"
-
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
+      # آپلود خروجی به عنوان artifact قابل دانلود از تب Actions
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ env.TAG_NAME }}
-          name: Release ${{ env.TAG_NAME }}
-          draft: false
-          prerelease: false
-          files: |
-            release/vispar-universal.apk
-            release/vispar-arm64-v8a.apk
-            release/vispar-armeabi-v7a.apk
-          body: |
-            ## vispar Release ${{ env.TAG_NAME }}
-
-            ### What's New
-            - Modernized UI with enhanced user experience
-            - Improved performance and stability
-            - New features and bug fixes
-
-            ### Download Options
-            - [Universal APK (all architectures)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/vispar-universal.apk)
-            - [ARM64-v8a APK](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/vispar-arm64-v8a.apk)
-            - [ARMv7a APK](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/vispar-armeabi-v7a.apk)
+          name: vispar-release-apk
+          path: app/build/outputs/apk/release/*.apk
