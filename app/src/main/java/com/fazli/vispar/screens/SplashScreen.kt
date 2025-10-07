@@ -23,21 +23,13 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.fazli.vispar.BuildConfig
+import com.fazli.vispar.BuildConfig // This might not be available immediately
 import com.fazli.vispar.R
 import kotlinx.coroutines.delay
-
-// تعریف فونت وزیری
-private val VazirFontFamily = FontFamily(
-    Font(R.font.vazir_regular, FontWeight.Normal),
-    Font(R.font.vazir_bold, FontWeight.Bold)
-)
 
 @Composable
 fun SplashScreen(
@@ -48,7 +40,7 @@ fun SplashScreen(
     val alpha = remember { Animatable(0f) }
     
     LaunchedEffect(Unit) {
-        // انیمیشن مقیاس لوگو
+        // Animate the logo scale
         scale.animateTo(
             targetValue = 1f,
             animationSpec = tween(
@@ -59,7 +51,7 @@ fun SplashScreen(
             )
         )
         
-        // انیمیشن آلفا برای متن
+        // Animate the alpha for text
         alpha.animateTo(
             targetValue = 1f,
             animationSpec = tween(
@@ -67,7 +59,7 @@ fun SplashScreen(
             )
         )
         
-        // انتظار قبل از هدایت به صفحه بعد
+        // Wait for some time before navigating
         delay(2000)
         onTimeout()
     }
@@ -82,45 +74,40 @@ fun SplashScreen(
     ) {
         Image(
             painter = painterResource(id = R.drawable.splash_logo),
-            contentDescription = "لوگوی برنامه",
+            contentDescription = "App Logo",
             modifier = Modifier
-                .size(150.dp)
+                .size(120.dp)
                 .scale(scale.value),
             contentScale = ContentScale.Fit
         )
         
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         
         Text(
-            text = "ویسپار",
+            text = "vispar",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            fontSize = 36.sp,
+            fontSize = 32.sp,
             color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center,
-            fontFamily = VazirFontFamily
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        Text(
-            text = "نسخه ${BuildConfig.VERSION_NAME ?: "1.0"}", // اضافه کردن مقدار پیش‌فرض
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center,
-            fontFamily = VazirFontFamily,
-            fontSize = 16.sp
+            textAlign = TextAlign.Center
         )
         
         Spacer(modifier = Modifier.height(8.dp))
         
         Text(
-            text = "توسعه یافته توسط احسان فضلی",
+            text = "Version ${BuildConfig.VERSION_NAME ?: "1.0"}", // Add fallback
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center,
-            fontFamily = VazirFontFamily,
-            fontSize = 16.sp
+            textAlign = TextAlign.Center
+        )
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        Text(
+            text = "Developed by Ehsan fazli",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center
         )
     }
 }
