@@ -46,7 +46,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -71,7 +71,7 @@ fun DownloadOptionsDialog(
 ) {
     // تنظیم جهت‌گیری راست‌چین برای دیالوگ
     androidx.compose.runtime.CompositionLocalProvider(
-        LocalLayoutDirection provides LayoutDirection.Rtl
+        LocalLayoutDirection provides LayoutDirection.RTL
     ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
@@ -405,5 +405,5 @@ fun DownloadOptionCard(
                 modifier = Modifier.size(20.dp)
             )
         }
-    }
+    )
 }
