@@ -1,5 +1,6 @@
 package com.fazli.vispar.ui.theme
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import com.fazli.vispar.R
@@ -14,6 +15,6 @@ object CustomIcons {
     // تابع کمکی برای تبدیل شناسه به ImageVector
     @Composable
     fun toImageVector(resourceId: Int): ImageVector {
-        return vectorResource(resourceId)
+        return vectorResource(id = resourceId)
     }
 }
