@@ -67,8 +67,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -83,14 +81,9 @@ import coil.request.ImageRequest
 import com.fazli.vispar.R
 import com.fazli.vispar.data.model.Poster
 import com.fazli.vispar.ui.search.SearchViewModel
+import com.fazli.vispar.ui.theme.VazirFontFamily  // import فونت از فایل مشترک
 import com.fazli.vispar.utils.DeviceUtils
 import com.fazli.vispar.utils.StorageUtils
-
-// تعریف فونت وزیری
-private val VazirFontFamily = FontFamily(
-    Font(R.font.vazir_regular, FontWeight.Normal),
-    Font(R.font.vazir_bold, FontWeight.Bold)
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
