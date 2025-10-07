@@ -84,7 +84,7 @@ import com.fazli.vispar.utils.DeviceUtils
 import com.fazli.vispar.utils.StorageUtils
 
 // تعریف فونت وزیری
-private val VazirFontFamily = FontFamily(
+val VazirFontFamily = FontFamily(
     Font(R.font.vazir_regular, FontWeight.Normal),
     Font(R.font.vazir_bold, FontWeight.Bold)
 )
@@ -373,7 +373,7 @@ fun SeriesGrid(
         }
         
         if (isLoadingMore) {
-            item(span = { androidx.compose.foundation.lazy.grid.LazyGridItemSpan(maxLineSpan) }) {
+            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -387,7 +387,7 @@ fun SeriesGrid(
         }
         
         if (errorMessage != null) {
-            item(span = { androidx.compose.foundation.lazy.grid.LazyGridItemSpan(maxLineSpan) }) {
+            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                 ErrorItemSeries(
                     errorMessage = errorMessage,
                     onRetry = onRetry
@@ -696,7 +696,7 @@ fun ErrorItemSeries(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.padding(bottom = 20.dp),
-                fontFamily = VazilFontFamily,
+                fontFamily = VazirFontFamily,
                 textAlign = TextAlign.Center,
                 fontSize = 14.sp
             )
@@ -723,5 +723,4 @@ fun ErrorItemSeries(
             }
         }
     }
-
 }
