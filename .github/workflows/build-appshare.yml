@@ -2,8 +2,8 @@ name: Build and Release vispar
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - '**' # هر پوشی در هر شاخه‌ای باعث اجرای اکشن میشه
   workflow_dispatch:
     inputs:
       tag:
@@ -28,23 +28,19 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Make gradlew executable
-        run: |
-          chmod +x gradlew
+        run: chmod +x gradlew
 
       - name: Make scripts executable
-        run: |
-          chmod +x scripts/*.sh
+        run: chmod +x scripts/*.sh
 
       - name: Validate Gradle Wrapper
-        run: |
-          ./scripts/verify-gradle-wrapper.sh
+        run: ./scripts/verify-gradle-wrapper.sh
         continue-on-error: true
         timeout-minutes: 5
 
       - name: Retry Gradle Wrapper Validation (if needed)
         run: |
           echo "Checking if Gradle wrapper validation is needed..."
-          # If the previous step failed, try a manual validation approach
           if [ ! -f "gradle/wrapper/gradle-wrapper.jar.sha256" ]; then
             echo "Gradle wrapper checksum missing, generating new one..."
             ./scripts/fix-gradle-wrapper.sh
@@ -67,8 +63,7 @@ jobs:
           gradle-version: wrapper
 
       - name: Decode Keystore
-        run: |
-          echo "${{ secrets.KEY_STORE }}" | base64 --decode > app/keystore.jks
+        run: echo "${{ secrets.KEY_STORE }}" | base64 --decode > app/keystore.jks
         continue-on-error: true
 
       - name: Create keystore properties file
@@ -80,8 +75,7 @@ jobs:
         continue-on-error: true
 
       - name: Build APK
-        run: |
-          ./gradlew assembleRelease --stacktrace -x lint
+        run: ./gradlew assembleRelease --stacktrace -x lint
 
       - name: Rename APK
         run: |
@@ -96,7 +90,7 @@ jobs:
           if [[ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]]; then
             TAG_NAME=${{ github.event.inputs.tag }}
           else
-            TAG_NAME=${GITHUB_REF#refs/tags/}
+            TAG_NAME=${GITHUB_SHA::7} # از هش کوتاه commit به عنوان tag استفاده کن
           fi
           echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
           echo "Tag name: $TAG_NAME"
@@ -115,22 +109,13 @@ jobs:
             release/vispar-armeabi-v7a.apk
           body: |
             ## vispar Release ${{ env.TAG_NAME }}
-            
+
             ### What's New
             - Modernized UI with enhanced user experience
             - Improved performance and stability
             - New features and bug fixes
-            
+
             ### Download Options
-            - [Universal APK (all architectures)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/vispar-universal.apk) - Larger file size, compatible with all devices
-            - [ARM64-v8a APK](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/vispar-arm64-v8a.apk) - Optimized for 64-bit ARM devices
-            - [ARMv7a APK](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/vispar-armeabi-v7a.apk) - Optimized for 32-bit ARM devices
-            
-            ### Installation
-            1. Download the appropriate APK file for your device
-            2. Enable "Install from unknown sources" in your device settings
-            3. Open and install the APK
-            4. Launch vispar and enjoy your movies!
-            
-            ### Changelog
-            For a detailed changelog, please check the [commit history](https://github.com/${{ github.repository }}/commits/${{ env.TAG_NAME }}).
+            - [Universal APK (all architectures)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/vispar-universal.apk)
+            - [ARM64-v8a APK](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/vispar-arm64-v8a.apk)
+            - [ARMv7a APK](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/vispar-armeabi-v7a.apk)
