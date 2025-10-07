@@ -27,46 +27,34 @@ android {
         buildConfig = true // Add this line to enable BuildConfig generation
     }
 
-    signingConfigs {
-        create("release") {
-            val keystorePropertiesFile = rootProject.file("key.properties")
-            val keystoreProperties = Properties()
-            if (keystorePropertiesFile.exists()) {
-                keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-            }
-            
-            keyAlias = keystoreProperties.getProperty("keyAlias") ?: ""
-            keyPassword = keystoreProperties.getProperty("keyPassword") ?: ""
-            storeFile = file(keystoreProperties.getProperty("storeFile") ?: "keystore.jks")
-            storePassword = keystoreProperties.getProperty("storePassword") ?: ""
-        }
-    }
+    // removed signingConfigs so release won't be signed
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+            // <-- removed signingConfig here so release stays unsigned
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // produce a minimal unsigned APK (no obfuscation/minify)
         }
     }
+
+    // produce a single simple APK (disable per-ABI splits)
     splits {
         abi {
-            isEnable = true
-            isUniversalApk = true
+            isEnable = false
+            isUniversalApk = false
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
         jvmTarget = "11"
-    }
-    buildFeatures {
-        compose = true
     }
     
     // Add support for different screen sizes including TV
@@ -85,6 +73,18 @@ android {
         // Continue build even if lint errors are found
         abortOnError = false
         checkReleaseBuilds = false
+    }
+
+    // Optional: make output filename predictable/simple (may depend on AGP version)
+    // If this block causes issues with your AGP version, حذفش کن — خروجی هنوز unsigned خواهد بود.
+    applicationVariants.all {
+        outputs.all {
+            // set a simple, consistent filename for the release variant
+            if (name.contains("release", ignoreCase = true)) {
+                // outputFileName may be different depending on AGP; for many AGP versions this works
+                setProperty("outputFileName", "app-release-unsigned.apk")
+            }
+        }
     }
 }
 
