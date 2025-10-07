@@ -3,6 +3,7 @@ package com.fazli.vispar.screens
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,6 +26,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,13 +34,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -54,141 +64,249 @@ fun AboutScreen(navController: NavController?) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     
-    Column(
-        modifier = Modifier.fillMaxSize()
+    // تنظیم جهت‌گیری راست‌چین برای کل صفحه
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalLayoutDirection provides LayoutDirection.Rtl
     ) {
-        // هدر با دکمه بازگشت
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = { navController?.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "بازگشت",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            
-            Text(
-                text = stringResource(R.string.about),
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp),
-                fontSize = 20.sp,
-                fontFamily = VazirFontFamily,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        
-        // محتوای اصلی
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .weight(1f)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
         ) {
-            // لوگوی برنامه
-            Image(
-                painter = painterResource(id = R.drawable.splash_logo),
-                contentDescription = "لوگوی برنامه",
-                modifier = Modifier.size(120.dp)
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // نام برنامه
-            Text(
-                text = "ویسپار",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                fontFamily = VazirFontFamily,
-                fontSize = 28.sp
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // نسخه و معماری برنامه
-            Text(
-                text = "نسخه ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) - ${getArchitecture()}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontFamily = VazirFontFamily,
-                fontSize = 14.sp
-            )
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            // اطلاعات توسعه‌دهنده
-            Text(
-                text = "توسعه یافته توسط احسان فضلی",
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-                fontFamily = VazirFontFamily,
-                fontSize = 18.sp
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // کارت لینک‌ها
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                shape = MaterialTheme.shapes.medium
+            // هدر با دکمه بازگشت
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "ارتباط با ما",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = 16.dp),
-                        fontFamily = VazirFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                    
-                    // لینک کانال تلگرام
-                    LinkItem(
-                        icon = Icons.Default.Send,
-                        text = "کانال تلگرام",
-                        url = "https://t.me/nexzoteam"
-                    )
-                    
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    // لینک تلگرام توسعه‌دهنده
-                    LinkItem(
-                        icon = Icons.Default.Send,
-                        text = "تلگرام توسعه‌دهنده",
-                        url = "https://t.me/Devehsan"
-                    )
-                    
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    // لینک ایمیل توسعه‌دهنده
-                    LinkItem(
-                        icon = Icons.Default.Email,
-                        text = "ایمیل توسعه‌دهنده",
-                        url = "ehsanfazlinejad@gmail.com",
-                        isEmail = true
+                IconButton(
+                    onClick = { navController?.popBackStack() },
+                    modifier = Modifier
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "بازگشت",
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
+                
+                Text(
+                    text = stringResource(R.string.about),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 16.dp),
+                    fontSize = 22.sp,
+                    fontFamily = VazirFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // کپی‌رایت
-            Text(
-                text = "© ${java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)} ویسپار. تمامی حقوق محفوظ است.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                fontFamily = VazirFontFamily,
-                fontSize = 12.sp
-            )
+            // محتوای اصلی
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(scrollState),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // لوگوی برنامه
+                Card(
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .size(120.dp),
+                    shape = CircleShape,
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.splash_logo),
+                        contentDescription = "لوگوی برنامه",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // نام برنامه
+                Text(
+                    text = "ویسپار",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = VazirFontFamily,
+                    fontSize = 32.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // نسخه و معماری برنامه
+                Card(
+                    modifier = Modifier.padding(horizontal = 32.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = "نسخه ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) - ${getArchitecture()}",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontFamily = VazirFontFamily,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                // اطلاعات توسعه‌دهنده
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // تصویر توسعه‌دهنده
+                        Image(
+                            painter = painterResource(id = R.drawable.ehsan),
+                            contentDescription = "تصویر توسعه‌دهنده",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Text(
+                            text = "توسعه یافته توسط احسان فضلی",
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                            fontFamily = VazirFontFamily,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Text(
+                            text = "توسعه‌دهنده اندروید",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            fontFamily = VazirFontFamily,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // کارت لینک‌ها
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text(
+                            text = "ارتباط با ما",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(bottom = 16.dp),
+                            fontFamily = VazirFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        
+                        Divider(
+                            modifier = Modifier.padding(bottom = 16.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                        )
+                        
+                        // لینک کانال تلگرام
+                        LinkItem(
+                            icon = Icons.Default.Send,
+                            text = "کانال تلگرام",
+                            url = "https://t.me/nexzoteam"
+                        )
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        Divider(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                        )
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        // لینک تلگرام توسعه‌دهنده
+                        LinkItem(
+                            icon = Icons.Default.Send,
+                            text = "تلگرام توسعه‌دهنده",
+                            url = "https://t.me/Devehsan"
+                        )
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        Divider(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                        )
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        // لینک ایمیل توسعه‌دهنده
+                        LinkItem(
+                            icon = Icons.Default.Email,
+                            text = "ایمیل توسعه‌دهنده",
+                            url = "ehsanfazlinejad@gmail.com",
+                            isEmail = true
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // کپی‌رایت
+                Text(
+                    text = "© ${java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)} ویسپار. تمامی حقوق محفوظ است.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    fontFamily = VazirFontFamily,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+            }
         }
     }
 }
@@ -238,7 +356,8 @@ fun LinkItem(
                 text = text,
                 style = MaterialTheme.typography.bodyLarge,
                 fontFamily = VazirFontFamily,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
         
