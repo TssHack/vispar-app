@@ -125,7 +125,7 @@ fun SidebarNavigation(navController: NavController) {
                                                 imageVector = icon,
                                                 contentDescription = stringResource(screen.resourceId),
                                                 tint = iconColor,
-                                                modifier = Modifier.size(32.dp) // Increased size
+                                                modifier = Modifier.size(32.dp)
                                             )
                                         }
                                         Spacer(modifier = Modifier.height(4.dp))
@@ -177,3 +177,4 @@ fun SidebarNavigation(navController: NavController) {
         }
     }
 }
+
