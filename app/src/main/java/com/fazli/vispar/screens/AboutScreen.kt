@@ -192,7 +192,7 @@ fun AboutScreen(navController: NavController?) {
                     ) {
                         // تصویر توسعه‌دهنده - اصلاح مسیر فایل
                         Image(
-                            painter = painterResource(id = R.drawable.ehsan), // فایل باید در پوشه drawable قرار گیرد
+                            painter = painterResource(id = R.drawable.splash_logo), // فایل باید در پوشه drawable قرار گیرد
                             contentDescription = "تصویر توسعه‌دهنده",
                             modifier = Modifier
                                 .size(100.dp)
@@ -389,3 +389,4 @@ fun getArchitecture(): String {
         "ناشناخته"
     }
 }
+
