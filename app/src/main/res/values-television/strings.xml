@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">FoxNS</string>
+    <string name="app_name">ویسپار</string>
     <string name="movies">Movies</string>
     <string name="series">Series</string>
     <string name="search">Search</string>
