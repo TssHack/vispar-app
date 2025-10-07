@@ -61,25 +61,25 @@ sealed class AppScreens(
     data object Favorites : AppScreens(
         route = "favorites",
         resourceId = R.string.favorites,
-        showBottomBar = false,
-        showSidebar = false
+        showBottomBar: Boolean = false,
+        showSidebar: Boolean = false
     )
 
     data object About : AppScreens(
         route = "about",
         resourceId = R.string.about,
         iconResource = CustomIcons.Settings,
-        showBottomBar = false,
-        showSidebar = false
+        showBottomBar: Boolean = false,
+        showSidebar: Boolean = false
     )
 
     companion object {
         val screens = listOf(Movies, Series, Search, Settings)
-        
-        // تابع کمکی برای تبدیل منبع به ImageVector
-        @Composable
-        fun AppScreens.getIcon(): ImageVector? {
-            return iconResource?.let { CustomIcons.toImageVector(it) }
-        }
     }
+}
+
+// تابع کمکی برای تبدیل منبع به ImageVector - خارج از companion object
+@Composable
+fun AppScreens.getIcon(): ImageVector? {
+    return iconResource?.let { CustomIcons.toImageVector(it) }
 }
