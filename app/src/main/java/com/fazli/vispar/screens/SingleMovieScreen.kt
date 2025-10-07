@@ -679,7 +679,3 @@ fun SourceOptionsDialog(
 fun openUrl(context: Context, url: String) {
     DownloadUtils.openUrl(context, url)
 }
-fun openUrl(context: Context, url: String) {
-    DownloadUtils.openUrl(context, url)
-
-}
