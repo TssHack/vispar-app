@@ -1,5 +1,6 @@
 package com.fazli.vispar.screens
 
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -433,4 +434,5 @@ private fun getTypeInPersian(type: String): String {
         "series" -> "سریال"
         else -> type
     }
+
 }
