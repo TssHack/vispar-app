@@ -47,8 +47,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
@@ -60,13 +58,8 @@ import coil.request.ImageRequest
 import com.fazli.vispar.R
 import com.fazli.vispar.data.model.FavoriteItem
 import com.fazli.vispar.navigation.AppScreens
+import com.fazli.vispar.ui.theme.VazirFontFamily  // import فونت از فایل مشترک
 import com.fazli.vispar.utils.StorageUtils
-
-// تعریف فونت وزیری
-private val VazirFontFamily = FontFamily(
-    Font(R.font.vazir_regular, FontWeight.Normal),
-    Font(R.font.vazir_bold, FontWeight.Bold)
-)
 
 @Composable
 fun FavoritesScreen(navController: NavController) {
@@ -434,5 +427,12 @@ private fun getTypeInPersian(type: String): String {
         "series" -> "سریال"
         else -> type
     }
+}
+    return when (type.lowercase()) {
+        "movie" -> "فیلم"
+        "series" -> "سریال"
+        else -> type
+    }
 
 }
+
