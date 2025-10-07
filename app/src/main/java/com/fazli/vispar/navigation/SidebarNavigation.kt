@@ -119,8 +119,10 @@ fun SidebarNavigation(navController: NavController) {
                                                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                                                 ) {}
                                             }
+                                            // تغییر اصلی در این بخش
+                                            val icon = screen.getIcon() ?: CustomIcons.toImageVector(CustomIcons.Movie)
                                             Icon(
-                                                imageVector = screen.icon ?: CustomIcons.Movie, // Use custom icon
+                                                imageVector = icon,
                                                 contentDescription = stringResource(screen.resourceId),
                                                 tint = iconColor,
                                                 modifier = Modifier.size(32.dp) // Increased size
