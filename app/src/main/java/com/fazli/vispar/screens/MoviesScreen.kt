@@ -374,7 +374,7 @@ fun MovieGrid(
         }
         
         if (isLoadingMore) {
-            item(span = { GridCells.Fixed(columns) }) {
+            item(span = { androidx.compose.foundation.lazy.grid.LazyGridItemSpan(maxLineSpan) }) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -388,7 +388,7 @@ fun MovieGrid(
         }
         
         if (errorMessage != null) {
-            item(span = { GridCells.Fixed(columns) }) {
+            item(span = { androidx.compose.foundation.lazy.grid.LazyGridItemSpan(maxLineSpan) }) {
                 ErrorItem(
                     errorMessage = errorMessage,
                     onRetry = onRetry
@@ -724,4 +724,5 @@ fun ErrorItem(
             }
         }
     }
+
 }
