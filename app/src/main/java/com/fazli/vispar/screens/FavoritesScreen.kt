@@ -428,11 +428,3 @@ private fun getTypeInPersian(type: String): String {
         else -> type
     }
 }
-    return when (type.lowercase()) {
-        "movie" -> "فیلم"
-        "series" -> "سریال"
-        else -> type
-    }
-
-}
-
