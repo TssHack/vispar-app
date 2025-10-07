@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <!-- پس زمینه -->
+    <path
+        android:fillColor="#B69DF8"
+        android:pathData="M4,20 C4,12.26 10.26,6 18,6 L46,6 C53.74,6 60,12.26 60,20 L60,44 C60,51.74 53.74,58 46,58 L18,58 C10.26,58 4,51.74 4,44 Z" />
+    <!-- لنز جستجو -->
+    <path
+        android:fillColor="#EADDFF"
+        android:pathData="M39,28 C39,33.52 33.52,39 28,39 C22.48,39 17,33.52 17,28 C17,22.48 22.48,17 28,17 C33.52,17 39,22.48 39,28 Z" />
+    <!-- دسته جستجو -->
+    <path
+        android:fillColor="#4F378B"
+        android:pathData="M46,46 L54,54"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+</vector>
