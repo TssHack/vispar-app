@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <!-- پس زمینه -->
+    <path
+        android:fillColor="#B69DF8"
+        android:pathData="M4,20 C4,12.26 10.26,6 18,6 L46,6 C53.74,6 60,12.26 60,20 L60,44 C60,51.74 53.74,58 46,58 L18,58 C10.26,58 4,51.74 4,44 Z" />
+    <!-- چرخ دنده بیرونی -->
+    <path
+        android:fillColor="#EADDFF"
+        android:pathData="M32,20 C25.37,20 20,25.37 20,32 C20,38.63 25.37,44 32,44 C38.63,44 44,38.63 44,32 C44,25.37 38.63,20 32,20 Z" />
+    <!-- چرخ دنده داخلی -->
+    <path
+        android:fillColor="#4F378B"
+        android:pathData="M32,26 C34.21,26 36,27.79 36,30 C36,32.21 34.21,34 32,34 C29.79,34 28,32.21 28,30 C28,27.79 29.79,26 32,26 Z" />
+    <!-- دندان‌های چرخ دنده -->
+    <path
+        android:fillColor="#4F378B"
+        android:pathData="M32,14 L32,18 M32,46 L32,50 M14,32 L18,32 M46,32 L50,32 M19.5,19.5 L22.5,22.5 M41.5,41.5 L44.5,44.5 M19.5,44.5 L22.5,41.5 M41.5,22.5 L44.5,19.5" />
+</vector>
