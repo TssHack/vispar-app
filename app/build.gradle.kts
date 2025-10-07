@@ -21,27 +21,28 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    
+
     buildFeatures {
         compose = true
-        buildConfig = true // Add this line to enable BuildConfig generation
+        buildConfig = true
     }
 
-    // removed signingConfigs so release won't be signed
-
+    // حذف بخش امضای release — دیگر keystore استفاده نمی‌شود
     buildTypes {
         release {
             isMinifyEnabled = false
-            // <-- removed signingConfig here so release stays unsigned
+            // بدون امضا
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // produce a minimal unsigned APK (no obfuscation/minify)
+        }
+        debug {
+            isMinifyEnabled = false
         }
     }
 
-    // produce a single simple APK (disable per-ABI splits)
+    // خروجی ساده، بدون split
     splits {
         abi {
             isEnable = false
@@ -53,11 +54,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
-    
-    // Add support for different screen sizes including TV
+
+    // پشتیبانی از صفحه‌نمایش‌های مختلف (مثلاً تلویزیون)
     sourceSets {
         getByName("main") {
             res {
@@ -65,31 +67,16 @@ android {
             }
         }
     }
-    
-    // Lint configuration to handle missing default resource issue
+
+    // تنظیمات lint تا بیلد متوقف نشود
     lint {
-        // Use baseline to ignore existing lint errors
         baseline = file("lint-baseline.xml")
-        // Continue build even if lint errors are found
         abortOnError = false
         checkReleaseBuilds = false
-    }
-
-    // Optional: make output filename predictable/simple (may depend on AGP version)
-    // If this block causes issues with your AGP version, حذفش کن — خروجی هنوز unsigned خواهد بود.
-    applicationVariants.all {
-        outputs.all {
-            // set a simple, consistent filename for the release variant
-            if (name.contains("release", ignoreCase = true)) {
-                // outputFileName may be different depending on AGP; for many AGP versions this works
-                setProperty("outputFileName", "app-release-unsigned.apk")
-            }
-        }
     }
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -103,27 +90,27 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.coil.compose)
-    
-    // ExoPlayer for video playback
+
+    // ExoPlayer برای پخش ویدیو
     implementation("androidx.media3:media3-exoplayer:1.4.1")
     implementation("androidx.media3:media3-ui:1.4.1")
     implementation("androidx.media3:media3-exoplayer-dash:1.4.1")
     implementation("androidx.media3:media3-exoplayer-hls:1.4.1")
-    
+
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
-    
+
     // Networking
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    
+
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
-    
-    // Leanback for TV support
+
+    // Leanback برای پشتیبانی از Android TV
     implementation(libs.androidx.leanback)
     implementation(libs.androidx.leanback.preference)
-    
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
