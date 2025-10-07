@@ -148,3 +148,4 @@ fun BottomNavigationBar(navController: NavController) {
         }
     }
 }
+
