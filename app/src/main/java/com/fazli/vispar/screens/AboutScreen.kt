@@ -190,9 +190,9 @@ fun AboutScreen(navController: NavController?) {
                         modifier = Modifier.padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // تصویر توسعه‌دهنده
+                        // تصویر توسعه‌دهنده - اصلاح مسیر فایل
                         Image(
-                            painter = painterResource(id = R.drawable.ehsan),
+                            painter = painterResource(id = R.drawable.ehsan), // فایل باید در پوشه drawable قرار گیرد
                             contentDescription = "تصویر توسعه‌دهنده",
                             modifier = Modifier
                                 .size(100.dp)
