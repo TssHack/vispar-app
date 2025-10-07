@@ -37,13 +37,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
@@ -52,12 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.fazli.vispar.BuildConfig
 import com.fazli.vispar.R
-
-// تعریف فونت وزیری
-private val VazirFontFamily = FontFamily(
-    Font(R.font.vazir_regular, FontWeight.Normal),
-    Font(R.font.vazir_bold, FontWeight.Bold)
-)
+import com.fazli.vispar.ui.theme.VazirFontFamily  // import فونت از فایل مشترک
 
 @Composable
 fun AboutScreen(navController: NavController?) {
@@ -313,7 +307,7 @@ fun AboutScreen(navController: NavController?) {
 
 @Composable
 fun LinkItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     text: String,
     url: String,
     isEmail: Boolean = false
@@ -335,6 +329,7 @@ fun LinkItem(
                     context.startActivity(intent)
                 } catch (e: Exception) {
                     // مدیریت خطا در صورت نیاز
+                    e.printStackTrace()
                 }
             }
             .padding(12.dp),
@@ -389,4 +384,3 @@ fun getArchitecture(): String {
         "ناشناخته"
     }
 }
-
