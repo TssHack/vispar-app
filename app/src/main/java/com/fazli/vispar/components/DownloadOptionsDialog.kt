@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -25,6 +25,13 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Forward10
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Replay10
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -35,10 +42,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +50,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -87,233 +91,7 @@ fun DownloadOptionsDialog(
         ) {
             Column(
                 modifier = Modifier.padding(24.dp)
-            ) {
-                // هدر دیالوگ با طراحی جذاب
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier.size(56.dp)
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Download,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(20.dp))
-                
-                // عنوان و کیفیت
-                Text(
-                    text = "گزینه‌های دانلود",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = VazirFontFamily,
-                    fontSize = 22.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // کارت کیفیت
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                    ),
-                    border = BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Download,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "کیفیت: ${source.quality}",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium,
-                            fontFamily = VazirFontFamily,
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // بخش گزینه‌های دانلود
-                Text(
-                    text = "دانلود",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontFamily = VazirFontFamily,
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                
-                // گزینه‌های دانلود با طراحی کارت‌های زیبا
-                DownloadOptionCard(
-                    icon = Icons.Default.ContentCopy,
-                    text = "کپی لینک",
-                    description = "کپی لینک مستقیم ویدیو",
-                    onClick = {
-                        onCopyLink()
-                        onDismiss()
-                    },
-                    iconColor = MaterialTheme.colorScheme.primary
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                DownloadOptionCard(
-                    icon = Icons.Default.OpenInBrowser,
-                    text = "دانلود با مرورگر",
-                    description = "دانلود با مرورگر پیش‌فرض",
-                    onClick = {
-                        onDownloadWithBrowser()
-                        onDismiss()
-                    },
-                    iconColor = MaterialTheme.colorScheme.tertiary
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                DownloadOptionCard(
-                    icon = Icons.Default.Download,
-                    text = "دانلود با ADM",
-                    description = "دانلود با مدیریت دانلود ADM",
-                    onClick = {
-                        onDownloadWithADM()
-                        onDismiss()
-                    },
-                    iconColor = Color(0xFF4CAF50) // رنگ سبز برای ADM
-                )
-                
-                Spacer(modifier = Modifier.height(20.dp))
-                
-                Divider(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                )
-                
-                Spacer(modifier = Modifier.height(20.dp))
-                
-                // بخش گزینه‌های پخش
-                Text(
-                    text = "پخش",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontFamily = VazirFontFamily,
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                
-                // گزینه‌های پخش با طراحی کارت‌های زیبا
-                DownloadOptionCard(
-                    icon = Icons.Default.PlayArrow,
-                    text = "باز کردن در VLC Player",
-                    description = "پخش مستقیم در VLC",
-                    onClick = {
-                        onOpenInVLC()
-                        onDismiss()
-                    },
-                    iconColor = Color(0xFFFF9800) // رنگ نارنجی برای VLC
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                DownloadOptionCard(
-                    icon = Icons.Default.PlayArrow,
-                    text = "باز کردن در MX Player",
-                    description = "پخش مستقیم در MX Player",
-                    onClick = {
-                        onOpenInMXPlayer()
-                        onDismiss()
-                    },
-                    iconColor = Color(0xFF2196F3) // رنگ آبی برای MX Player
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                DownloadOptionCard(
-                    icon = Icons.Default.PlayArrow,
-                    text = "باز کردن در KM Player",
-                    description = "پخش مستقیم در KM Player",
-                    onClick = {
-                        onOpenInKMPlayer()
-                        onDismiss()
-                    },
-                    iconColor = Color(0xFF9C27B0) // رنگ بنفش برای KM Player
-                )
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // دکمه انصراف با طراحی زیبا
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(50.dp),
-                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
-                        modifier = Modifier
-                            .clickable { onDismiss() }
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.error.copy(alpha = 0.3f),
-                                shape = RoundedCornerShape(50.dp)
-                            )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Cancel,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "انصراف",
-                                fontFamily = VazirFontFamily,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onError
-                            )
-                        }
-                    }
-                }
-            }
+            )
         }
     }
 }
