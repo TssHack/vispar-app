@@ -66,8 +66,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
@@ -81,6 +79,7 @@ import com.fazli.vispar.data.model.VideoPlayerSettings
 import com.fazli.vispar.ui.theme.ThemeMode
 import com.fazli.vispar.ui.theme.ThemeSettings
 import com.fazli.vispar.ui.theme.ThemeManager
+import com.fazli.vispar.ui.theme.VazirFontFamily  // import فونت از فایل مشترک
 import com.fazli.vispar.ui.theme.colorOptions
 import com.fazli.vispar.ui.theme.defaultPrimaryColor
 import com.fazli.vispar.utils.StorageUtils
@@ -92,12 +91,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.net.URL
-
-// تعریف فونت وزیری
-private val VazirFontFamily = FontFamily(
-    Font(R.font.vazir_regular, FontWeight.Normal),
-    Font(R.font.vazir_bold, FontWeight.Bold)
-)
 
 @Serializable
 data class GitHubRelease(
@@ -1272,5 +1265,4 @@ fun ColorOptionButton(
             }
         }
     }
-
 }
