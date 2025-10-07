@@ -3,12 +3,12 @@ package com.fazli.vispar
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.TypedValue
 import android.view.GestureDetector
-import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -20,34 +20,25 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Forward10
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Forward
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Replay10
-import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -55,19 +46,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -77,19 +62,19 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import com.fazli.vispar.data.model.SubtitleSettings
 import com.fazli.vispar.data.model.VideoPlayerSettings
-import com.fazli.vispar.ui.theme.VazirFontFamily
-import com.fazli.vispar.utils.DeviceUtils
 import com.fazli.vispar.utils.StorageUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 // Extension function to set subtitle text size on PlayerView
 fun PlayerView.setSubtitleTextSize(spSize: Float) {
+    // Convert sp to pixels
     val displayMetrics = context.resources.displayMetrics
     val pixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, spSize, displayMetrics)
+    
+    // Set the subtitle text size
     subtitleView?.setFixedTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, pixels)
 }
 
@@ -102,7 +87,7 @@ fun PlayerView.setSubtitleColors(settings: SubtitleSettings) {
             settings.borderColor,
             CaptionStyleCompat.EDGE_TYPE_OUTLINE,
             settings.borderColor,
-            null
+            null // typeface
         )
     )
 }
@@ -110,12 +95,10 @@ fun PlayerView.setSubtitleColors(settings: SubtitleSettings) {
 class VideoPlayerActivity : ComponentActivity() {
     companion object {
         const val EXTRA_VIDEO_URL = "video_url"
-        const val EXTRA_AUTO_PLAY = "auto_play"
         
-        fun start(context: Context, videoUrl: String, autoPlay: Boolean = true) {
+        fun start(context: Context, videoUrl: String) {
             val intent = Intent(context, VideoPlayerActivity::class.java).apply {
                 putExtra(EXTRA_VIDEO_URL, videoUrl)
-                putExtra(EXTRA_AUTO_PLAY, autoPlay)
             }
             context.startActivity(intent)
         }
@@ -123,29 +106,25 @@ class VideoPlayerActivity : ComponentActivity() {
     
     private var exoPlayer: ExoPlayer? = null
     private var videoUrl: String? = null
-    private var autoPlay: Boolean = true
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Set fullscreen landscape mode
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        
+        // Enable immersive full-screen mode
         enableFullScreenMode()
+        
+        // Keep screen on while in video player
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         
         videoUrl = intent.getStringExtra(EXTRA_VIDEO_URL)
-        autoPlay = intent.getBooleanExtra(EXTRA_AUTO_PLAY, true)
         
         if (videoUrl != null) {
             setContent {
-                androidx.compose.runtime.CompositionLocalProvider(
-                    LocalLayoutDirection provides LayoutDirection.Rtl
-                ) {
-                    VideoPlayerScreen(
-                        videoUrl = videoUrl!!,
-                        autoPlay = autoPlay,
-                        onBack = this::finish,
-                        onPlayerReady = { player -> exoPlayer = player }
-                    )
+                VideoPlayerScreen(videoUrl!!, this::finish) { player ->
+                    exoPlayer = player
                 }
             }
         } else {
@@ -153,55 +132,16 @@ class VideoPlayerActivity : ComponentActivity() {
         }
     }
     
-    // Handle TV remote control keys
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        val isTv = DeviceUtils.isTv(this)
-        
-        if (isTv) {
-            when (keyCode) {
-                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
-                    exoPlayer?.let { player ->
-                        if (player.isPlaying) {
-                            player.pause()
-                        } else {
-                            player.play()
-                        }
-                    }
-                    return true
-                }
-                KeyEvent.KEYCODE_MEDIA_PLAY -> {
-                    exoPlayer?.play()
-                    return true
-                }
-                KeyEvent.KEYCODE_MEDIA_PAUSE -> {
-                    exoPlayer?.pause()
-                    return true
-                }
-                KeyEvent.KEYCODE_DPAD_CENTER -> {
-                    // Toggle play/pause on OK button
-                    exoPlayer?.let { player ->
-                        if (player.isPlaying) {
-                            player.pause()
-                        } else {
-                            player.play()
-                        }
-                    }
-                    return true
-                }
-            }
-        }
-        
-        return super.onKeyDown(keyCode, event)
-    }
-    
     private fun enableFullScreenMode() {
         try {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                // For Android 11 and above
                 window.insetsController?.let { controller ->
                     controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
                     controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 }
             } else {
+                // For older Android versions
                 @Suppress("DEPRECATION")
                 window.decorView.systemUiVisibility = (
                     View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -213,6 +153,7 @@ class VideoPlayerActivity : ComponentActivity() {
                 )
             }
         } catch (e: Exception) {
+            // Fallback to basic fullscreen if there's an issue
             @Suppress("DEPRECATION")
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN)
         }
@@ -226,11 +167,14 @@ class VideoPlayerActivity : ComponentActivity() {
             // Ignore any exceptions during release
         }
         exoPlayer = null
+        
+        // Remove keep screen on flag to conserve battery
         window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
     
     override fun onResume() {
         super.onResume()
+        // Re-enable full-screen mode when resuming
         try {
             enableFullScreenMode()
         } catch (e: Exception) {
@@ -242,12 +186,11 @@ class VideoPlayerActivity : ComponentActivity() {
 @Composable
 fun VideoPlayerScreen(
     videoUrl: String,
-    autoPlay: Boolean,
     onBack: () -> Unit,
     onPlayerReady: (ExoPlayer) -> Unit
 ) {
     val context = LocalContext.current
-    var isPlaying by remember { mutableStateOf(autoPlay) } // Start with autoPlay value
+    var isPlaying by remember { mutableStateOf(false) }
     var currentPosition by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
     var showControls by remember { mutableStateOf(true) }
@@ -255,13 +198,7 @@ fun VideoPlayerScreen(
     var playerError by remember { mutableStateOf<String?>(null) }
     var showForwardIndicator by remember { mutableStateOf(false) }
     var showRewindIndicator by remember { mutableStateOf(false) }
-    var wasPlayingBeforeSeek by remember { mutableStateOf(false) }
-    var isScreenLocked by remember { mutableStateOf(false) }
-    var playbackSpeed by remember { mutableStateOf(1.0f) }
-    var showSpeedMenu by remember { mutableStateOf(false) }
-    
-    val coroutineScope = rememberCoroutineScope()
-    val isTv = DeviceUtils.isTv(context)
+    var wasPlayingBeforeSeek by remember { mutableStateOf(false) } // Track if player was playing before seeking
     
     // Load video player settings
     val videoPlayerSettings = remember(context) {
@@ -278,11 +215,10 @@ fun VideoPlayerScreen(
             ExoPlayer.Builder(context).build().apply {
                 setMediaItem(MediaItem.fromUri(Uri.parse(videoUrl)))
                 prepare()
-                playWhenReady = autoPlay // Use the autoPlay parameter
-                playbackSpeed = this@VideoPlayerScreen.playbackSpeed
+                playWhenReady = isPlaying
             }
         } catch (e: Exception) {
-            playerError = "خطا در راه‌اندازی پخش‌کننده: ${e.message}"
+            playerError = "Failed to initialize player: ${e.message}"
             null
         }
     }
@@ -305,31 +241,11 @@ fun VideoPlayerScreen(
         }
     }
     
-    // Update playback speed
-    LaunchedEffect(playbackSpeed, exoPlayer) {
-        try {
-            exoPlayer?.setPlaybackSpeed(playbackSpeed)
-        } catch (e: Exception) {
-            // Ignore speed change errors
-        }
-    }
-    
-    // Auto-hide controls for TV
-    LaunchedEffect(showControls, isPlaying, isScreenLocked, isTv) {
-        try {
-            if (showControls && isPlaying && !isScreenLocked && isTv) {
-                delay(5000) // Hide controls after 5 seconds for TV
-                showControls = false
-            }
-        } catch (e: Exception) {
-            // Ignore delay errors
-        }
-    }
-    
-    // Listen to player events
+    // Listen to player events and handle cleanup
     val playerListener = remember(exoPlayer) {
         object : Player.Listener {
             override fun onIsPlayingChanged(playing: Boolean) {
+                // Only update isPlaying if we're not currently seeking
                 if (!isSeeking) {
                     isPlaying = playing
                 }
@@ -339,11 +255,6 @@ fun VideoPlayerScreen(
                 try {
                     if (playbackState == Player.STATE_READY) {
                         duration = exoPlayer?.duration ?: 0L
-                        // Auto-play when ready if autoPlay is true
-                        if (autoPlay && !isPlaying && !isSeeking) {
-                            isPlaying = true
-                            exoPlayer?.playWhenReady = true
-                        }
                     }
                 } catch (e: Exception) {
                     // Ignore duration errors
@@ -372,6 +283,7 @@ fun VideoPlayerScreen(
     
     LaunchedEffect(exoPlayer) {
         if (exoPlayer == null) return@LaunchedEffect
+        
         exoPlayer.addListener(playerListener)
     }
     
@@ -381,13 +293,13 @@ fun VideoPlayerScreen(
         }
     }
     
-    // Periodically update the current position
+    // Periodically update the current position for real-time progress tracking
     LaunchedEffect(exoPlayer, isPlaying) {
         if (exoPlayer == null) return@LaunchedEffect
         
         try {
             while (true) {
-                delay(100)
+                delay(100) // Update every 100ms for smooth progress tracking
                 if (isPlaying && !isSeeking) {
                     try {
                         exoPlayer?.let { player ->
@@ -407,10 +319,10 @@ fun VideoPlayerScreen(
     }
     
     // Hide controls after a delay
-    LaunchedEffect(showControls, isPlaying, isScreenLocked) {
+    LaunchedEffect(showControls, isPlaying) {
         try {
-            if (showControls && isPlaying && !isScreenLocked) {
-                delay(3000)
+            if (showControls && isPlaying) {
+                delay(3000) // Hide controls after 3 seconds
                 showControls = false
             }
         } catch (e: Exception) {
@@ -418,17 +330,17 @@ fun VideoPlayerScreen(
         }
     }
     
-    // Hide forward/rewind indicators
+    // Hide forward/rewind indicators after a delay
     LaunchedEffect(showForwardIndicator) {
         if (showForwardIndicator) {
-            delay(500)
+            delay(500) // Hide after 500ms
             showForwardIndicator = false
         }
     }
     
     LaunchedEffect(showRewindIndicator) {
         if (showRewindIndicator) {
-            delay(500)
+            delay(500) // Hide after 500ms
             showRewindIndicator = false
         }
     }
@@ -449,66 +361,77 @@ fun VideoPlayerScreen(
             .fillMaxSize()
             .background(Color.Black)
             .pointerInput(Unit) {
-                if (!isScreenLocked) {
-                    detectTapGestures(
-                        onDoubleTap = { offset ->
-                            val screenWidth = size.width
-                            val tapX = offset.x
-                            
-                            wasPlayingBeforeSeek = isPlaying
-                            isSeeking = true
-                            
-                            if (tapX < screenWidth / 2) {
-                                try {
-                                    exoPlayer?.let { player ->
-                                        val seekTimeMs = videoPlayerSettings.seekTimeSeconds * 1000L
-                                        val newPosition = (player.currentPosition - seekTimeMs).coerceAtLeast(0L)
-                                        player.seekTo(newPosition)
-                                        currentPosition = newPosition
-                                        showRewindIndicator = true
-                                        if (wasPlayingBeforeSeek) {
-                                            player.playWhenReady = true
-                                        }
+                detectTapGestures(
+                    onDoubleTap = { offset ->
+                        // Calculate if the tap is on the left or right side
+                        val screenWidth = size.width
+                        val tapX = offset.x
+                        
+                        // Store the playing state before seeking
+                        wasPlayingBeforeSeek = isPlaying
+                        isSeeking = true
+                        
+                        if (tapX < screenWidth / 2) {
+                            // Left side - rewind specified seconds
+                            try {
+                                exoPlayer?.let { player ->
+                                    val seekTimeMs = videoPlayerSettings.seekTimeSeconds * 1000L
+                                    val newPosition = (player.currentPosition - seekTimeMs).coerceAtLeast(0L)
+                                    player.seekTo(newPosition)
+                                    currentPosition = newPosition
+                                    showRewindIndicator = true
+                                    // Keep the player playing during seeking if it was playing before
+                                    if (wasPlayingBeforeSeek) {
+                                        player.playWhenReady = true
                                     }
-                                } catch (e: Exception) {
-                                    // Ignore seek errors
                                 }
-                            } else {
-                                try {
-                                    exoPlayer?.let { player ->
-                                        val seekTimeMs = videoPlayerSettings.seekTimeSeconds * 1000L
-                                        val newPosition = (player.currentPosition + seekTimeMs).coerceAtMost(player.duration)
-                                        player.seekTo(newPosition)
-                                        currentPosition = newPosition
-                                        showForwardIndicator = true
-                                        if (wasPlayingBeforeSeek) {
-                                            player.playWhenReady = true
-                                        }
+                            } catch (e: Exception) {
+                                // Ignore seek errors
+                            }
+                        } else {
+                            // Right side - forward specified seconds
+                            try {
+                                exoPlayer?.let { player ->
+                                    val seekTimeMs = videoPlayerSettings.seekTimeSeconds * 1000L
+                                    val newPosition = (player.currentPosition + seekTimeMs).coerceAtMost(player.duration)
+                                    player.seekTo(newPosition)
+                                    currentPosition = newPosition
+                                    showForwardIndicator = true
+                                    // Keep the player playing during seeking if it was playing before
+                                    if (wasPlayingBeforeSeek) {
+                                        player.playWhenReady = true
                                     }
-                                } catch (e: Exception) {
-                                    // Ignore seek errors
                                 }
+                            } catch (e: Exception) {
+                                // Ignore seek errors
                             }
-                            
-                            coroutineScope.launch {
-                                delay(500)
-                                isSeeking = false
-                                try {
-                                    exoPlayer?.playWhenReady = wasPlayingBeforeSeek
-                                    isPlaying = wasPlayingBeforeSeek
-                                } catch (e: Exception) {
-                                    // Ignore errors
-                                }
-                            }
-                        },
-                        onTap = {
-                            showControls = !showControls
                         }
-                    )
-                }
+                        
+                        // Reset seeking state after a short delay using a coroutine scope
+                        CoroutineScope(Dispatchers.Main).launch {
+                            delay(500) // Reset after 500ms
+                            isSeeking = false
+                            // Restore the playing state after seeking is finished
+                            try {
+                                exoPlayer?.playWhenReady = wasPlayingBeforeSeek
+                                // Update isPlaying state to match the player's actual state
+                                isPlaying = wasPlayingBeforeSeek
+                            } catch (e: Exception) {
+                                // Ignore errors
+                            }
+                        }
+                    },
+                    onTap = {
+                        showControls = !showControls
+                        // Reset the auto-hide timer when controls are shown
+                        if (showControls && isPlaying) {
+                            // The LaunchedEffect above will handle the auto-hide
+                        }
+                    }
+                )
             }
     ) {
-        // Error handling
+        // Show error message if player failed to initialize
         if (playerError != null) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -519,9 +442,8 @@ fun VideoPlayerScreen(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = playerError ?: "خطای ناشناخته رخ داده است",
+                        text = playerError ?: "Unknown error occurred",
                         color = Color.Red,
-                        fontFamily = VazirFontFamily,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                     IconButton(
@@ -530,12 +452,12 @@ fun VideoPlayerScreen(
                             .size(48.dp)
                             .background(
                                 color = Color.Black.copy(alpha = 0.7f),
-                                shape = CircleShape
+                                shape = androidx.compose.foundation.shape.CircleShape
                             )
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "بازگشت",
+                            contentDescription = "Back",
                             tint = Color.White
                         )
                     }
@@ -544,16 +466,15 @@ fun VideoPlayerScreen(
             return@Box
         }
         
-        // Player initialization
+        // Check if player is initialized
         if (exoPlayer == null) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "در حال راه‌اندازی پخش‌کننده...",
+                    text = "Initializing player...",
                     color = Color.White,
-                    fontFamily = VazirFontFamily,
                     modifier = Modifier.padding(16.dp)
                 )
             }
@@ -565,24 +486,30 @@ fun VideoPlayerScreen(
             factory = { ctx ->
                 PlayerView(ctx).apply {
                     player = exoPlayer
-                    useController = false
+                    useController = false // We're using our own controls
                     layoutParams = FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
+                    // Make the player view fill the entire screen
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                    
+                    // Apply subtitle settings to the player view
+                    // Set subtitle styling
                     setSubtitleTextSize(subtitleSettings.textSize)
                     setSubtitleColors(subtitleSettings)
                 }
             },
             modifier = Modifier.fillMaxSize(),
             update = { playerView ->
+                // Update the player view when subtitle settings change
+                // Update subtitle styling when settings change
                 playerView.setSubtitleTextSize(subtitleSettings.textSize)
                 playerView.setSubtitleColors(subtitleSettings)
             }
         )
         
-        // Indicators
+        // Rewind indicator
         if (showRewindIndicator) {
             Box(
                 modifier = Modifier
@@ -594,21 +521,21 @@ fun VideoPlayerScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Replay10,
-                        contentDescription = "عقب بردن ${videoPlayerSettings.seekTimeSeconds} ثانیه",
+                        imageVector = Icons.Default.Replay,
+                        contentDescription = "Rewind ${videoPlayerSettings.seekTimeSeconds} seconds",
                         tint = Color.White,
                         modifier = Modifier.size(64.dp)
                     )
                     Text(
-                        text = "${videoPlayerSettings.seekTimeSeconds} ثانیه",
+                        text = "${videoPlayerSettings.seekTimeSeconds}s",
                         color = Color.White,
-                        fontFamily = VazirFontFamily,
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 }
             }
         }
         
+        // Forward indicator
         if (showForwardIndicator) {
             Box(
                 modifier = Modifier
@@ -620,278 +547,72 @@ fun VideoPlayerScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Forward10,
-                        contentDescription = "جلو بردن ${videoPlayerSettings.seekTimeSeconds} ثانیه",
+                        imageVector = Icons.Default.Forward,
+                        contentDescription = "Forward ${videoPlayerSettings.seekTimeSeconds} seconds",
                         tint = Color.White,
                         modifier = Modifier.size(64.dp)
                     )
                     Text(
-                        text = "${videoPlayerSettings.seekTimeSeconds} ثانیه",
+                        text = "${videoPlayerSettings.seekTimeSeconds}s",
                         color = Color.White,
-                        fontFamily = VazirFontFamily,
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 }
             }
         }
         
-        // Screen lock indicator
-        if (isScreenLocked) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color.Black.copy(alpha = 0.7f)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = "صفحه قفل شده",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "صفحه قفل شده",
-                            color = Color.White,
-                            fontFamily = VazirFontFamily,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
-            }
-        }
-        
-        // TV controls overlay (simplified for TV)
-        if (isTv && showControls) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.3f))
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // Large play/pause button for TV
-                    IconButton(
-                        onClick = { isPlaying = !isPlaying },
-                        modifier = Modifier
-                            .size(80.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.7f),
-                                shape = CircleShape
-                            )
-                    ) {
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (isPlaying) "توقف" else "پخش",
-                            tint = Color.White,
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                    
-                    // Time display
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = formatTime(currentPosition),
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontFamily = VazirFontFamily
-                        )
-                        
-                        Text(
-                            text = " / ",
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontFamily = VazirFontFamily
-                        )
-                        
-                        Text(
-                            text = formatTime(duration),
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontFamily = VazirFontFamily
-                        )
-                    }
-                }
-            }
-        }
-        
-        // Mobile controls overlay
-        if (!isTv && showControls && !isScreenLocked) {
+        // Custom controls overlay
+        if (showControls) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.5f))
             ) {
-                // Top bar
+                // Top bar with back button
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                color = Color.Black.copy(alpha = 0.7f),
+                                shape = androidx.compose.foundation.shape.CircleShape
+                            )
                     ) {
-                        IconButton(
-                            onClick = onBack,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .background(
-                                    color = Color.Black.copy(alpha = 0.7f),
-                                    shape = CircleShape
-                                )
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "بازگشت",
-                                tint = Color.White
-                            )
-                        }
-                        
-                        IconButton(
-                            onClick = { isScreenLocked = !isScreenLocked },
-                            modifier = Modifier
-                                .size(48.dp)
-                                .background(
-                                    color = if (isScreenLocked) 
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.7f) 
-                                    else 
-                                        Color.Black.copy(alpha = 0.7f),
-                                    shape = CircleShape
-                                )
-                        ) {
-                            Icon(
-                                imageVector = if (isScreenLocked) Icons.Default.Lock else Icons.Default.LockOpen,
-                                contentDescription = if (isScreenLocked) "باز کردن قفل" else "قفل کردن",
-                                tint = Color.White
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
                     }
                 }
                 
-                // Middle controls
+                // Middle play/pause button
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(24.dp)
+                    IconButton(
+                        onClick = { isPlaying = !isPlaying },
+                        modifier = Modifier
+                            .size(64.dp)
+                            .background(
+                                color = Color.Black.copy(alpha = 0.7f),
+                                shape = androidx.compose.foundation.shape.CircleShape
+                            )
                     ) {
-                        IconButton(
-                            onClick = {
-                                wasPlayingBeforeSeek = isPlaying
-                                isSeeking = true
-                                try {
-                                    exoPlayer?.let { player ->
-                                        val seekTimeMs = 10000L
-                                        val newPosition = (player.currentPosition - seekTimeMs).coerceAtLeast(0L)
-                                        player.seekTo(newPosition)
-                                        currentPosition = newPosition
-                                        showRewindIndicator = true
-                                        if (wasPlayingBeforeSeek) {
-                                            player.playWhenReady = true
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    // Ignore seek errors
-                                }
-                                
-                                coroutineScope.launch {
-                                    delay(500)
-                                    isSeeking = false
-                                    try {
-                                        exoPlayer?.playWhenReady = wasPlayingBeforeSeek
-                                        isPlaying = wasPlayingBeforeSeek
-                                    } catch (e: Exception) {
-                                        // Ignore errors
-                                    }
-                                }
-                            },
-                            modifier = Modifier.size(48.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Replay10,
-                                contentDescription = "عقب بردن 10 ثانیه",
-                                tint = Color.White
-                            )
-                        }
-                        
-                        IconButton(
-                            onClick = { isPlaying = !isPlaying },
-                            modifier = Modifier
-                                .size(64.dp)
-                                .background(
-                                    color = Color.Black.copy(alpha = 0.7f),
-                                    shape = CircleShape
-                                )
-                        ) {
-                            Icon(
-                                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = if (isPlaying) "توقف" else "پخش",
-                                tint = Color.White,
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
-                        
-                        IconButton(
-                            onClick = {
-                                wasPlayingBeforeSeek = isPlaying
-                                isSeeking = true
-                                try {
-                                    exoPlayer?.let { player ->
-                                        val seekTimeMs = 10000L
-                                        val newPosition = (player.currentPosition + seekTimeMs).coerceAtMost(player.duration)
-                                        player.seekTo(newPosition)
-                                        currentPosition = newPosition
-                                        showForwardIndicator = true
-                                        if (wasPlayingBeforeSeek) {
-                                            player.playWhenReady = true
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    // Ignore seek errors
-                                }
-                                
-                                coroutineScope.launch {
-                                    delay(500)
-                                    isSeeking = false
-                                    try {
-                                        exoPlayer?.playWhenReady = wasPlayingBeforeSeek
-                                        isPlaying = wasPlayingBeforeSeek
-                                    } catch (e: Exception) {
-                                        // Ignore errors
-                                    }
-                                }
-                            },
-                            modifier = Modifier.size(48.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Forward10,
-                                contentDescription = "جلو بردن 10 ثانیه",
-                                tint = Color.White
-                            )
-                        }
+                        Icon(
+                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (isPlaying) "Pause" else "Play",
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
                     }
                 }
                 
@@ -906,6 +627,7 @@ fun VideoPlayerScreen(
                     Slider(
                         value = if (duration > 0) currentPosition.toFloat() / duration.toFloat() else 0f,
                         onValueChange = { progress ->
+                            // Store the playing state before seeking
                             if (!isSeeking) {
                                 wasPlayingBeforeSeek = isPlaying
                             }
@@ -914,6 +636,7 @@ fun VideoPlayerScreen(
                             try {
                                 exoPlayer?.seekTo(newPosition)
                                 currentPosition = newPosition
+                                // Keep the player playing during seeking if it was playing before
                                 if (wasPlayingBeforeSeek) {
                                     exoPlayer?.playWhenReady = true
                                 }
@@ -923,8 +646,10 @@ fun VideoPlayerScreen(
                         },
                         onValueChangeFinished = {
                             isSeeking = false
+                            // Restore the playing state after seeking is finished
                             try {
                                 exoPlayer?.playWhenReady = wasPlayingBeforeSeek
+                                // Update isPlaying state to match the player's actual state
                                 isPlaying = wasPlayingBeforeSeek
                             } catch (e: Exception) {
                                 // Ignore errors
@@ -941,66 +666,15 @@ fun VideoPlayerScreen(
                         Text(
                             text = formatTime(currentPosition),
                             color = Color.White,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontFamily = VazirFontFamily
+                            style = MaterialTheme.typography.bodySmall
                         )
-                        
-                        Spacer(modifier = Modifier.weight(1f))
-                        
-                        Row {
-                            // Speed control button
-                            Box {
-                                IconButton(
-                                    onClick = { showSpeedMenu = true },
-                                    modifier = Modifier.size(32.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Speed,
-                                        contentDescription = "سرعت پخش",
-                                        tint = Color.White
-                                    )
-                                }
-                                
-                                DropdownMenu(
-                                    expanded = showSpeedMenu,
-                                    onDismissRequest = { showSpeedMenu = false }
-                                ) {
-                                    listOf(0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f).forEach { speed ->
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(
-                                                    text = "${speed}x",
-                                                    fontFamily = VazirFontFamily
-                                                )
-                                            },
-                                            onClick = {
-                                                playbackSpeed = speed
-                                                showSpeedMenu = false
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                            
-                            IconButton(
-                                onClick = { isPlaying = !isPlaying },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Icon(
-                                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                    contentDescription = if (isPlaying) "توقف" else "پخش",
-                                    tint = Color.White
-                                )
-                            }
-                        }
                         
                         Spacer(modifier = Modifier.weight(1f))
                         
                         Text(
                             text = formatTime(duration),
                             color = Color.White,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontFamily = VazirFontFamily
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
                 }
@@ -1017,8 +691,8 @@ fun formatTime(milliseconds: Long): String {
     val remainingMinutes = minutes % 60
     
     return if (hours > 0) {
-        String.format(Locale.US, "%02d:%02d:%02d", hours, remainingMinutes, remainingSeconds)
+        String.format("%02d:%02d:%02d", hours, remainingMinutes, remainingSeconds)
     } else {
-        String.format(Locale.US, "%02d:%02d", remainingMinutes, remainingSeconds)
+        String.format("%02d:%02d", remainingMinutes, remainingSeconds)
     }
 }
