@@ -373,7 +373,7 @@ fun SeriesGrid(
         }
         
         if (isLoadingMore) {
-            item(span = { GridCells.Fixed(columns) }) {
+            item(span = { androidx.compose.foundation.lazy.grid.LazyGridItemSpan(maxLineSpan) }) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -387,7 +387,7 @@ fun SeriesGrid(
         }
         
         if (errorMessage != null) {
-            item(span = { GridCells.Fixed(columns) }) {
+            item(span = { androidx.compose.foundation.lazy.grid.LazyGridItemSpan(maxLineSpan) }) {
                 ErrorItemSeries(
                     errorMessage = errorMessage,
                     onRetry = onRetry
@@ -723,4 +723,5 @@ fun ErrorItemSeries(
             }
         }
     }
+
 }
