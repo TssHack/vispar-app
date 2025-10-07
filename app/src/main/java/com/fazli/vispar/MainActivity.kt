@@ -44,7 +44,7 @@ import com.fazli.vispar.navigation.AppNavigation
 import com.fazli.vispar.navigation.AppScreens
 import com.fazli.vispar.navigation.BottomNavigationBar
 import com.fazli.vispar.navigation.SidebarNavigation
-import com.fazli.vispar.ui.theme.VisparTheme
+import com.fazli.vispar.ui.theme.visparTheme
 import com.fazli.vispar.ui.theme.ThemeManager
 import com.fazli.vispar.ui.theme.ThemeSettings
 import com.fazli.vispar.ui.theme.VazirFontFamily
@@ -79,7 +79,7 @@ fun MainApp() {
     androidx.compose.runtime.CompositionLocalProvider(
         LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Rtl
     ) {
-        VisparTheme(themeSettings) {
+        visparTheme(themeSettings) {
             MainScreen(onThemeSettingsChanged = { themeSettings = it })
         }
     }
@@ -171,8 +171,9 @@ fun MainScreenPreview() {
     androidx.compose.runtime.CompositionLocalProvider(
         LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Rtl
     ) {
-        VisparTheme(themeSettings) {
+        visparTheme(themeSettings) {
             MainScreen()
         }
     }
+
 }
