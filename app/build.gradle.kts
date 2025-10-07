@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.pira.ccloud"
+    namespace = "com.fazli.vispar"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.pira.ccloud"
+        applicationId = "com.fazli.vispar"
         minSdk = 24
         targetSdk = 36
         versionCode = 8

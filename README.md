@@ -1,10 +1,10 @@
-# CCloud - Movie & TV Series Streaming App
+# vispar - Movie & TV Series Streaming App
 
 <p align="center">
-  <img src="app/src/main/res/drawable/splash_logo.png" alt="CCloud Logo" width="150"/>
+  <img src="app/src/main/res/drawable/splash_logo.png" alt="vispar Logo" width="150"/>
 </p>
 
-CCloud is a modern Android streaming application built with Jetpack Compose and Kotlin. The app provides a sleek user interface for browsing movies and TV series, playing videos, and customizing the viewing experience. With a focus on user experience and performance, CCloud delivers high-quality streaming content in an intuitive and visually appealing interface.
+vispar is a modern Android streaming application built with Jetpack Compose and Kotlin. The app provides a sleek user interface for browsing movies and TV series, playing videos, and customizing the viewing experience. With a focus on user experience and performance, vispar delivers high-quality streaming content in an intuitive and visually appealing interface.
 
 ## 🚀 Key Features
 
@@ -78,7 +78,7 @@ The app follows a clean architecture pattern with the following components:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/code3-dev/CCloud.git
+   git clone https://github.com/code3-dev/vispar.git
    ```
 
 2. Open the project in Android Studio
@@ -131,7 +131,7 @@ These scripts will regenerate the Gradle wrapper checksums which are required fo
 app/
 ├── src/
 │   ├── main/
-│   │   ├── java/com/pira/ccloud/
+│   │   ├── java/com/fazli/vispar/
 │   │   │   ├── components/           # Reusable UI components
 │   │   │   ├── data/                 # Data layer
 │   │   │   │   ├── model/            # Data models (Movie, Series, etc.)
@@ -278,7 +278,7 @@ The app uses adaptive navigation:
 
 ## 🤝 Contributing
 
-We welcome contributions to CCloud! Here's how you can help:
+We welcome contributions to vispar! Here's how you can help:
 
 1. Fork the repository
 2. Create a feature branch
