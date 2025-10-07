@@ -1,35 +1,51 @@
 package com.fazli.vispar.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,6 +55,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -50,15 +69,19 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.fazli.vispar.R
-import com.fazli.vispar.data.model.FavoriteItem
-import com.fazli.vispar.navigation.AppScreens
+import com.fazli.vispar.data.model.Movie
+import com.fazli.vispar.ui.movies.MoviesViewModel
+import com.fazli.vispar.utils.DeviceUtils
 import com.fazli.vispar.utils.StorageUtils
 
 // تعریف فونت وزیری
@@ -67,231 +90,72 @@ private val VazirFontFamily = FontFamily(
     Font(R.font.vazir_bold, FontWeight.Bold)
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavoritesScreen(navController: NavController) {
-    var favorites by remember { mutableStateOf<List<FavoriteItem>>(emptyList()) }
-    val context = LocalContext.current
-    var showDeleteAllDialog by remember { mutableStateOf(false) }
+fun MoviesScreen(
+    viewModel: MoviesViewModel = viewModel(),
+    navController: NavController? = null
+) {
+    val movies = viewModel.movies
+    val isLoading = viewModel.isLoading
+    val isLoadingMore = viewModel.isLoadingMore
+    val errorMessage = viewModel.errorMessage
     
-    // بارگذاری موارد مورد علاقه هنگام نمایش صفحه
     LaunchedEffect(Unit) {
-        favorites = StorageUtils.loadAllFavorites(context)
-    }
-    
-    // دیالوگ تایید حذف تمام موارد مورد علاقه
-    if (showDeleteAllDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteAllDialog = false },
-            title = { 
-                Text(
-                    text = "حذف تمام موارد مورد علاقه",
-                    fontFamily = VazirFontFamily,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                ) 
-            },
-            text = { 
-                Text(
-                    text = "آیا از حذف تمام موارد مورد علاقه مطمئن هستید؟ این عمل قابل بازگشت نیست.",
-                    fontFamily = VazirFontFamily,
-                    textAlign = TextAlign.Right,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                ) 
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        StorageUtils.clearAllFavorites(context)
-                        favorites = emptyList()
-                        showDeleteAllDialog = false
-                        // نمایش پیام Toast
-                        android.widget.Toast.makeText(context, "تمام موارد مورد علاقه حذف شدند", android.widget.Toast.LENGTH_SHORT).show()
-                    }
-                ) {
-                    Text(
-                        text = "حذف",
-                        fontFamily = VazirFontFamily,
-                        color = Color.Red
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDeleteAllDialog = false }
-                ) {
-                    Text(
-                        text = "انصراف",
-                        fontFamily = VazirFontFamily,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(16.dp)
-        )
+        if (movies.isEmpty()) {
+            viewModel.loadMovies()
+        }
     }
     
     // تنظیم جهت‌گیری راست‌چین برای کل صفحه
     androidx.compose.runtime.CompositionLocalProvider(
         LocalLayoutDirection provides LayoutDirection.Rtl
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer,
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
-            // هدر با دکمه بازگشت و دکمه حذف همه
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier
-                        .background(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                            CircleShape
+            Column {
+                // نوار بالایی حرفه‌ای
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "فیلم‌ها",
+                            fontFamily = VazirFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 22.sp,
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "بازگشت",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                
-                Text(
-                    text = stringResource(R.string.favorites),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 16.dp),
-                    fontSize = 22.sp,
-                    fontFamily = VazirFontFamily,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 )
                 
-                // دکمه حذف همه (فقط در صورت وجود موارد مورد علاقه نمایش داده شود)
-                if (favorites.isNotEmpty()) {
-                    IconButton(
-                        onClick = { showDeleteAllDialog = true },
-                        modifier = Modifier
-                            .background(
-                                MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
-                                CircleShape
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "حذف همه",
-                            tint = MaterialTheme.colorScheme.error
+                when {
+                    isLoading && movies.isEmpty() -> {
+                        // نمایش انیمیشن مدرن هنگام بارگذاری اولیه فیلم‌ها
+                        LoadingScreen()
+                    }
+                    errorMessage != null && movies.isEmpty() -> {
+                        ErrorScreen(
+                            errorMessage = errorMessage,
+                            onRetry = { viewModel.retry() }
                         )
                     }
-                }
-            }
-            
-            // محتوای اصلی
-            if (favorites.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(32.dp)
-                    ) {
-                        Card(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .padding(bottom = 24.dp),
-                            shape = CircleShape,
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                            ),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Favorite,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(64.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                        
-                        Text(
-                            text = "هنوز مورد علاقه‌ای اضافه نشده",
-                            fontSize = 20.sp,
-                            fontFamily = VazirFontFamily,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
+                    else -> {
+                        MovieGrid(
+                            movies = movies,
+                            isLoading = isLoading,
+                            isLoadingMore = isLoadingMore,
+                            errorMessage = errorMessage,
+                            onRetry = { viewModel.retry() },
+                            onRefresh = { viewModel.refresh() },
+                            onLoadMore = { viewModel.loadMoreMovies() },
+                            navController = navController
                         )
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        Text(
-                            text = "برای افزودن به مورد علاقه‌ها، روی آیکون قلب در صفحه جزئیات ضربه بزنید",
-                            fontSize = 16.sp,
-                            fontFamily = VazirFontFamily,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
-                ) {
-                    items(favorites) { favorite ->
-                        FavoriteItemCard(
-                            favorite = favorite,
-                            onClick = {
-                                // ذخیره مورد علاقه در پایگاه داده مناسب قبل از هدایت
-                                StorageUtils.saveFavoriteToDatabase(context, favorite)
-                                
-                                // هدایت به صفحه مناسب بر اساس نوع
-                                when (favorite.type) {
-                                    "movie" -> {
-                                        navController.navigate("${AppScreens.SingleMovie.route.replace("{movieId}", favorite.id.toString())}")
-                                    }
-                                    "series" -> {
-                                        navController.navigate("${AppScreens.SingleSeries.route.replace("{seriesId}", favorite.id.toString())}")
-                                    }
-                                }
-                            },
-                            onDelete = {
-                                StorageUtils.removeFavorite(context, favorite.id, favorite.type)
-                                // به‌روزرسانی لیست موارد مورد علاقه
-                                favorites = StorageUtils.loadAllFavorites(context)
-                                // نمایش پیام Toast
-                                android.widget.Toast.makeText(context, "از موارد مورد علاقه حذف شد", android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                        )
-                    }
-                    
-                    // اضافه کردن فضای خالی در انتهای لیست
-                    item {
-                        Spacer(modifier = Modifier.height(32.dp))
                     }
                 }
             }
@@ -300,137 +164,564 @@ fun FavoritesScreen(navController: NavController) {
 }
 
 @Composable
-fun FavoriteItemCard(
-    favorite: FavoriteItem,
-    onClick: () -> Unit,
-    onDelete: () -> Unit
+fun LoadingScreen() {
+    val shimmerColor = MaterialTheme.colorScheme.surfaceVariant
+    val shimmerColorShade = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer,
+                        MaterialTheme.colorScheme.surface
+                    )
+                )
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // اضافه کردن عنوان هنگام بارگذاری
+        Text(
+            text = "در حال بارگذاری فیلم‌ها...",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(16.dp),
+            fontWeight = FontWeight.Bold,
+            fontFamily = VazirFontFamily,
+            fontSize = 20.sp
+        )
+        
+        AnimatedVisibility(
+            visible = true,
+            enter = fadeIn(initialAlpha = 0.3f),
+            exit = fadeOut()
+        ) {
+            val columns = DeviceUtils.getGridColumns(LocalContext.current.resources)
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(columns),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(6) { // نمایش 6 جایگزین بارگذاری
+                    ShimmerMovieItem(shimmerColor, shimmerColorShade)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ShimmerMovieItem(
+    shimmerColor: Color,
+    shimmerColorShade: Color
 ) {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim by transition.animateFloat(
+        initialValue = -1000f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200)
+        ), label = "shimmer_translate"
+    )
+    
+    val brush = Brush.linearGradient(
+        colors = listOf(
+            shimmerColor,
+            shimmerColorShade,
+            shimmerColor,
+            shimmerColorShade,
+            shimmerColor
+        ),
+        start = Offset.Zero,
+        end = Offset(x = translateAnim, y = translateAnim)
+    )
+    
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
         )
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(12.dp)
         ) {
-            // تصویر پوستر
-            Card(
+            // پوستر فیلم شیمر
+            Box(
                 modifier = Modifier
-                    .height(120.dp)
-                    .width(85.dp),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current)
-                            .data(favorite.image)
-                            .crossfade(true)
-                            .build()
-                    ),
-                    contentDescription = favorite.title,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(brush)
+            )
             
-            // عنوان و جزئیات
-            Column(
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // عنوان شیمر
+            Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp)
-            ) {
-                Text(
-                    text = favorite.title,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                    fontSize = 18.sp,
-                    fontFamily = VazirFontFamily,
-                    maxLines = 2,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                
-                // نمایش نوع و سال
-                Row(
-                    modifier = Modifier.padding(bottom = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = getTypeInPersian(favorite.type),
-                        fontSize = 14.sp,
-                        fontFamily = VazirFontFamily,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium
-                    )
-                    
-                    Text(
-                        text = " • ${favorite.year}",
-                        fontSize = 14.sp,
-                        fontFamily = VazirFontFamily,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .background(
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(18.dp)
-                            .padding(end = 4.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = String.format("%.1f", favorite.imdb),
-                        fontSize = 14.sp,
-                        fontFamily = VazirFontFamily,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+                    .fillMaxWidth(0.8f)
+                    .height(24.dp)
+                    .background(brush)
+            )
             
-            // دکمه حذف برای مورد خاص
-            IconButton(
-                onClick = onDelete,
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // سال شیمر
+            Box(
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(18.dp)
+                    .background(brush)
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // ژانرها شیمر
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .height(18.dp)
+                    .background(brush)
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // امتیاز شیمر
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .background(
-                        MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
-                        CircleShape
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        RoundedCornerShape(20.dp)
                     )
-                    .padding(4.dp)
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "حذف",
-                    tint = MaterialTheme.colorScheme.error
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .background(brush)
+                )
+                
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                Box(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(18.dp)
+                        .background(brush)
                 )
             }
         }
     }
 }
 
-// تابع کمکی برای تبدیل نوع به فارسی
-private fun getTypeInPersian(type: String): String {
-    return when (type.lowercase()) {
-        "movie" -> "فیلم"
-        "series" -> "سریال"
-        else -> type
+@Composable
+fun MovieGrid(
+    movies: List<Movie>,
+    isLoading: Boolean,
+    isLoadingMore: Boolean,
+    errorMessage: String?,
+    onRetry: () -> Unit,
+    onRefresh: () -> Unit,
+    onLoadMore: () -> Unit,
+    navController: NavController? = null
+) {
+    val moviesList = movies.toList()
+    val context = LocalContext.current
+    
+    val columns = DeviceUtils.getGridColumns(LocalContext.current.resources)
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(columns),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer,
+                        MaterialTheme.colorScheme.surface
+                    )
+                )
+            ),
+        contentPadding = PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        itemsIndexed(moviesList) { index, movie ->
+            MovieItem(
+                movie = movie,
+                onClick = {
+                    // ذخیره فیلم در حافظه
+                    StorageUtils.saveMovieToFile(context, movie)
+                    // هدایت به صفحه تکی فیلم
+                    navController?.navigate("single_movie/${movie.id}")
+                }
+            )
+            
+            // بارگذاری بیشتر وقتی به انتهای لیست نزدیک می‌شویم
+            if (index >= moviesList.size - 3) {
+                LaunchedEffect(Unit) {
+                    onLoadMore()
+                }
+            }
+        }
+        
+        if (isLoadingMore) {
+            item(span = { GridCells.Fixed(columns) }) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // نمایشگر پیشرفت مدرن متحرک
+                    ModernCircularProgressIndicator()
+                }
+            }
+        }
+        
+        if (errorMessage != null) {
+            item(span = { GridCells.Fixed(columns) }) {
+                ErrorItem(
+                    errorMessage = errorMessage,
+                    onRetry = onRetry
+                )
+            }
+        }
+        
+        // اضافه کردن فاصله کوچک در پایین برای جلوگیری از padding بیش از حد
+        item {
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+fun ModernCircularProgressIndicator() {
+    val transition = rememberInfiniteTransition(label = "progress")
+    val progress by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 1000,
+                easing = FastOutSlowInEasing
+            )
+        ), label = "progress_anim"
+    )
+    
+    // اضافه کردن انیمیشن چرخش برای افکت پویاتر
+    val rotation by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 2000,
+                easing = LinearEasing
+            )
+        ), label = "rotation_anim"
+    )
+    
+    Card(
+        modifier = Modifier
+            .size(64.dp)
+            .rotate(rotation),
+        shape = CircleShape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            CircularProgressIndicator(
+                progress = progress,
+                modifier = Modifier.size(48.dp),
+                strokeWidth = 4.dp,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Composable
+fun MovieItem(
+    movie: Movie,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            // پوستر فیلم
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        ImageRequest.Builder(LocalContext.current)
+                            .data(movie.image)
+                            .crossfade(true)
+                            .build()
+                    ),
+                    contentDescription = movie.title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // جزئیات فیلم
+            Column {
+                Text(
+                    text = movie.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontFamily = VazirFontFamily,
+                    fontSize = 18.sp
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = movie.year.toString(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontFamily = VazirFontFamily,
+                    fontSize = 14.sp
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // ژانرها
+                if (movie.genres.isNotEmpty()) {
+                    Text(
+                        text = movie.genres.joinToString(", ") { it.title },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontFamily = VazirFontFamily,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // امتیاز
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .background(
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            RoundedCornerShape(20.dp)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "امتیاز",
+                        tint = Color(0xFFFFC107),
+                        modifier = Modifier.size(18.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    Text(
+                        text = String.format("%.1f", movie.imdb),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontFamily = VazirFontFamily,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ErrorScreen(
+    errorMessage: String,
+    onRetry: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer,
+                        MaterialTheme.colorScheme.surface
+                    )
+                )
+            )
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Card(
+            modifier = Modifier
+                .size(120.dp)
+                .padding(bottom = 24.dp),
+            shape = CircleShape,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+        
+        Text(
+            text = "خطا در بارگذاری فیلم‌ها",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(bottom = 8.dp),
+            fontFamily = VazirFontFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 22.sp,
+            textAlign = TextAlign.Center
+        )
+        
+        Text(
+            text = errorMessage,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 24.dp),
+            fontFamily = VazirFontFamily,
+            fontSize = 16.sp,
+            textAlign = TextAlign.Center
+        )
+        
+        Button(
+            onClick = onRetry,
+            modifier = Modifier.padding(top = 8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            shape = RoundedCornerShape(30.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Refresh,
+                contentDescription = "تلاش مجدد",
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "تلاش مجدد",
+                fontFamily = VazirFontFamily,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+fun ErrorItem(
+    errorMessage: String,
+    onRetry: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "خطا در بارگذاری فیلم‌های بیشتر",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.padding(bottom = 12.dp),
+                fontFamily = VazirFontFamily,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                fontSize = 18.sp
+            )
+            
+            Text(
+                text = errorMessage,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.padding(bottom = 20.dp),
+                fontFamily = VazirFontFamily,
+                textAlign = TextAlign.Center,
+                fontSize = 14.sp
+            )
+            
+            Button(
+                onClick = onRetry,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.onErrorContainer,
+                    contentColor = MaterialTheme.colorScheme.errorContainer
+                ),
+                shape = RoundedCornerShape(30.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "تلاش مجدد",
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "تلاش مجدد",
+                    fontFamily = VazirFontFamily,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
     }
 }
