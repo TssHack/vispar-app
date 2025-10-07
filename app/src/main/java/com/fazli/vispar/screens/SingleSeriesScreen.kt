@@ -1092,4 +1092,3 @@ fun EpisodeItem(
 fun openUrlSeries(context: Context, url: String) {
     DownloadUtils.openUrl(context, url)
 }
-}
