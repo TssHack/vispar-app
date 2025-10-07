@@ -7,15 +7,13 @@ import android.content.res.Resources
 import android.graphics.Point
 import android.os.Build
 import android.util.DisplayMetrics
-import android.view.Display
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 
 object DeviceUtils {
-    
+
     /**
      * Check if the device is a TV
      */
@@ -23,7 +21,7 @@ object DeviceUtils {
         val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
         return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
     }
-    
+
     /**
      * Check if the device is a tablet
      */
@@ -46,7 +44,7 @@ object DeviceUtils {
         // Typically, tablets have a screen size of 7 inches or larger
         return diagonalInches >= 7.0
     }
-    
+
     /**
      * Check if the device is a foldable phone
      */
@@ -58,7 +56,7 @@ object DeviceUtils {
             false
         }
     }
-    
+
     /**
      * Check if the device is a wearable (watch)
      */
@@ -66,7 +64,7 @@ object DeviceUtils {
         val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
         return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_WATCH
     }
-    
+
     /**
      * Check if the device is in landscape mode
      */
@@ -74,7 +72,7 @@ object DeviceUtils {
         val orientation = context.resources.configuration.orientation
         return orientation == Configuration.ORIENTATION_LANDSCAPE
     }
-    
+
     /**
      * Check if the device is in portrait mode
      */
@@ -82,7 +80,7 @@ object DeviceUtils {
         val orientation = context.resources.configuration.orientation
         return orientation == Configuration.ORIENTATION_PORTRAIT
     }
-    
+
     /**
      * Get the screen size in dp
      * @return Pair(widthDp, heightDp)
@@ -104,7 +102,7 @@ object DeviceUtils {
         
         return Pair(widthDp, heightDp)
     }
-    
+
     /**
      * Get the screen aspect ratio
      * @return aspect ratio (width / height)
@@ -113,14 +111,14 @@ object DeviceUtils {
         val (widthDp, heightDp) = getScreenSizeInDp(context)
         return widthDp / heightDp
     }
-    
+
     /**
      * Check if the device has a notch
      */
     fun hasNotch(context: Context): Boolean {
         return try {
             val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-            val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val display = if (Build.VERSION_SDK_INT >= Build.VERSION_CODES.R) {
                 windowManager.currentDisplay
             } else {
                 @Suppress("DEPRECATION")
@@ -154,7 +152,7 @@ object DeviceUtils {
             false
         }
     }
-    
+
     /**
      * Get the number of grid columns based on screen size and device type
      */
@@ -195,7 +193,7 @@ object DeviceUtils {
             }
         }
     }
-    
+
     /**
      * Get the optimal item size for grid layout
      * @return item size in dp
@@ -205,7 +203,7 @@ object DeviceUtils {
         val columns = getGridColumns(context.resources)
         return (screenWidthDp - (columns + 1) * 16) / columns // 16dp spacing
     }
-    
+
     /**
      * Check if the device has a hardware keyboard
      */
@@ -217,7 +215,7 @@ object DeviceUtils {
             false
         }
     }
-    
+
     /**
      * Get the device category (phone, tablet, tv, wearable, foldable)
      */
@@ -230,7 +228,7 @@ object DeviceUtils {
             else -> "Phone"
         }
     }
-    
+
     /**
      * Check if the device is in multi-window mode
      */
@@ -238,7 +236,7 @@ object DeviceUtils {
     fun isInMultiWindowMode(context: Context): Boolean {
         return context.isInMultiWindowMode
     }
-    
+
     /**
      * Check if the device is in split-screen mode
      */
@@ -253,7 +251,7 @@ object DeviceUtils {
             false
         }
     }
-    
+
     /**
      * Get the status bar height in pixels
      */
@@ -267,7 +265,7 @@ object DeviceUtils {
             (24 * resources.displayMetrics.density).toInt()
         }
     }
-    
+
     /**
      * Get the navigation bar height in pixels
      */
@@ -281,7 +279,7 @@ object DeviceUtils {
             (48 * resources.displayMetrics.density).toInt()
         }
     }
-    
+
     /**
      * Check if the device has soft navigation keys
      */
