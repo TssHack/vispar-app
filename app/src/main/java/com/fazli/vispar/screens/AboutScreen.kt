@@ -51,14 +51,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.fazli.vispar.BuildConfig
 import com.fazli.vispar.R
-import com.fazli.vispar.ui.theme.VazirFontFamily  // import فونت از فایل مشترک
+import com.fazli.vispar.ui.theme.VazirFontFamily
 
 @Composable
 fun AboutScreen(navController: NavController?) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     
-    // تنظیم جهت‌گیری راست‌چین برای کل صفحه
     androidx.compose.runtime.CompositionLocalProvider(
         LocalLayoutDirection provides LayoutDirection.Rtl
     ) {
@@ -74,7 +73,7 @@ fun AboutScreen(navController: NavController?) {
                     )
                 )
         ) {
-            // هدر با دکمه بازگشت
+            // Header with back button
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,7 +107,7 @@ fun AboutScreen(navController: NavController?) {
                 )
             }
             
-            // محتوای اصلی
+            // Main content
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -117,10 +116,10 @@ fun AboutScreen(navController: NavController?) {
                     .verticalScroll(scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // لوگوی برنامه
+                // App logo
                 Card(
                     modifier = Modifier
-                        .padding(top = 16.dp)
+                        .padding(top = 24.dp)
                         .size(120.dp),
                     shape = CircleShape,
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
@@ -138,7 +137,7 @@ fun AboutScreen(navController: NavController?) {
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                // نام برنامه
+                // App name
                 Text(
                     text = "ویسپار",
                     style = MaterialTheme.typography.headlineMedium,
@@ -150,7 +149,7 @@ fun AboutScreen(navController: NavController?) {
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                // نسخه و معماری برنامه
+                // Version and architecture info
                 Card(
                     modifier = Modifier.padding(horizontal = 32.dp),
                     colors = CardDefaults.cardColors(
@@ -171,7 +170,7 @@ fun AboutScreen(navController: NavController?) {
                 
                 Spacer(modifier = Modifier.height(32.dp))
                 
-                // اطلاعات توسعه‌دهنده
+                // Developer info card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
@@ -184,18 +183,6 @@ fun AboutScreen(navController: NavController?) {
                         modifier = Modifier.padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // تصویر توسعه‌دهنده - اصلاح مسیر فایل
-                        Image(
-                            painter = painterResource(id = R.drawable.splash_logo), // فایل باید در پوشه drawable قرار گیرد
-                            contentDescription = "تصویر توسعه‌دهنده",
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
                         Text(
                             text = "توسعه یافته توسط احسان فضلی",
                             style = MaterialTheme.typography.titleMedium,
@@ -209,7 +196,7 @@ fun AboutScreen(navController: NavController?) {
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         Text(
-                            text = "توسعه‌دهنده اندروید",
+                            text = "برنامه نویس فول استک",
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                             fontFamily = VazirFontFamily,
@@ -221,7 +208,7 @@ fun AboutScreen(navController: NavController?) {
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                // کارت لینک‌ها
+                // Links card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
@@ -246,7 +233,7 @@ fun AboutScreen(navController: NavController?) {
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
                         )
                         
-                        // لینک کانال تلگرام
+                        // Telegram channel link
                         LinkItem(
                             icon = Icons.Default.Send,
                             text = "کانال تلگرام",
@@ -262,7 +249,7 @@ fun AboutScreen(navController: NavController?) {
                         
                         Spacer(modifier = Modifier.height(12.dp))
                         
-                        // لینک تلگرام توسعه‌دهنده
+                        // Developer Telegram link
                         LinkItem(
                             icon = Icons.Default.Send,
                             text = "تلگرام توسعه‌دهنده",
@@ -278,7 +265,7 @@ fun AboutScreen(navController: NavController?) {
                         
                         Spacer(modifier = Modifier.height(12.dp))
                         
-                        // لینک ایمیل توسعه‌دهنده
+                        // Developer email link
                         LinkItem(
                             icon = Icons.Default.Email,
                             text = "ایمیل توسعه‌دهنده",
@@ -290,7 +277,7 @@ fun AboutScreen(navController: NavController?) {
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                // کپی‌رایت
+                // Copyright
                 Text(
                     text = "© ${java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)} ویسپار. تمامی حقوق محفوظ است.",
                     style = MaterialTheme.typography.bodySmall,
@@ -328,7 +315,6 @@ fun LinkItem(
                     }
                     context.startActivity(intent)
                 } catch (e: Exception) {
-                    // مدیریت خطا در صورت نیاز
                     e.printStackTrace()
                 }
             }
@@ -367,7 +353,6 @@ fun LinkItem(
 
 fun getArchitecture(): String {
     return try {
-        // دریافت معماری اصلی دستگاه
         val supportedAbis = android.os.Build.SUPPORTED_ABIS
         if (supportedAbis.isNotEmpty()) {
             when (supportedAbis[0]) {
