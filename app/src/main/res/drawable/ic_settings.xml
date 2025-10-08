@@ -4,45 +4,48 @@
     android:height="256dp"
     android:viewportWidth="64"
     android:viewportHeight="64">
-    <group> <!-- تمام عناصر Path باید داخل یک Group قرار گیرند -->
+    <!-- تگ path مستقیم بعد از vector -->
+    <path
+        android:fillColor="#FFB69DF8"
+        android:pathData="M4 20c0-8.84 7.16-16 16-16h24c8.84 0 16 7.16 16 16v24c0 8.84-7.16 16-16 16h-24c-8.84 0-16-7.16-16-16z"/>
+    
+    <path
+        android:fillColor="#00FFFFFF"
+        android:fillAlpha="0.4"
+        android:pathData="M4 20c0-8.84 7.16-16 16-16h24c8.84 0 16 7.16 16 16v24c0 8.84-7.16 16-16 16h-24c-8.84 0-16-7.16-16-16z"/>
+    
+    <!-- گروه ترجمه شده -->
+    <group
+        android:translateX="32"
+        android:translateY="32">
         <path
-            android:fillColor="#FFB69DF8" <!-- رنگ ثابت جایگزین گرادیان -->
-            android:pathData="M4 20c0-8.84 7.16-16 16-16h24c8.84 0 16 7.16 16 16v24c0 8.84-7.16 16-16 16h-24c-8.84 0-16-7.16-16-16z"/>
+            android:fillColor="#FFF5F0FF"
+            android:strokeColor="#FF4F378B"
+            android:strokeWidth="0.8"
+            android:pathData="M0-12h3l1 3 4 1 1 4 3 1v3L9 3 8 7 4 8l-1 3-3 1-3-1-1-3-4-1-1-4-3-3 3-3 1-4 4-1 1-3Z"/>
         
         <path
-            android:fillColor="#00FFFFFF" <!-- رنگ ثابت جایگزین گرادیان -->
-            android:fillAlpha="0.4"
-            android:pathData="M4 20c0-8.84 7.16-16 16-16h24c8.84 0 16 7.16 16 16v24c0 8.84-7.16 16-16 16h-24c-8.84 0-16-7.16-16-16z"/>
-        
-        <!-- گروه ترجمه شده -->
-        <group
-            android:translateX="32"
-            android:translateY="32">
-            <path
-                android:fillColor="#FFF5F0FF" <!-- رنگ ثابت جایگزین گرادیان -->
-                android:strokeColor="#FF4F378B"
-                android:strokeWidth="0.8"
-                android:pathData="M0-12h3l1 3 4 1 1 4 3 1v3L9 3 8 7 4 8l-1 3-3 1-3-1-1-3-4-1-1-4-3-3 3-3 1-4 4-1 1-3Z"/>
-            
-            <path
-                android:fillColor="#FFEDE7F6" <!-- رنگ ثابت جایگزین گرادیان -->
-                android:strokeColor="#FF4F378B"
-                android:strokeWidth="1.4"
-                android:pathData="M0-5A5 5 0 1 0 0 5 5 5 0 1 0 0-5z"/>
-            
-            <path
-                android:fillColor="#FFB69DF8" <!-- رنگ ثابت جایگزین گرادیان -->
-                android:pathData="M0-2a2 2 0 1 0 0 4 2 2 0 1 0 0-4z"/>
-        </group>
+            android:fillColor="#FFEDE7F6"
+            android:strokeColor="#FF4F378B"
+            android:strokeWidth="1.4"
+            android:pathData="M0-5A5 5 0 1 0 0 5 5 5 0 1 0 0-5z"/>
         
         <path
-            android:fillColor="#FFFFFFFF"
-            android:fillAlpha="0.5"
-            android:pathData="M30 26a2 2 0 1 0 0 4 2 2 0 1 0 0-4z"/>
-        
-        <path
-            android:fillColor="#FFFFFFFF"
-            android:fillAlpha="0.15"
-            android:pathData="M32 50a14 2 0 1 0 0 4 14 2 0 1 0 0-4z"/>
+            android:fillColor="#FFB69DF8"
+            android:pathData="M0-2a2 2 0 1 0 0 4 2 2 0 1 0 0-4z"/>
     </group>
+    
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.5"
+        android:pathData="M30 26a2 2 0 1 0 0 4 2 2 0 1 0 0-4z"/>
+    
+    <path
+        android:fillColor="#FFD0BCFF"
+        android:pathData="M35 33.4a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 1 0 0-3.2z"/>
+    
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.15"
+        android:pathData="M32 50a14 2 0 1 0 0 4 14 2 0 1 0 0-4z"/>
 </vector>
