@@ -10,9 +10,9 @@ object CustomIcons {
     val Series: Int = R.drawable.ic_series
     val Search: Int = R.drawable.ic_search
     val Settings: Int = R.drawable.ic_settings
-    
+
     @Composable
     fun toImageVector(resourceId: Int): ImageVector {
-        return vectorResource(id = resourceId)
+        return ImageVector.vectorResource(resourceId)
     }
 }
