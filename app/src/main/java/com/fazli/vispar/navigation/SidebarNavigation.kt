@@ -3,30 +3,10 @@ package com.fazli.vispar.navigation
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.Arrangement.spacedBy
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRailItemDefaults
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.CompositionLocalProvider
@@ -57,9 +37,9 @@ fun SidebarNavigation(navController: NavHostController) {
     Scaffold { paddingValues ->
         Row(modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues) // از PaddingValues درست استفاده شده
+            .padding(paddingValues)
         ) {
-            // ---------- Sidebar (NavigationRail) ----------
+            // Sidebar (NavigationRail)
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 Surface(
                     modifier = Modifier
@@ -131,7 +111,6 @@ fun SidebarNavigation(navController: NavHostController) {
                                                         ) {}
                                                     }
 
-                                                    // گرفتن Painter از AppScreens.getIcon() (Composable) یا fallback
                                                     val iconPainter = screen.getIcon()
                                                         ?: CustomIcons.toPainter(CustomIcons.Movie)
 
@@ -180,14 +159,13 @@ fun SidebarNavigation(navController: NavHostController) {
                                 }
                             }
 
-                            // optional footer (مثلاً Settings یا هر چیز دیگه)
                             Spacer(modifier = Modifier.height(24.dp))
                         }
                     }
                 }
             }
 
-            // ---------- Main content (NavHost) ----------
+            // Main content (NavHost)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
