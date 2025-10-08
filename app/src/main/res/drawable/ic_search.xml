@@ -1,23 +1,645 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="64"
-    android:viewportHeight="64">
-
-    <!-- پس زمینه -->
-    <path
-        android:fillColor="#B69DF8"
-        android:pathData="M4,20 C4,12.26 10.26,6 18,6 L46,6 C53.74,6 60,12.26 60,20 L60,44 C60,51.74 53.74,58 46,58 L18,58 C10.26,58 4,51.74 4,44 Z" />
-
-    <!-- ذره‌بین -->
-    <path
-        android:fillColor="#EADDFF"
-        android:pathData="M28,28 C28,33.52 33.48,39 39,39 C44.52,39 50,33.52 50,28 C50,22.48 44.52,17 39,17 C33.48,17 28,22.48 28,28 Z" />
-
-    <!-- دسته -->
-    <path
-        android:strokeColor="#4F378B"
-        android:strokeWidth="3"
-        android:strokeLineCap="round"
-        android:pathData="M46,46 L54,54" />
-</vector>
+<?xml version="1.0" encoding="utf-8"?>
+<document version="1.7">
+  <objects>
+    <object id="1" gen="0">
+      <dict>
+        <entry key="Type">
+          <name>Catalog</name>
+        </entry>
+        <entry key="Version">
+          <name>1.7</name>
+        </entry>
+        <entry key="Pages">
+          <ref id="3" gen="0" />
+        </entry>
+        <entry key="Outlines">
+          <ref id="2" gen="0" />
+        </entry>
+      </dict>
+    </object>
+    <object id="2" gen="0">
+      <dict>
+        <entry key="Type">
+          <name>Outlines</name>
+        </entry>
+      </dict>
+    </object>
+    <object id="3" gen="0">
+      <dict>
+        <entry key="Type">
+          <name>Pages</name>
+        </entry>
+        <entry key="Kids">
+          <arr>
+            <entry index="0">
+              <ref id="7" gen="0" />
+            </entry>
+          </arr>
+        </entry>
+        <entry key="Count">
+          <num>1</num>
+        </entry>
+      </dict>
+    </object>
+    <object id="4" gen="0">
+      <dict>
+        <entry key="CreationDate">
+          <string>D:20251008060551-07'00'</string>
+        </entry>
+        <entry key="ModDate">
+          <string>D:20251008060550-07'00'</string>
+        </entry>
+        <entry key="Author">
+          <string>Aspose.Pdf.SvgToPdfConverter</string>
+        </entry>
+        <entry key="Producer">
+          <string>Aspose Pty Ltd.</string>
+        </entry>
+        <entry key="Subject">
+          <string>Aspose</string>
+        </entry>
+        <entry key="Title">
+          <string>Aspose</string>
+        </entry>
+        <entry key="Creator">
+          <string>Aspose.Pdf.SvgToPdfConverter</string>
+        </entry>
+      </dict>
+    </object>
+    <object id="6" gen="0">
+      <stream>
+        <entry key="Filter">
+          <name>FlateDecode</name>
+        </entry>
+        <entry key="Length">
+          <num>0</num>
+        </entry>
+      </stream>
+    </object>
+    <object id="7" gen="0">
+      <dict>
+        <entry key="Type">
+          <name>Page</name>
+        </entry>
+        <entry key="Parent">
+          <ref id="3" gen="0" />
+        </entry>
+        <entry key="MediaBox">
+          <arr>
+            <entry index="0">
+              <num>0</num>
+            </entry>
+            <entry index="1">
+              <num>0</num>
+            </entry>
+            <entry index="2">
+              <num>192</num>
+            </entry>
+            <entry index="3">
+              <num>192</num>
+            </entry>
+          </arr>
+        </entry>
+        <entry key="Contents">
+          <ref id="8" gen="0" />
+        </entry>
+        <entry key="Resources">
+          <dict>
+            <entry key="Pattern">
+              <dict>
+                <entry key="P0">
+                  <ref id="10" gen="0" />
+                </entry>
+                <entry key="P1">
+                  <ref id="17" gen="0" />
+                </entry>
+              </dict>
+            </entry>
+            <entry key="ExtGState">
+              <dict>
+                <entry key="Gs0">
+                  <dict>
+                    <entry key="ca">
+                      <num>0.4000000059604645</num>
+                    </entry>
+                  </dict>
+                </entry>
+                <entry key="Gs1">
+                  <ref id="15" gen="0" />
+                </entry>
+                <entry key="Gs2">
+                  <dict>
+                    <entry key="ca">
+                      <num>0.6000000238418579</num>
+                    </entry>
+                  </dict>
+                </entry>
+                <entry key="Gs3">
+                  <dict>
+                    <entry key="ca">
+                      <num>0.14901961386203766</num>
+                    </entry>
+                  </dict>
+                </entry>
+              </dict>
+            </entry>
+          </dict>
+        </entry>
+        <entry key="CropBox">
+          <arr>
+            <entry index="0">
+              <num>0</num>
+            </entry>
+            <entry index="1">
+              <num>0</num>
+            </entry>
+            <entry index="2">
+              <num>192</num>
+            </entry>
+            <entry index="3">
+              <num>192</num>
+            </entry>
+          </arr>
+        </entry>
+      </dict>
+    </object>
+    <object id="8" gen="0">
+      <stream>
+        <entry key="Filter">
+          <name>FlateDecode</name>
+        </entry>
+        <entry key="Length">
+          <num>1271</num>
+        </entry>eJztV8mO3DYQvesrdA4QhrVwu/oyQE6Z5AuCQewg6DFgjwH/fh6LUrvFUqDA12QMi2x2qeq92li9fFpojfj3Y1+o8fryunxa1M7G0w5++uX3L1/++PxxfXnDPq5vLx8XWdv6imcKuWZulJtmJSJ/0CVlfVn687bIYVEOQlJi49SiCONQk1eBswYN3/WSLXgprXj9sDo9/sCE8TQ13/XeWG9g/7icgQULTwyvd899x0u2wNHGfn/++2j9ubxfnnvsn97i+gFxf3ojWw+5QP/nwn8oF2JoLcdSVSiv+NDFiyauKYrySuvnD10mUpfCkopQhWAtMdXKKv2lwklbZGLVqG399WmhQJzWr0tcf8b/vxauIa1MaC+2oxoa1yZMtTUlXbmEkkvJuSVOpHmlEigT5cRSlHNdOQcB/xhrKknBncCt4YVGypoygdS1zG1hDVVqFS2ZQQYUNbAw4zUtWhOwSIiFYi6VIkgCiwzwtsLKtrstjoadO+jOgoN1wuVaBvadYmfaAJ3CZLOy7W7bzlF3znHum2G5IJxwcTKw7wLuUsIlzZZUtlpcbIcYzzSG5AzdWXCwTrhcy8C+U+xMG6BzmD0u737Yq5NBlUqujYRz69VmhSeppkQRRdaLVq0aFb7NknrJAhTvBWdbaiEliKMXqHItK6dQ4GmpjNruvhXiSjlTq0U64EIshJonFL3VI94CDI61wVL3xKWMRSLXQhUNpWjpMkADH2R0tKSK9sEcVBuSq4EqNavZMsrNNqPebIskmVmML2b0zohDdkLnWgb2neLZ8sBzDnNU3L697VvnAOci58QZmQvFCR0nY/3rGPVjTriU2ZNqbEbF2RaBnllswjP0owmH6YTItQysH7U6owPLP0DsUXk/6g2ZNq48jEbcR6Oee7VH6XXbiqRSc6WmCS0K92CSlKQUwiWIOJfQKtqltqSo9i6QcsypKbpDbpaICIloTHCqxNL5XcqAX0RKTNejoOw1M9fIPfFa6N2VUqwFoUPwRxpuW+TDtw9WR71d3Yls8mAqD+i9kRrQ4B6QndC5lrG8A4lHxZPfMGLMvh5H1hDu266ps6T8jblTDd40XSMTwBbQgB8CcEZiljESB28hRhQPyTA5uQdxC8rYbkEZHywoDyEcpy7wzopPH0/nWsZSbMrl2XG9AA6+vhfHvX4irsJWI1zH/aqCoM2TOaGR4NoHDE1dANcUt4bKxKjInefXhfdJcRSlPffLa28yonCXPW7Lb5vBOmzgNoR6NIE+iuK+ZAwT4Gl3YQmwij+cNmkPyt0XCRHoynJDB4ZvUQDCmI1LjfCFdS9csAhpTDlBskuAT2KMxlXQKruERtLCEUM3ek33/qUMvJ9D7Y6VpqK1zzYJni6UKmEWEgzukMAHKYR0lNGrYwdPaM4QH37CmTb8YYaKwDjGlbMvrGUeuR71OaIOz0zijPmljOFwip3pIzKH+0Dtfjmdf2EWj56b/eoc70IzsZoDfMZ8ljEcLplcus35eJbJ7vge9vkLS7Qj3ROVE12HyuXzCf9LGZuSJ8Unph24S/QW/JP7XPp9br9yMKO/bjvcFoh1kSwYsO1uwAQRYyv4+ZszfmwX++Ew1j6LjB3At1AaJonI2rJIHeejQU1Kx6H9Zt92eydDFwZ/zpIpVtCddSoaZrduq1m3nd09R5x2vpE7Kt0Zbz55Xp7/BoZz++g=</stream>
+    </object>
+    <object id="9" gen="0">
+      <dict>
+        <entry key="N">
+          <num>1</num>
+        </entry>
+        <entry key="FunctionType">
+          <num>2</num>
+        </entry>
+        <entry key="Domain">
+          <arr>
+            <entry index="0">
+              <num>0</num>
+            </entry>
+            <entry index="1">
+              <num>1</num>
+            </entry>
+          </arr>
+        </entry>
+        <entry key="C0">
+          <arr>
+            <entry index="0">
+              <num>0.9176470637321472</num>
+            </entry>
+            <entry index="1">
+              <num>0.8666666746139526</num>
+            </entry>
+            <entry index="2">
+              <num>1</num>
+            </entry>
+          </arr>
+        </entry>
+        <entry key="C1">
+          <arr>
+            <entry index="0">
+              <num>0.7137255072593689</num>
+            </entry>
+            <entry index="1">
+              <num>0.615686297416687</num>
+            </entry>
+            <entry index="2">
+              <num>0.9725490212440491</num>
+            </entry>
+          </arr>
+        </entry>
+      </dict>
+    </object>
+    <object id="10" gen="0">
+      <dict>
+        <entry key="Type">
+          <name>Pattern</name>
+        </entry>
+        <entry key="PatternType">
+          <num>2</num>
+        </entry>
+        <entry key="Shading">
+          <dict>
+            <entry key="ColorSpace">
+              <name>DeviceRGB</name>
+            </entry>
+            <entry key="Function">
+              <ref id="9" gen="0" />
+            </entry>
+            <entry key="ShadingType">
+              <num>3</num>
+            </entry>
+            <entry key="Coords">
+              <arr>
+                <entry index="0">
+                  <num>12.600000381469727</num>
+                </entry>
+                <entry index="1">
+                  <num>12.600000381469727</num>
+                </entry>
+                <entry index="2">
+                  <num>0</num>
+                </entry>
+                <entry index="3">
+                  <num>12.600000381469727</num>
+                </entry>
+                <entry index="4">
+                  <num>12.600000381469727</num>
+                </entry>
+                <entry index="5">
+                  <num>42</num>
+                </entry>
+              </arr>
+            </entry>
+            <entry key="Domain">
+              <arr>
+                <entry index="0">
+                  <num>0</num>
+                </entry>
+                <entry index="1">
+                  <num>1</num>
+                </entry>
+              </arr>
+            </entry>
+            <entry key="Extend">
+              <arr>
+                <entry index="0">
+                  <bool>true</bool>
+                </entry>
+                <entry index="1">
+                  <bool>true</bool>
+                </entry>
+              </arr>
+            </entry>
+          </dict>
+        </entry>
+        <entry key="Matrix">
+          <arr>
+            <entry index="0">
+              <num>4</num>
+            </entry>
+            <entry index="1">
+              <num>0</num>
+            </entry>
+            <entry index="2">
+              <num>0</num>
+            </entry>
+            <entry index="3">
+              <num>-4</num>
+            </entry>
+            <entry index="4">
+              <num>12</num>
+            </entry>
+            <entry index="5">
+              <num>180</num>
+            </entry>
+          </arr>
+        </entry>
+      </dict>
+    </object>
+    <object id="11" gen="0">
+      <arr>
+        <entry index="0">
+          <name>PDF</name>
+        </entry>
+      </arr>
+    </object>
+    <object id="12" gen="0">
+      <dict>
+        <entry key="N">
+          <num>1</num>
+        </entry>
+        <entry key="FunctionType">
+          <num>2</num>
+        </entry>
+        <entry key="Domain">
+          <arr>
+            <entry index="0">
+              <num>0</num>
+            </entry>
+            <entry index="1">
+              <num>1</num>
+            </entry>
+          </arr>
+        </entry>
+        <entry key="C0">
+          <arr>
+            <entry index="0">
+              <num>0.8980392217636108</num>
+            </entry>
+          </arr>
+        </entry>
+        <entry key="C1">
+          <arr>
+            <entry index="0">
+              <num>0</num>
+            </entry>
+          </arr>
+        </entry>
+      </dict>
+    </object>
+    <object id="13" gen="0">
+      <stream>
+        <entry key="Filter">
+          <name>FlateDecode</name>
+        </entry>
+        <entry key="Length">
+          <num>32</num>
+        </entry>
+        <entry key="Resources">
+          <dict>
+            <entry key="ProcSet">
+              <ref id="11" gen="0" />
+            </entry>
+            <entry key="Shading">
+              <dict>
+                <entry key="Sh0">
+                  <dict>
+                    <entry key="ColorSpace">
+                      <name>DeviceGray</name>
+                    </entry>
+                    <entry key="Function">
+                      <ref id="12" gen="0" />
+                    </entry>
+                    <entry key="ShadingType">
+                      <num>3</num>
+                    </entry>
+                    <entry key="Coords">
+                      <arr>
+                        <entry index="0">
+                          <num>0</num>
+                        </entry>
+                        <entry index="1">
+                          <num>0</num>
+                        </entry>
+                        <entry index="2">
+                          <num>0</num>
+                        </entry>
+                        <entry index="3">
+                          <num>0</num>
+                        </entry>
+                        <entry index="4">
+                          <num>0</num>
+                        </entry>
+                        <entry index="5">
+                          <num>42</num>
+                        </entry>
+                      </arr>
+                    </entry>
+                    <entry key="Domain">
+                      <arr>
+                        <entry index="0">
+                          <num>0</num>
+                        </entry>
+                        <entry index="1">
+                          <num>1</num>
+                        </entry>
+                      </arr>
+                    </entry>
+                    <entry key="Extend">
+                      <arr>
+                        <entry index="0">
+                          <bool>true</bool>
+                        </entry>
+                        <entry index="1">
+                          <bool>true</bool>
+                        </entry>
+                      </arr>
+                    </entry>
+                  </dict>
+                </entry>
+              </dict>
+            </entry>
+          </dict>
+        </entry>
+        <entry key="FormType">
+          <num>1</num>
+        </entry>
+        <entry key="Subtype">
+          <name>Form</name>
+        </entry>
+        <entry key="Type">
+          <name>XObject</name>
+        </entry>
+        <entry key="Group">
+          <dict>
+            <entry key="CS">
+              <name>DeviceGray</name>
+            </entry>
+            <entry key="I">
+              <bool>false</bool>
+            </entry>
+            <entry key="S">
+              <name>Transparency</name>
+            </entry>
+            <entry key="Type">
+              <name>Group</name>
+            </entry>
+          </dict>
+        </entry>
+        <entry key="BBox">
+          <arr>
+            <entry index="0">
+              <num>3</num>
+            </entry>
+            <entry index="1">
+              <num>3</num>
+            </entry>
+            <entry index="2">
+              <num>45</num>
+            </entry>
+            <entry index="3">
+              <num>45</num>
+            </entry>
+          </arr>
+        </entry>eJzjKuQyVDAAQkMFYyBMzuXSD84wUCjO4AoEAEb4Bbg=</stream>
+    </object>
+    <object id="14" gen="0">
+      <dict>
+        <entry key="S">
+          <name>Luminosity</name>
+        </entry>
+        <entry key="Type">
+          <name>Mask</name>
+        </entry>
+        <entry key="G">
+          <ref id="13" gen="0" />
+        </entry>
+      </dict>
+    </object>
+    <object id="15" gen="0">
+      <dict>
+        <entry key="Type">
+          <name>ExtGState</name>
+        </entry>
+        <entry key="SMask">
+          <ref id="14" gen="0" />
+        </entry>
+      </dict>
+    </object>
+    <object id="16" gen="0">
+      <dict>
+        <entry key="N">
+          <num>1</num>
+        </entry>
+        <entry key="FunctionType">
+          <num>2</num>
+        </entry>
+        <entry key="Domain">
+          <arr>
+            <entry index="0">
+              <num>0</num>
+            </entry>
+            <entry index="1">
+              <num>1</num>
+            </entry>
+          </arr>
+        </entry>
+        <entry key="C0">
+          <arr>
+            <entry index="0">
+              <num>1</num>
+            </entry>
+            <entry index="1">
+              <num>1</num>
+            </entry>
+            <entry index="2">
+              <num>1</num>
+            </entry>
+          </arr>
+        </entry>
+        <entry key="C1">
+          <arr>
+            <entry index="0">
+              <num>1</num>
+            </entry>
+            <entry index="1">
+              <num>1</num>
+            </entry>
+            <entry index="2">
+              <num>1</num>
+            </entry>
+          </arr>
+        </entry>
+      </dict>
+    </object>
+    <object id="17" gen="0">
+      <dict>
+        <entry key="Type">
+          <name>Pattern</name>
+        </entry>
+        <entry key="PatternType">
+          <num>2</num>
+        </entry>
+        <entry key="Shading">
+          <dict>
+            <entry key="ColorSpace">
+              <name>DeviceRGB</name>
+            </entry>
+            <entry key="Function">
+              <ref id="16" gen="0" />
+            </entry>
+            <entry key="ShadingType">
+              <num>3</num>
+            </entry>
+            <entry key="Coords">
+              <arr>
+                <entry index="0">
+                  <num>0</num>
+                </entry>
+                <entry index="1">
+                  <num>0</num>
+                </entry>
+                <entry index="2">
+                  <num>0</num>
+                </entry>
+                <entry index="3">
+                  <num>0</num>
+                </entry>
+                <entry index="4">
+                  <num>0</num>
+                </entry>
+                <entry index="5">
+                  <num>42</num>
+                </entry>
+              </arr>
+            </entry>
+            <entry key="Domain">
+              <arr>
+                <entry index="0">
+                  <num>0</num>
+                </entry>
+                <entry index="1">
+                  <num>1</num>
+                </entry>
+              </arr>
+            </entry>
+            <entry key="Extend">
+              <arr>
+                <entry index="0">
+                  <bool>true</bool>
+                </entry>
+                <entry index="1">
+                  <bool>true</bool>
+                </entry>
+              </arr>
+            </entry>
+          </dict>
+        </entry>
+        <entry key="Matrix">
+          <arr>
+            <entry index="0">
+              <num>4</num>
+            </entry>
+            <entry index="1">
+              <num>0</num>
+            </entry>
+            <entry index="2">
+              <num>0</num>
+            </entry>
+            <entry index="3">
+              <num>-4</num>
+            </entry>
+            <entry index="4">
+              <num>12</num>
+            </entry>
+            <entry index="5">
+              <num>180</num>
+            </entry>
+          </arr>
+        </entry>
+      </dict>
+    </object>
+  </objects>
+  <trailer>
+    <dict>
+      <entry key="Root">
+        <ref id="1" gen="0" />
+      </entry>
+      <entry key="Info">
+        <ref id="4" gen="0" />
+      </entry>
+      <entry key="ID">
+        <arr>
+          <entry index="0">
+            <string>16-5D-E4-5F-18-3</string>
+          </entry>
+          <entry index="1">
+            <string>16-5D-E4-5F-18-3</string>
+          </entry>
+        </arr>
+      </entry>
+      <entry key="Size">
+        <num>7</num>
+      </entry>
+    </dict>
+  </trailer>
+</document>
