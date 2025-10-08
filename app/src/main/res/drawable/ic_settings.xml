@@ -1,27 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="256dp"
+    android:height="256dp"
     android:viewportWidth="64"
     android:viewportHeight="64">
-
-    <!-- پس زمینه -->
     <path
-        android:fillColor="#B69DF8"
-        android:pathData="M4,20 C4,12.26 10.26,6 18,6 L46,6 C53.74,6 60,12.26 60,20 L60,44 C60,51.74 53.74,58 46,58 L18,58 C10.26,58 4,51.74 4,44 Z" />
-
-    <!-- چرخ دنده بیرونی -->
+        android:fillColor="#FF000000"
+        android:pathData="M4 20c0-8.84 7.16-16 16-16h24c8.84 0 16 7.16 16 16v24c0 8.84-7.16 16-16 16h-24c-8.84 0-16-7.16-16-16z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="20.8"
+                android:centerY="20.8"
+                android:gradientRadius="56">
+                <item
+                    android:color="#FFEADDFF"
+                    android:offset="0"/>
+                <item
+                    android:color="#FFB69DF8"
+                    android:offset="1"/>
+            </gradient>
+        </aapt:attr>
+    </path>
     <path
-        android:fillColor="#EADDFF"
-        android:pathData="M32,20 C25.37,20 20,25.37 20,32 C20,38.63 25.37,44 32,44 C38.63,44 44,38.63 44,32 C44,25.37 38.63,20 32,20 Z" />
-
-    <!-- چرخ دنده داخلی -->
+        android:fillColor="#FF000000"
+        android:fillAlpha="0.4"
+        android:pathData="M4 20c0-8.84 7.16-16 16-16h24c8.84 0 16 7.16 16 16v24c0 8.84-7.16 16-16 16h-24c-8.84 0-16-7.16-16-16z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="40"
+                android:centerY="40"
+                android:gradientRadius="1">
+                <item
+                    android:color="#F2FFFFFF"
+                    android:offset="0"/>
+                <item
+                    android:color="#00FFFFFF"
+                    android:offset="1"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+    <group
+        android:translateX="32"
+        android:translateY="32">
+        <path
+            android:fillColor="#FF000000"
+            android:strokeColor="#FF4F378B"
+            android:strokeWidth="0.8"
+            android:pathData="M0-12h3l1 3 4 1 1 4 3 1v3L9 3 8 7 4 8l-1 3-3 1-3-1-1-3-4-1-1-4-3-3 3-3 1-4 4-1 1-3Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:type="linear"
+                    android:startX="-120"
+                    android:startY="-120"
+                    android:endX="-121"
+                    android:endY="-121">
+                    <item
+                        android:color="#FFF5F0FF"
+                        android:offset="0"/>
+                    <item
+                        android:color="#FFD0BCFF"
+                        android:offset="1"/>
+                </gradient>
+            </aapt:attr>
+        </path>
+        <path
+            android:fillColor="#FFEDE7F6"
+            android:strokeColor="#FF4F378B"
+            android:strokeWidth="1.4"
+            android:pathData="M0-5A5 5 0 1 0 0 5 5 5 0 1 0 0-5z"/>
+        <path
+            android:fillColor="#FFB69DF8"
+            android:pathData="M0-2a2 2 0 1 0 0 4 2 2 0 1 0 0-4z"/>
+    </group>
     <path
-        android:fillColor="#4F378B"
-        android:pathData="M32,26 C34.21,26 36,27.79 36,30 C36,32.21 34.21,34 32,34 C29.79,34 28,32.21 28,30 C28,27.79 29.79,26 32,26 Z" />
-
-    <!-- دندان‌ها (با stroke) -->
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.5"
+        android:pathData="M30 26a2 2 0 1 0 0 4 2 2 0 1 0 0-4z"/>
     <path
-        android:strokeColor="#4F378B"
-        android:strokeWidth="2"
-        android:pathData="M32,14 L32,18 M32,46 L32,50 M14,32 L18,32 M46,32 L50,32 M19.5,19.5 L22.5,22.5 M41.5,41.5 L44.5,44.5 M19.5,44.5 L22.5,41.5 M41.5,22.5 L44.5,19.5" />
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.15"
+        android:pathData="M32 50a14 2 0 1 0 0 4 14 2 0 1 0 0-4z"/>
 </vector>
