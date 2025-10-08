@@ -3,22 +3,10 @@ package com.fazli.vispar.navigation
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.CompositionLocalProvider
@@ -44,7 +32,6 @@ fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // راست‌چین کردن نوار پایین
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Surface(
             modifier = Modifier
@@ -102,7 +89,6 @@ fun BottomNavigationBar(navController: NavController) {
                                         ) {}
                                     }
 
-                                    // ✅ استفاده از Painter به‌جای ImageVector
                                     val iconPainter = screen.getIcon()
                                         ?: CustomIcons.toPainter(CustomIcons.Movie)
 
@@ -153,3 +139,4 @@ fun BottomNavigationBar(navController: NavController) {
         }
     }
 }
+
