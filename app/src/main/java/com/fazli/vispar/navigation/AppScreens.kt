@@ -1,15 +1,16 @@
 package com.fazli.vispar.navigation
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.painter.Painter
 import com.fazli.vispar.R
-import com.fazli.vispar.ui.theme.CustomIcons
 
 sealed class AppScreens(
     val route: String,
     @StringRes val resourceId: Int,
-    val iconResource: Int? = null,
+    @DrawableRes val iconRes: Int? = null,
     val showBottomBar: Boolean = true,
     val showSidebar: Boolean = true
 ) {
@@ -21,39 +22,39 @@ sealed class AppScreens(
     data object Movies : AppScreens(
         route = "movies",
         resourceId = R.string.movies,
-        iconResource = CustomIcons.Movie
+        iconRes = R.drawable.ic_movie
     )
 
     data object Series : AppScreens(
         route = "series",
         resourceId = R.string.series,
-        iconResource = CustomIcons.Series
+        iconRes = R.drawable.ic_series
     )
 
     data object Search : AppScreens(
         route = "search",
         resourceId = R.string.search,
-        iconResource = CustomIcons.Search
+        iconRes = R.drawable.ic_search
     )
 
     data object Settings : AppScreens(
         route = "settings",
         resourceId = R.string.settings,
-        iconResource = CustomIcons.Settings
+        iconRes = R.drawable.ic_settings
     )
 
     data object SingleMovie : AppScreens(
         route = "single_movie/{movieId}",
         resourceId = R.string.movie_details,
-        iconResource = CustomIcons.Movie,
+        iconRes = R.drawable.ic_movie,
         showBottomBar = false,
         showSidebar = false
     )
-    
+
     data object SingleSeries : AppScreens(
         route = "single_series/{seriesId}",
         resourceId = R.string.series_details,
-        iconResource = CustomIcons.Series,
+        iconRes = R.drawable.ic_series,
         showBottomBar = false,
         showSidebar = false
     )
@@ -68,7 +69,7 @@ sealed class AppScreens(
     data object About : AppScreens(
         route = "about",
         resourceId = R.string.about,
-        iconResource = CustomIcons.Settings,
+        iconRes = R.drawable.ic_settings,
         showBottomBar = false,
         showSidebar = false
     )
@@ -79,6 +80,6 @@ sealed class AppScreens(
 }
 
 @Composable
-fun AppScreens.getIcon(): ImageVector? {
-    return iconResource?.let { CustomIcons.toImageVector(it) }
+fun AppScreens.getIcon(): Painter? {
+    return iconRes?.let { painterResource(id = it) }
 }
