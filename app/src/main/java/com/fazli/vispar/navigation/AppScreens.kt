@@ -2,7 +2,7 @@ package com.fazli.vispar.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
 import com.fazli.vispar.R
 import com.fazli.vispar.ui.theme.CustomIcons
 
@@ -49,7 +49,7 @@ sealed class AppScreens(
         showBottomBar = false,
         showSidebar = false
     )
-    
+
     data object SingleSeries : AppScreens(
         route = "single_series/{seriesId}",
         resourceId = R.string.series_details,
@@ -79,6 +79,6 @@ sealed class AppScreens(
 }
 
 @Composable
-fun AppScreens.getIcon(): ImageVector? {
-    return iconResource?.let { CustomIcons.toImageVector(it) }
+fun AppScreens.getIcon(): Painter? {
+    return iconResource?.let { CustomIcons.toPainter(it) }
 }
