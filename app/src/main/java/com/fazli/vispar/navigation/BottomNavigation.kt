@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.fazli.vispar.ui.theme.CustomIcons
+import com.fazli.vispar.R
 import com.fazli.vispar.ui.theme.VazirFontFamily
 
 @Composable
@@ -43,7 +44,6 @@ fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // تنظیم راست‌چینی برای نوار پایین
     androidx.compose.runtime.CompositionLocalProvider(
         LocalLayoutDirection provides LayoutDirection.Rtl
     ) {
@@ -61,25 +61,26 @@ fun BottomNavigationBar(navController: NavController) {
             ) {
                 AppScreens.screens.forEach { screen ->
                     val isSelected = currentRoute == screen.route
+
                     val scale by animateFloatAsState(
                         targetValue = if (isSelected) 1.15f else 1f,
                         animationSpec = tween(durationMillis = 300),
                         label = "scale"
                     )
-                    
+
                     val iconColor by animateColorAsState(
-                        targetValue = if (isSelected) 
-                            MaterialTheme.colorScheme.onPrimary 
-                        else 
+                        targetValue = if (isSelected)
+                            MaterialTheme.colorScheme.onPrimary
+                        else
                             MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
                         animationSpec = tween(durationMillis = 300),
                         label = "iconColor"
                     )
-                    
+
                     val textColor by animateColorAsState(
-                        targetValue = if (isSelected) 
-                            MaterialTheme.colorScheme.onPrimary 
-                        else 
+                        targetValue = if (isSelected)
+                            MaterialTheme.colorScheme.onPrimary
+                        else
                             MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                         animationSpec = tween(durationMillis = 300),
                         label = "textColor"
@@ -101,16 +102,20 @@ fun BottomNavigationBar(navController: NavController) {
                                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                                         ) {}
                                     }
-                                    // تغییر اصلی در این بخش
-                                    val icon = screen.getIcon() ?: CustomIcons.toImageVector(CustomIcons.Movie)
-                                    Icon(
-                                        imageVector = icon,
-                                        contentDescription = stringResource(screen.resourceId),
-                                        tint = iconColor,
-                                        modifier = Modifier.size(28.dp)
-                                    )
+
+                                    // 🟢 استفاده مستقیم از drawable‌ها
+                                    screen.iconRes?.let {
+                                        Icon(
+                                            painter = painterResource(id = it),
+                                            contentDescription = stringResource(screen.resourceId),
+                                            tint = iconColor,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    }
                                 }
+
                                 Spacer(modifier = Modifier.height(4.dp))
+
                                 Text(
                                     text = stringResource(screen.resourceId),
                                     color = textColor,
@@ -148,4 +153,5 @@ fun BottomNavigationBar(navController: NavController) {
         }
     }
 }
+
 
