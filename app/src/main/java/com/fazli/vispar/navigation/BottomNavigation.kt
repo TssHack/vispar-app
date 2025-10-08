@@ -21,6 +21,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,10 +44,8 @@ fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // تنظیم راست‌چینی برای نوار پایین
-    androidx.compose.runtime.CompositionLocalProvider(
-        LocalLayoutDirection provides LayoutDirection.Rtl
-    ) {
+    // راست‌چین کردن نوار پایین
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -61,25 +60,26 @@ fun BottomNavigationBar(navController: NavController) {
             ) {
                 AppScreens.screens.forEach { screen ->
                     val isSelected = currentRoute == screen.route
+
                     val scale by animateFloatAsState(
                         targetValue = if (isSelected) 1.15f else 1f,
                         animationSpec = tween(durationMillis = 300),
                         label = "scale"
                     )
-                    
+
                     val iconColor by animateColorAsState(
-                        targetValue = if (isSelected) 
-                            MaterialTheme.colorScheme.onPrimary 
-                        else 
+                        targetValue = if (isSelected)
+                            MaterialTheme.colorScheme.onPrimary
+                        else
                             MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
                         animationSpec = tween(durationMillis = 300),
                         label = "iconColor"
                     )
-                    
+
                     val textColor by animateColorAsState(
-                        targetValue = if (isSelected) 
-                            MaterialTheme.colorScheme.onPrimary 
-                        else 
+                        targetValue = if (isSelected)
+                            MaterialTheme.colorScheme.onPrimary
+                        else
                             MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                         animationSpec = tween(durationMillis = 300),
                         label = "textColor"
@@ -101,16 +101,21 @@ fun BottomNavigationBar(navController: NavController) {
                                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                                         ) {}
                                     }
-                                    // تغییر اصلی در این بخش
-                                    val icon = screen.getIcon() ?: CustomIcons.toImageVector(CustomIcons.Movie)
+
+                                    // ✅ استفاده از Painter به‌جای ImageVector
+                                    val iconPainter = screen.getIcon()
+                                        ?: CustomIcons.toPainter(CustomIcons.Movie)
+
                                     Icon(
-                                        imageVector = icon,
+                                        painter = iconPainter,
                                         contentDescription = stringResource(screen.resourceId),
                                         tint = iconColor,
                                         modifier = Modifier.size(28.dp)
                                     )
                                 }
+
                                 Spacer(modifier = Modifier.height(4.dp))
+
                                 Text(
                                     text = stringResource(screen.resourceId),
                                     color = textColor,
@@ -148,4 +153,3 @@ fun BottomNavigationBar(navController: NavController) {
         }
     }
 }
-
