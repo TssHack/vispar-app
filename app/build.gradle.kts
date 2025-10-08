@@ -59,17 +59,11 @@ android {
         jvmTarget = "11"
     }
 
-    // 修复资源目录配置 - 避免嵌套资源
+    // پشتیبانی از صفحه‌نمایش‌های مختلف (مثلاً تلویزیون)
     sourceSets {
         getByName("main") {
             res {
-                srcDirs(
-                    "src/main/res/common",
-                    "src/main/res/values-television",
-                    "src/main/res/values",
-                    "src/main/res/drawable",
-                    "src/main/res/layout"
-                )
+                srcDirs("src/main/res", "src/main/res/values-television")
             }
         }
     }
