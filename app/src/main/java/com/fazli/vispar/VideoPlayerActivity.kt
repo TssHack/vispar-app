@@ -1,13 +1,41 @@
 package com.fazli.vispar
 
+import android.content.Context
+import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.os.Build
+import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowInsets
+import android.view.WindowInsetsController
+import android.view.WindowManager
+import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.FastForward
@@ -16,75 +44,43 @@ import androidx.compose.material.icons.rounded.Forward10
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Replay10
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
-import com.fazli.vispar.ui.glass.Glass
-import com.fazli.vispar.ui.glass.GlassStyle
-import com.fazli.vispar.ui.glass.GlassSurface
-import com.fazli.vispar.ui.glass.GlassType
-import com.fazli.vispar.ui.glass.LiquidIconButton
-import com.fazli.vispar.ui.glass.LiquidLoader
-import com.fazli.vispar.ui.glass.LiquidSlider
-import com.fazli.vispar.ui.glass.LocalBackdrop
-import com.fazli.vispar.ui.glass.LocalGlassColors
-import com.fazli.vispar.ui.glass.StatusView
-import com.fazli.vispar.ui.glass.glass
-import com.fazli.vispar.ui.glass.glassColors
-import com.fazli.vispar.ui.theme.ThemeManager
-import com.kyant.backdrop.backdrops.layerBackdrop
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
-import com.kyant.shapes.Capsule
-import com.kyant.shapes.RoundedRectangle
-import android.content.Context
-import android.content.Intent
-import android.content.pm.ActivityInfo
-import android.net.Uri
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.TypedValue
-import android.view.GestureDetector
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
-import android.view.WindowInsets
-import android.view.WindowInsetsController
-import android.widget.FrameLayout
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -92,21 +88,44 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import com.fazli.vispar.data.model.SubtitleSettings
 import com.fazli.vispar.data.model.VideoPlayerSettings
+import com.fazli.vispar.ui.glass.DialogAction
+import com.fazli.vispar.ui.glass.DialogActionStyle
+import com.fazli.vispar.ui.glass.DialogHeader
+import com.fazli.vispar.ui.glass.Glass
+import com.fazli.vispar.ui.glass.GlassDialog
+import com.fazli.vispar.ui.glass.GlassOverlayHost
+import com.fazli.vispar.ui.glass.GlassOverlayLayer
+import com.fazli.vispar.ui.glass.GlassStyle
+import com.fazli.vispar.ui.glass.GlassSurface
+import com.fazli.vispar.ui.glass.GlassType
+import com.fazli.vispar.ui.glass.LiquidButton
+import com.fazli.vispar.ui.glass.LiquidIconButton
+import com.fazli.vispar.ui.glass.LiquidLoader
+import com.fazli.vispar.ui.glass.LiquidSlider
+import com.fazli.vispar.ui.glass.LocalBackdrop
+import com.fazli.vispar.ui.glass.LocalGlassColors
+import com.fazli.vispar.ui.glass.LocalGlassOverlayHost
+import com.fazli.vispar.ui.glass.LocalIsTv
+import com.fazli.vispar.ui.glass.StatusView
+import com.fazli.vispar.ui.glass.glass
+import com.fazli.vispar.ui.glass.glassColors
+import com.fazli.vispar.ui.theme.ThemeManager
+import com.fazli.vispar.utils.DeviceUtils
 import com.fazli.vispar.utils.StorageUtils
+import com.fazli.vispar.utils.WatchEntry
+import com.fazli.vispar.utils.WatchHistory
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.shapes.Capsule
+import com.kyant.shapes.RoundedRectangle
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import java.util.Locale
 
-// Extension function to set subtitle text size on PlayerView
 fun PlayerView.setSubtitleTextSize(spSize: Float) {
-    // Convert sp to pixels
-    val displayMetrics = context.resources.displayMetrics
-    val pixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, spSize, displayMetrics)
-    
-    // Set the subtitle text size
-    subtitleView?.setFixedTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, pixels)
+    val pixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, spSize, context.resources.displayMetrics)
+    subtitleView?.setFixedTextSize(TypedValue.COMPLEX_UNIT_PX, pixels)
 }
 
-// Extension function to set subtitle colors
 fun PlayerView.setSubtitleColors(settings: SubtitleSettings) {
     subtitleView?.setStyle(
         CaptionStyleCompat(
@@ -115,498 +134,570 @@ fun PlayerView.setSubtitleColors(settings: SubtitleSettings) {
             settings.borderColor,
             CaptionStyleCompat.EDGE_TYPE_OUTLINE,
             settings.borderColor,
-            null // typeface
+            null
         )
     )
 }
 
+/** What is being played; used for the title bar and the "continue watching" history. */
+data class PlayerMeta(
+    val url: String,
+    val title: String = "",
+    val subtitle: String? = null,
+    val image: String = "",
+    val contentId: Int = 0,
+    val type: String = "movie",
+)
+
 class VideoPlayerActivity : ComponentActivity() {
     companion object {
         const val EXTRA_VIDEO_URL = "video_url"
-        
-        fun start(context: Context, videoUrl: String) {
+        private const val EXTRA_TITLE = "title"
+        private const val EXTRA_SUBTITLE = "subtitle"
+        private const val EXTRA_IMAGE = "image"
+        private const val EXTRA_ID = "content_id"
+        private const val EXTRA_TYPE = "type"
+
+        fun start(context: Context, videoUrl: String) = start(context, PlayerMeta(url = videoUrl))
+
+        fun start(context: Context, meta: PlayerMeta) {
             val intent = Intent(context, VideoPlayerActivity::class.java).apply {
-                putExtra(EXTRA_VIDEO_URL, videoUrl)
+                putExtra(EXTRA_VIDEO_URL, meta.url)
+                putExtra(EXTRA_TITLE, meta.title)
+                putExtra(EXTRA_SUBTITLE, meta.subtitle)
+                putExtra(EXTRA_IMAGE, meta.image)
+                putExtra(EXTRA_ID, meta.contentId)
+                putExtra(EXTRA_TYPE, meta.type)
             }
             context.startActivity(intent)
         }
     }
-    
+
     private var exoPlayer: ExoPlayer? = null
-    private var videoUrl: String? = null
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Set fullscreen landscape mode
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        
-        // Enable immersive full-screen mode
+        if (!DeviceUtils.isTv(this)) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        }
         enableFullScreenMode()
-        
-        // Keep screen on while in video player
-        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        
-        videoUrl = intent.getStringExtra(EXTRA_VIDEO_URL)
-        
-        if (videoUrl != null) {
-            val accent = ThemeManager(this).loadThemeSettings().primaryColor
-            setContent {
-                // The player is always dark: glass is tuned for video content.
-                CompositionLocalProvider(
-                    LocalGlassColors provides glassColors(isDark = true, accent = accent),
-                    LocalLayoutDirection provides LayoutDirection.Rtl
-                ) {
-                    VideoPlayerScreen(videoUrl!!, this::finish) { player ->
-                        exoPlayer = player
-                    }
-                }
-            }
-        } else {
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        val url = intent.getStringExtra(EXTRA_VIDEO_URL)
+        if (url == null) {
             finish()
+            return
+        }
+        val meta = PlayerMeta(
+            url = url,
+            title = intent.getStringExtra(EXTRA_TITLE).orEmpty(),
+            subtitle = intent.getStringExtra(EXTRA_SUBTITLE),
+            image = intent.getStringExtra(EXTRA_IMAGE).orEmpty(),
+            contentId = intent.getIntExtra(EXTRA_ID, 0),
+            type = intent.getStringExtra(EXTRA_TYPE) ?: "movie",
+        )
+        val theme = ThemeManager(this).loadThemeSettings()
+        val isTv = DeviceUtils.isTv(this)
+
+        setContent {
+            // The player is always dark: glass is tuned for video content.
+            CompositionLocalProvider(
+                LocalGlassColors provides glassColors(isDark = true, accent = theme.primaryColor, material = theme.glassMaterial),
+                LocalLayoutDirection provides LayoutDirection.Rtl,
+                LocalIsTv provides isTv,
+            ) {
+                VideoPlayerScreen(meta, onBack = ::finish) { exoPlayer = it }
+            }
         }
     }
-    
+
     private fun enableFullScreenMode() {
         try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                // For Android 11 and above
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 window.insetsController?.let { controller ->
                     controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
                     controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 }
             } else {
-                // For older Android versions
                 @Suppress("DEPRECATION")
                 window.decorView.systemUiVisibility = (
                     View.SYSTEM_UI_FLAG_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                )
+                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    )
             }
         } catch (e: Exception) {
-            // Fallback to basic fullscreen if there's an issue
             @Suppress("DEPRECATION")
-            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         }
     }
-    
-    override fun onDestroy() {
-        super.onDestroy()
-        try {
-            exoPlayer?.release()
-        } catch (e: Exception) {
-            // Ignore any exceptions during release
-        }
-        exoPlayer = null
-        
-        // Remove keep screen on flag to conserve battery
-        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+    override fun onPause() {
+        super.onPause()
+        // Don't keep playing (and burning data) in the background.
+        exoPlayer?.pause()
     }
-    
+
     override fun onResume() {
         super.onResume()
-        // Re-enable full-screen mode when resuming
-        try {
-            enableFullScreenMode()
-        } catch (e: Exception) {
-            // Ignore fullscreen errors
-        }
+        runCatching { enableFullScreenMode() }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        runCatching { exoPlayer?.release() }
+        exoPlayer = null
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 }
 
 @Composable
 fun VideoPlayerScreen(
-    videoUrl: String,
+    meta: PlayerMeta,
     onBack: () -> Unit,
     onPlayerReady: (ExoPlayer) -> Unit
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    val colors = Glass.colors
+    val isTv = LocalIsTv.current
+    val settings = remember { StorageUtils.loadVideoPlayerSettings(context) }
+    val subtitleSettings = remember { StorageUtils.loadSubtitleSettings(context) }
+    val seekMs = settings.seekTimeSeconds * 1000L
+
     var isPlaying by remember { mutableStateOf(false) }
-    var currentPosition by remember { mutableStateOf(0L) }
-    var duration by remember { mutableStateOf(0L) }
+    var isBuffering by remember { mutableStateOf(true) }
+    var position by remember { mutableLongStateOf(0L) }
+    var duration by remember { mutableLongStateOf(0L) }
+    var scrubFraction by remember { mutableStateOf<Float?>(null) }
+    var speed by remember { mutableFloatStateOf(settings.playbackSpeed) }
     var showControls by remember { mutableStateOf(true) }
-    var isSeeking by remember { mutableStateOf(false) }
+    var controlsTick by remember { mutableIntStateOf(0) }
+    var showSpeedPicker by remember { mutableStateOf(false) }
     var playerError by remember { mutableStateOf<String?>(null) }
-    var showForwardIndicator by remember { mutableStateOf(false) }
-    var showRewindIndicator by remember { mutableStateOf(false) }
-    var wasPlayingBeforeSeek by remember { mutableStateOf(false) } // Track if player was playing before seeking
-    
-    // Load video player settings
-    val videoPlayerSettings = remember(context) {
-        StorageUtils.loadVideoPlayerSettings(context)
+    var seekFeedback by remember { mutableIntStateOf(0) } // -1 rewind, 1 forward
+    var seekFeedbackTick by remember { mutableIntStateOf(0) }
+    var rootFocused by remember { mutableStateOf(false) }
+    val rootFocus = remember { FocusRequester() }
+    val playFocus = remember { FocusRequester() }
+
+    val resumeFrom = remember {
+        if (settings.resumePlayback) WatchHistory.get(context, meta.url)?.takeIf { it.isResumable }?.positionMs else null
     }
-    
-    // Load subtitle settings
-    val subtitleSettings = remember(context) {
-        StorageUtils.loadSubtitleSettings(context)
-    }
-    
-    val exoPlayer = remember(context) {
+
+    val exoPlayer = remember {
         try {
             ExoPlayer.Builder(context).build().apply {
-                setMediaItem(MediaItem.fromUri(Uri.parse(videoUrl)))
+                setMediaItem(MediaItem.fromUri(meta.url.toUri()))
+                setPlaybackSpeed(settings.playbackSpeed)
+                if (resumeFrom != null) seekTo(resumeFrom)
                 prepare()
-                playWhenReady = isPlaying
+                playWhenReady = settings.autoplay
             }
         } catch (e: Exception) {
-            playerError = "Failed to initialize player: ${e.message}"
+            playerError = e.message ?: "خطا در راه‌اندازی پخش‌کننده"
             null
         }
     }
-    
-    // Notify activity of player reference
-    LaunchedEffect(Unit) {
-        try {
-            exoPlayer?.let { onPlayerReady(it) }
-        } catch (e: Exception) {
-            // Ignore callback errors
-        }
+
+    fun poke() {
+        showControls = true
+        controlsTick++
     }
-    
-    // Update player state
-    LaunchedEffect(isPlaying, exoPlayer) {
-        try {
-            exoPlayer?.playWhenReady = isPlaying
-        } catch (e: Exception) {
-            // Ignore player state errors
-        }
+
+    fun togglePlay() {
+        exoPlayer ?: return
+        if (exoPlayer.playbackState == Player.STATE_ENDED) exoPlayer.seekTo(0)
+        exoPlayer.playWhenReady = !exoPlayer.playWhenReady
+        poke()
     }
-    
-    // Listen to player events and handle cleanup
-    val playerListener = remember(exoPlayer) {
-        object : Player.Listener {
-            override fun onIsPlayingChanged(playing: Boolean) {
-                // Only update isPlaying if we're not currently seeking
-                if (!isSeeking) {
-                    isPlaying = playing
-                }
-            }
-            
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                try {
-                    if (playbackState == Player.STATE_READY) {
-                        duration = exoPlayer?.duration ?: 0L
-                    }
-                } catch (e: Exception) {
-                    // Ignore duration errors
-                }
-            }
-            
-            override fun onPositionDiscontinuity(
-                oldPosition: Player.PositionInfo,
-                newPosition: Player.PositionInfo,
-                reason: Int
-            ) {
-                try {
-                    if (!isSeeking) {
-                        currentPosition = exoPlayer?.currentPosition ?: 0L
-                    }
-                } catch (e: Exception) {
-                    // Ignore position errors
-                }
-            }
-            
-            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-                playerError = error.message
-            }
-        }
-    }
-    
-    LaunchedEffect(exoPlayer) {
-        if (exoPlayer == null) return@LaunchedEffect
-        
-        exoPlayer.addListener(playerListener)
-    }
-    
-    DisposableEffect(exoPlayer) {
-        onDispose {
-            exoPlayer?.removeListener(playerListener)
-        }
-    }
-    
-    // Periodically update the current position for real-time progress tracking
-    LaunchedEffect(exoPlayer, isPlaying) {
-        if (exoPlayer == null) return@LaunchedEffect
-        
-        try {
-            while (true) {
-                delay(100) // Update every 100ms for smooth progress tracking
-                if (isPlaying && !isSeeking) {
-                    try {
-                        exoPlayer?.let { player ->
-                            if (player.isPlaying) {
-                                currentPosition = player.currentPosition
-                                duration = player.duration
-                            }
-                        }
-                    } catch (e: Exception) {
-                        // Ignore position/duration errors
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            // Ignore coroutine errors
-        }
-    }
-    
-    // Hide controls after a delay
-    LaunchedEffect(showControls, isPlaying) {
-        try {
-            if (showControls && isPlaying) {
-                delay(3000) // Hide controls after 3 seconds
-                showControls = false
-            }
-        } catch (e: Exception) {
-            // Ignore delay errors
-        }
-    }
-    
-    // Hide forward/rewind indicators after a delay
-    LaunchedEffect(showForwardIndicator) {
-        if (showForwardIndicator) {
-            delay(500) // Hide after 500ms
-            showForwardIndicator = false
-        }
-    }
-    
-    LaunchedEffect(showRewindIndicator) {
-        if (showRewindIndicator) {
-            delay(500) // Hide after 500ms
-            showRewindIndicator = false
-        }
-    }
-    
-    // Clean up player
-    DisposableEffect(exoPlayer) {
-        onDispose {
-            try {
-                exoPlayer?.release()
-            } catch (e: Exception) {
-                // Ignore release errors
-            }
-        }
-    }
-    
+
     fun seekBy(deltaMs: Long) {
-        val player = exoPlayer ?: return
-        wasPlayingBeforeSeek = isPlaying
-        isSeeking = true
-        try {
-            val target = (player.currentPosition + deltaMs)
-                .coerceAtLeast(0L)
-                .let { if (player.duration > 0) it.coerceAtMost(player.duration) else it }
-            player.seekTo(target)
-            currentPosition = target
-            if (deltaMs < 0) showRewindIndicator = true else showForwardIndicator = true
-            if (wasPlayingBeforeSeek) player.playWhenReady = true
-        } catch (e: Exception) {
-            // Ignore seek errors
-        }
-        scope.launch {
-            delay(500)
-            isSeeking = false
-            try {
-                player.playWhenReady = wasPlayingBeforeSeek
-                isPlaying = wasPlayingBeforeSeek
-            } catch (e: Exception) {
-                // Ignore errors
+        exoPlayer ?: return
+        val end = exoPlayer.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
+        val target = (exoPlayer.currentPosition + deltaMs).coerceIn(0L, end)
+        exoPlayer.seekTo(target)
+        position = target
+        seekFeedback = if (deltaMs < 0) -1 else 1
+        seekFeedbackTick++
+    }
+
+    fun saveProgress() {
+        exoPlayer ?: return
+        val pos = exoPlayer.currentPosition
+        val dur = exoPlayer.duration.takeIf { it > 0 } ?: 0L
+        if (pos <= 0) return
+        WatchHistory.save(
+            context,
+            WatchEntry(
+                url = meta.url,
+                title = meta.title.ifBlank { "ویدیو" },
+                subtitle = meta.subtitle,
+                image = meta.image,
+                contentId = meta.contentId,
+                type = meta.type,
+                positionMs = pos,
+                durationMs = dur,
+            )
+        )
+    }
+
+    // Player events
+    DisposableEffect(exoPlayer) {
+        val listener = object : Player.Listener {
+            override fun onIsPlayingChanged(playing: Boolean) {
+                isPlaying = playing
             }
+
+            override fun onPlaybackStateChanged(state: Int) {
+                isBuffering = state == Player.STATE_BUFFERING
+                if (state == Player.STATE_READY) duration = exoPlayer?.duration?.coerceAtLeast(0) ?: 0
+                if (state == Player.STATE_ENDED) showControls = true
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                playerError = error.message ?: "خطا در پخش ویدیو"
+            }
+        }
+        exoPlayer?.addListener(listener)
+        exoPlayer?.let(onPlayerReady)
+        onDispose {
+            saveProgress()
+            exoPlayer?.removeListener(listener)
+            runCatching { exoPlayer?.release() }
         }
     }
 
-    val seekMs = videoPlayerSettings.seekTimeSeconds * 1000L
-    val videoLayer = rememberLayerBackdrop()
-    val glassColors = Glass.colors
+    // Progress polling and periodic history save
+    LaunchedEffect(exoPlayer) {
+        exoPlayer ?: return@LaunchedEffect
+        var ticks = 0
+        while (true) {
+            delay(250)
+            if (scrubFraction == null) position = exoPlayer.currentPosition
+            if (exoPlayer.duration > 0) duration = exoPlayer.duration
+            if (++ticks % 20 == 0 && exoPlayer.isPlaying) saveProgress()
+        }
+    }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onDoubleTap = { offset ->
-                        // Left half rewinds, right half skips forward.
-                        if (offset.x < size.width / 2) seekBy(-seekMs) else seekBy(seekMs)
-                    },
-                    onTap = { showControls = !showControls }
-                )
-            }
-    ) {
-        if (playerError != null) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    // Auto-hide the chrome while playing
+    LaunchedEffect(showControls, isPlaying, controlsTick, showSpeedPicker) {
+        if (showControls && isPlaying && !showSpeedPicker) {
+            delay(3500)
+            showControls = false
+        }
+    }
+    LaunchedEffect(seekFeedbackTick) {
+        if (seekFeedbackTick > 0) {
+            delay(600)
+            seekFeedback = 0
+        }
+    }
+    // When the chrome hides on TV, focus returns to the video so the remote keeps working.
+    LaunchedEffect(showControls) {
+        if (!showControls || !isTv) runCatching { rootFocus.requestFocus() }
+        else runCatching { playFocus.requestFocus() }
+    }
+
+    BackHandler(enabled = showControls && isPlaying) { showControls = false }
+
+    val videoLayer = rememberLayerBackdrop()
+    val overlayHost = remember { GlassOverlayHost() }
+
+    CompositionLocalProvider(LocalGlassOverlayHost provides overlayHost) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .focusRequester(rootFocus)
+                .onFocusChanged { rootFocused = it.isFocused }
+                .onKeyEvent { event ->
+                    if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
+                    when (event.key) {
+                        Key.MediaPlayPause, Key.MediaPlay, Key.MediaPause, Key.Spacebar -> {
+                            togglePlay(); true
+                        }
+                        Key.MediaFastForward -> {
+                            seekBy(seekMs); true
+                        }
+                        Key.MediaRewind -> {
+                            seekBy(-seekMs); true
+                        }
+                        // Arrows/OK act on the video only while the chrome isn't being navigated.
+                        Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> if (rootFocused) {
+                            togglePlay(); true
+                        } else false
+                        Key.DirectionLeft -> if (rootFocused) {
+                            // Remote arrows follow the screen, not the reading direction.
+                            seekBy(-seekMs); poke(); true
+                        } else false
+                        Key.DirectionRight -> if (rootFocused) {
+                            seekBy(seekMs); poke(); true
+                        } else false
+                        Key.DirectionUp, Key.DirectionDown -> if (rootFocused) {
+                            poke()
+                            runCatching { playFocus.requestFocus() }
+                            true
+                        } else false
+                        else -> false
+                    }
+                }
+                .focusable()
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onDoubleTap = { offset -> if (offset.x < size.width / 2) seekBy(-seekMs) else seekBy(seekMs) },
+                        onTap = {
+                            if (showControls) showControls = false else poke()
+                        }
+                    )
+                }
+        ) {
+            if (playerError != null) {
                 StatusView(
                     icon = Icons.Rounded.ErrorOutline,
                     title = "پخش ویدیو ممکن نیست",
-                    message = playerError ?: "خطای نامشخص",
-                    iconTint = glassColors.danger,
+                    message = playerError,
+                    iconTint = colors.danger,
                     actionText = "بازگشت",
-                    onAction = onBack
+                    onAction = onBack,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+                return@Box
+            }
+            if (exoPlayer == null) {
+                LiquidLoader(Modifier.align(Alignment.Center))
+                return@Box
+            }
+
+            // The video, recorded so the controls can refract it.
+            Box(Modifier.fillMaxSize().layerBackdrop(videoLayer)) {
+                AndroidView(
+                    factory = { ctx ->
+                        (LayoutInflater.from(ctx).inflate(R.layout.vispar_player_view, null, false) as PlayerView).apply {
+                            player = exoPlayer
+                            useController = false
+                            layoutParams = FrameLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT
+                            )
+                            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                            setSubtitleTextSize(subtitleSettings.textSize)
+                            setSubtitleColors(subtitleSettings)
+                        }
+                    },
+                    modifier = Modifier.fillMaxSize()
                 )
             }
-            return@Box
-        }
 
-        if (exoPlayer == null) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LiquidLoader() }
-            return@Box
-        }
-
-        // The video, recorded so the controls can refract it.
-        Box(Modifier.fillMaxSize().layerBackdrop(videoLayer)) {
-            AndroidView(
-                factory = { ctx ->
-                    (LayoutInflater.from(ctx).inflate(R.layout.vispar_player_view, null, false) as PlayerView).apply {
-                        player = exoPlayer
-                        useController = false
-                        layoutParams = FrameLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                        setSubtitleTextSize(subtitleSettings.textSize)
-                        setSubtitleColors(subtitleSettings)
-                    }
-                },
-                modifier = Modifier.fillMaxSize(),
-                update = { playerView ->
-                    playerView.setSubtitleTextSize(subtitleSettings.textSize)
-                    playerView.setSubtitleColors(subtitleSettings)
+            CompositionLocalProvider(LocalBackdrop provides videoLayer) {
+                if (isBuffering && !showControls) {
+                    LiquidLoader(Modifier.align(Alignment.Center))
                 }
-            )
+
+                SeekIndicator(
+                    visible = seekFeedback == -1,
+                    icon = Icons.Rounded.FastRewind,
+                    label = "${settings.seekTimeSeconds} ثانیه",
+                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 64.dp)
+                )
+                SeekIndicator(
+                    visible = seekFeedback == 1,
+                    icon = Icons.Rounded.FastForward,
+                    label = "${settings.seekTimeSeconds} ثانیه",
+                    modifier = Modifier.align(Alignment.CenterEnd).padding(end = 64.dp)
+                )
+
+                AnimatedVisibility(
+                    visible = showControls,
+                    enter = fadeIn(tween(220)),
+                    exit = fadeOut(tween(300)),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    PlayerChrome(
+                        meta = meta,
+                        isPlaying = isPlaying,
+                        isBuffering = isBuffering,
+                        position = scrubFraction?.let { (it * duration).toLong() } ?: position,
+                        duration = duration,
+                        speed = speed,
+                        playFocus = playFocus,
+                        onBack = onBack,
+                        onTogglePlay = ::togglePlay,
+                        onSeekBy = { seekBy(it); poke() },
+                        onScrub = { fraction ->
+                            scrubFraction = fraction
+                            poke()
+                        },
+                        onScrubEnd = {
+                            scrubFraction?.let { exoPlayer.seekTo((it * duration).toLong()) }
+                            scrubFraction = null
+                        },
+                        onSpeedClick = { showSpeedPicker = true },
+                        videoLayer = videoLayer,
+                        seekSeconds = settings.seekTimeSeconds
+                    )
+                }
+            }
+
+            GlassOverlayLayer(overlayHost, videoLayer)
         }
 
-        CompositionLocalProvider(LocalBackdrop provides videoLayer) {
-            // Double-tap feedback: a glass bubble on the side that was tapped.
-            SeekIndicator(
-                visible = showRewindIndicator,
-                icon = Icons.Rounded.FastRewind,
-                label = "${videoPlayerSettings.seekTimeSeconds} ثانیه",
-                modifier = Modifier.align(Alignment.CenterStart).padding(start = 64.dp)
-            )
-            SeekIndicator(
-                visible = showForwardIndicator,
-                icon = Icons.Rounded.FastForward,
-                label = "${videoPlayerSettings.seekTimeSeconds} ثانیه",
-                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 64.dp)
-            )
-
-            AnimatedVisibility(
-                visible = showControls,
-                enter = fadeIn(tween(220)),
-                exit = fadeOut(tween(300)),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Box(Modifier.fillMaxSize()) {
-                    // Soft scrims keep the chrome legible without dimming the whole picture.
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    0f to Color.Black.copy(alpha = 0.45f),
-                                    0.25f to Color.Transparent,
-                                    0.7f to Color.Transparent,
-                                    1f to Color.Black.copy(alpha = 0.55f)
-                                )
-                            )
-                    )
-
-                    LiquidIconButton(
-                        onClick = onBack,
-                        icon = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = "بازگشت",
-                        iconTint = Color.White,
-                        modifier = Modifier.align(Alignment.TopStart).padding(24.dp)
-                    )
-
-                    // Transport cluster
-                    Row(
-                        Modifier.align(Alignment.Center),
-                        horizontalArrangement = Arrangement.spacedBy(28.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        LiquidIconButton(
-                            onClick = { seekBy(-seekMs) },
-                            icon = Icons.Rounded.Replay10,
-                            contentDescription = "عقب",
-                            iconTint = Color.White,
-                            size = 56.dp,
-                            iconSize = 28.dp
-                        )
-                        LiquidIconButton(
-                            onClick = { isPlaying = !isPlaying },
-                            icon = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                            contentDescription = if (isPlaying) "توقف" else "پخش",
-                            iconTint = Color.White,
-                            size = 80.dp,
-                            iconSize = 42.dp
-                        )
-                        LiquidIconButton(
-                            onClick = { seekBy(seekMs) },
-                            icon = Icons.Rounded.Forward10,
-                            contentDescription = "جلو",
-                            iconTint = Color.White,
-                            size = 56.dp,
-                            iconSize = 28.dp
-                        )
-                    }
-
-                    // Timeline on a pane of glass
-                    Row(
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(horizontal = 24.dp, vertical = 20.dp)
-                            .fillMaxWidth()
-                            .glass(
-                                backdrop = videoLayer,
-                                shape = RoundedRectangle(28.dp),
-                                colors = glassColors,
-                                style = GlassStyle(blur = 16.dp, refractionHeight = 16.dp, refractionAmount = 32.dp),
-                                tint = Color.Black.copy(alpha = 0.25f)
-                            )
-                            .padding(horizontal = 20.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-                        // Media time reads left-to-right regardless of the app's language.
-                        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                            Text(formatTime(currentPosition), style = GlassType.CaptionBold, color = Color.White)
-                            LiquidSlider(
-                                value = if (duration > 0) currentPosition.toFloat() / duration.toFloat() else 0f,
-                                onValueChange = { progress ->
-                                    if (!isSeeking) wasPlayingBeforeSeek = isPlaying
-                                    isSeeking = true
-                                    val newPosition = (progress * duration).toLong()
-                                    try {
-                                        exoPlayer.seekTo(newPosition)
-                                        currentPosition = newPosition
-                                        if (wasPlayingBeforeSeek) exoPlayer.playWhenReady = true
-                                    } catch (e: Exception) {
-                                        // Ignore seek errors
-                                    }
-                                },
-                                onValueChangeFinished = {
-                                    isSeeking = false
-                                    try {
-                                        exoPlayer.playWhenReady = wasPlayingBeforeSeek
-                                        isPlaying = wasPlayingBeforeSeek
-                                    } catch (e: Exception) {
-                                        // Ignore errors
-                                    }
-                                },
-                                valueRange = 0f..1f,
-                                accentColor = Color.White,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(formatTime(duration), style = GlassType.CaptionBold, color = Color.White.copy(alpha = 0.75f))
+        if (showSpeedPicker) {
+            GlassDialog(onDismissRequest = { showSpeedPicker = false }) {
+                DialogHeader(title = "سرعت پخش", icon = Icons.Rounded.Speed)
+                VideoPlayerSettings.SPEEDS.forEach { option ->
+                    DialogAction(
+                        text = formatSpeed(option),
+                        style = if (option == speed) DialogActionStyle.Primary else DialogActionStyle.Secondary,
+                        onClick = {
+                            speed = option
+                            exoPlayer?.setPlaybackSpeed(option)
+                            showSpeedPicker = false
                         }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PlayerChrome(
+    meta: PlayerMeta,
+    isPlaying: Boolean,
+    isBuffering: Boolean,
+    position: Long,
+    duration: Long,
+    speed: Float,
+    playFocus: FocusRequester,
+    onBack: () -> Unit,
+    onTogglePlay: () -> Unit,
+    onSeekBy: (Long) -> Unit,
+    onScrub: (Float) -> Unit,
+    onScrubEnd: () -> Unit,
+    onSpeedClick: () -> Unit,
+    videoLayer: com.kyant.backdrop.backdrops.LayerBackdrop,
+    seekSeconds: Int,
+) {
+    val colors = Glass.colors
+    val latestScrub by rememberUpdatedState(onScrub)
+    Box(Modifier.fillMaxSize()) {
+        // Soft scrims keep the chrome legible without dimming the whole picture.
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.Black.copy(alpha = 0.5f),
+                        0.25f to Color.Transparent,
+                        0.7f to Color.Transparent,
+                        1f to Color.Black.copy(alpha = 0.6f)
+                    )
+                )
+        )
+
+        // Top bar: back, title, speed
+        Row(
+            Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            LiquidIconButton(
+                onClick = onBack,
+                icon = Icons.AutoMirrored.Rounded.ArrowBack,
+                contentDescription = "بازگشت",
+                iconTint = Color.White
+            )
+            if (meta.title.isNotBlank()) {
+                Column(Modifier.weight(1f)) {
+                    Text(meta.title, style = GlassType.Headline, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    meta.subtitle?.let {
+                        Text(it, style = GlassType.Caption, color = Color.White.copy(alpha = 0.75f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
+            } else {
+                Box(Modifier.weight(1f))
+            }
+            LiquidButton(onClick = onSpeedClick, height = 44.dp, contentPadding = PaddingValues(horizontal = 14.dp)) {
+                Icon(Icons.Rounded.Speed, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Text(formatSpeed(speed), style = GlassType.CaptionBold, color = Color.White)
+            }
+        }
+
+        // Transport cluster (laid out left-to-right like every media remote)
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            Row(
+                Modifier.align(Alignment.Center),
+                horizontalArrangement = Arrangement.spacedBy(28.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                LiquidIconButton(
+                    onClick = { onSeekBy(-seekSeconds * 1000L) },
+                    icon = Icons.Rounded.Replay10,
+                    contentDescription = "عقب",
+                    iconTint = Color.White,
+                    size = 56.dp,
+                    iconSize = 28.dp
+                )
+                Box(contentAlignment = Alignment.Center) {
+                    LiquidIconButton(
+                        onClick = onTogglePlay,
+                        icon = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                        contentDescription = if (isPlaying) "توقف" else "پخش",
+                        iconTint = Color.White,
+                        size = 84.dp,
+                        iconSize = 44.dp,
+                        modifier = Modifier.focusRequester(playFocus)
+                    )
+                    if (isBuffering) LiquidLoader(size = 92.dp)
+                }
+                LiquidIconButton(
+                    onClick = { onSeekBy(seekSeconds * 1000L) },
+                    icon = Icons.Rounded.Forward10,
+                    contentDescription = "جلو",
+                    iconTint = Color.White,
+                    size = 56.dp,
+                    iconSize = 28.dp
+                )
+            }
+
+            // Timeline on a pane of glass
+            Row(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 24.dp, vertical = 20.dp)
+                    .widthIn(max = 1100.dp)
+                    .fillMaxWidth()
+                    .glass(
+                        backdrop = videoLayer,
+                        shape = RoundedRectangle(28.dp),
+                        colors = colors,
+                        style = GlassStyle(blur = 16.dp, refractionHeight = 16.dp, refractionAmount = 32.dp),
+                        tint = Color.Black.copy(alpha = 0.25f)
+                    )
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Text(formatTime(position), style = GlassType.CaptionBold, color = Color.White)
+                LiquidSlider(
+                    value = if (duration > 0) position.toFloat() / duration else 0f,
+                    onValueChange = { latestScrub(it) },
+                    onValueChangeFinished = onScrubEnd,
+                    valueRange = 0f..1f,
+                    accentColor = Color.White,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    if (duration > 0) "-" + formatTime(duration - position) else "--:--",
+                    style = GlassType.CaptionBold,
+                    color = Color.White.copy(alpha = 0.75f)
+                )
             }
         }
     }
@@ -640,16 +731,17 @@ private fun SeekIndicator(
     }
 }
 
+fun formatSpeed(speed: Float): String =
+    if (speed == speed.toInt().toFloat()) "${speed.toInt()}x" else "${speed}x"
+
 fun formatTime(milliseconds: Long): String {
-    val seconds = (milliseconds / 1000).toInt()
-    val minutes = seconds / 60
-    val remainingSeconds = seconds % 60
-    val hours = minutes / 60
-    val remainingMinutes = minutes % 60
-    
+    val totalSeconds = (milliseconds.coerceAtLeast(0) / 1000).toInt()
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
     return if (hours > 0) {
-        String.format("%02d:%02d:%02d", hours, remainingMinutes, remainingSeconds)
+        String.format(Locale.US, "%d:%02d:%02d", hours, minutes, seconds)
     } else {
-        String.format("%02d:%02d", remainingMinutes, remainingSeconds)
+        String.format(Locale.US, "%02d:%02d", minutes, seconds)
     }
 }

@@ -34,6 +34,19 @@ object DeviceUtils {
     /**
      * Get the number of grid columns based on screen size and device type
      */
+    /** Poster columns for the device class; [compact] shows smaller posters. */
+    fun posterColumns(resources: Resources, compact: Boolean): Int {
+        val metrics = resources.displayMetrics
+        val widthDp = metrics.widthPixels / metrics.density
+        val isTv = resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION
+        return when {
+            isTv -> if (compact) 6 else 5
+            widthDp >= 840 -> if (compact) 6 else 5
+            widthDp >= 600 -> if (compact) 5 else 4
+            else -> if (compact) 3 else 2
+        }
+    }
+
     fun getGridColumns(resources: Resources): Int {
         val displayMetrics = resources.displayMetrics
         val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density

@@ -1,7 +1,7 @@
 # vispar - Movie & TV Series Streaming App
 
 <p align="center">
-  <img src="app/src/main/res/drawable/splash_logo.png" alt="vispar Logo" width="150"/>
+  <img src="app/src/main/res/drawable-nodpi/splash_logo.png" alt="vispar Logo" width="150"/>
 </p>
 
 vispar is a modern Android streaming application built with Jetpack Compose and Kotlin. The app provides a sleek user interface for browsing movies and TV series, playing videos, and customizing the viewing experience. With a focus on user experience and performance, vispar delivers high-quality streaming content in an intuitive and visually appealing interface.
@@ -69,6 +69,17 @@ The UI is built on a small design system in `app/src/main/java/com/fazli/vispar/
 - **GlassDialog** – dialogs rendered in an in-window overlay so they can refract the whole screen.
 
 The video player renders into a `TextureView`, so its glass controls refract the playing video.
+
+### Options
+- **Glass material**: Clear / Glass / Frosted / No transparency (fastest; default on Android TV)
+- **Compact posters**, **haptic feedback**, monochrome or Apple system accent colours
+- **Player**: autoplay, resume from last position, default playback speed (0.75x–2x), seek step
+- **Continue watching** shelf on the Movies and Series tabs
+- Clear image cache and watch history
+
+### Android TV
+- Launcher banner, glass sidebar, focus rings and lift on every control
+- Remote-controlled player: OK = play/pause, ←/→ = seek, ↑/↓ = controls, media keys supported
 
 Full blur needs Android 12+, refraction needs Android 13+. Older devices fall back to a frosted tint.
 

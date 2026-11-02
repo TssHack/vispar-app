@@ -9,7 +9,11 @@ package com.fazli.vispar.ui.glass
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -87,7 +91,9 @@ fun LiquidTabs(
     content: @Composable RowScope.() -> Unit
 ) {
     val colors = Glass.colors
-    val containerColor = if (isRenderEffectSupported()) colors.glassTint else colors.glassFallback
+    val containerColor = colors.surfaceTint(colors.glassTint)
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val hapticsEnabled = LocalHapticsEnabled.current
     val tabsBackdrop = rememberLayerBackdrop()
     val innerPadding = 4.dp
     val lensHeight = height - innerPadding * 2
@@ -120,6 +126,7 @@ fun LiquidTabs(
                 onDragStopped = {
                     val target = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
                     animateToValue(target.toFloat())
+                    if (hapticsEnabled) haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.SegmentTick)
                     latestOnTabSelected(target)
                     animationScope.launch { offsetAnimation.animateTo(0f, spring(1f, 300f, 0.5f)) }
                 },
@@ -154,10 +161,8 @@ fun LiquidTabs(
             )
         }
 
-        val glassEffects: com.kyant.backdrop.BackdropEffectScope.() -> Unit = {
-            if (colors.isDark) vibrancy() else colorControls(brightness = 0.08f, saturation = 1.6f)
-            blur(8.dp.toPx())
-            lens(24.dp.toPx(), 24.dp.toPx())
+        val barEffects: com.kyant.backdrop.BackdropEffectScope.() -> Unit = {
+            glassEffects(colors, 8.dp.toPx(), 24.dp.toPx(), 24.dp.toPx())
         }
 
         // 1. The visible bar.
@@ -167,7 +172,8 @@ fun LiquidTabs(
                 .drawBackdrop(
                     backdrop = backdrop,
                     shape = { Capsule() },
-                    effects = glassEffects,
+                    effects = barEffects,
+                    onDrawBackdrop = colors.backdropDrawer,
                     shadow = { Shadow(radius = 24.dp, color = Color.Black.copy(alpha = 0.16f)) },
                     layerBlock = {
                         val progress = dampedDragAnimation.pressProgress
@@ -200,10 +206,9 @@ fun LiquidTabs(
                         shape = { Capsule() },
                         effects = {
                             val progress = dampedDragAnimation.pressProgress
-                            if (colors.isDark) vibrancy() else colorControls(brightness = 0.08f, saturation = 1.6f)
-                            blur(8.dp.toPx())
-                            lens(24.dp.toPx() * progress, 24.dp.toPx() * progress)
+                            glassEffects(colors, 8.dp.toPx(), 24.dp.toPx() * progress, 24.dp.toPx() * progress)
                         },
+                        onDrawBackdrop = colors.backdropDrawer,
                         highlight = {
                             Highlight.Default.copy(alpha = dampedDragAnimation.pressProgress)
                         },
@@ -260,7 +265,7 @@ fun LiquidTabs(
                             if (colors.isDark) Color.White.copy(0.12f) else Color.Black.copy(0.08f),
                             alpha = 1f - progress
                         )
-                        if (!isRenderEffectSupported()) {
+                        if (!colors.liveGlass) {
                             // No lens below Android 13: tint the pill so the selection stays obvious.
                             drawRect(accentColor.copy(alpha = 0.22f))
                         }
@@ -281,14 +286,21 @@ fun RowScope.LiquidTab(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val scale = LocalLiquidTabScale.current
+    var focused by remember { mutableStateOf(false) }
+    val click = rememberHapticClick(onClick)
     Column(
         modifier
             .clip(Capsule())
+            .then(
+                // Remote control focus: a soft fill so the D-pad position is always visible.
+                if (focused) Modifier.background(Glass.colors.content.copy(alpha = 0.16f), Capsule()) else Modifier
+            )
+            .onFocusChanged { focused = it.isFocused }
             .clickable(
                 interactionSource = null,
                 indication = null,
                 role = Role.Tab,
-                onClick = onClick
+                onClick = click
             )
             .fillMaxHeight()
             .weight(1f)

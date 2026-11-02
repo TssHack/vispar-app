@@ -3,11 +3,17 @@ package com.fazli.vispar.ui.theme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import com.fazli.vispar.ui.glass.GlassMaterial
 import com.fazli.vispar.ui.glass.MonochromeAccent
 
 data class ThemeSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val primaryColor: Color = defaultPrimaryColor
+    val primaryColor: Color = defaultPrimaryColor,
+    /** How transparent glass is; [GlassMaterial.Solid] = reduce transparency. */
+    val glassMaterial: GlassMaterial = GlassMaterial.Regular,
+    /** Smaller posters, more per row. */
+    val compactGrid: Boolean = false,
+    val haptics: Boolean = true,
 )
 
 enum class ThemeMode {

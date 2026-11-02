@@ -169,7 +169,7 @@ fun ScrollEdgeEffect(backdrop: Backdrop, height: Dp, modifier: Modifier = Modifi
             .fillMaxWidth()
             .height(height)
             .then(
-                if (isRuntimeShaderSupported()) {
+                if (isRuntimeShaderSupported() && colors.liveGlass) {
                     Modifier.drawPlainBackdrop(
                         backdrop = backdrop,
                         shape = { RectangleShape },

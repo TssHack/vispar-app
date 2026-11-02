@@ -9,6 +9,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
+import com.fazli.vispar.ui.glass.GlassMaterial
+import com.fazli.vispar.utils.DeviceUtils
 
 class ThemeManager(private val context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
@@ -17,7 +19,9 @@ class ThemeManager(private val context: Context) {
         prefs.edit {
             putString("theme_mode", settings.themeMode.name)
             putInt("primary_color", settings.primaryColor.toArgb())
-            // Removed secondary_color as it's no longer used
+            putString("glass_material", settings.glassMaterial.name)
+            putBoolean("compact_grid", settings.compactGrid)
+            putBoolean("haptics", settings.haptics)
         }
     }
     
@@ -31,12 +35,19 @@ class ThemeManager(private val context: Context) {
         
         val primaryColor = prefs.getInt("primary_color", defaultPrimaryColor.toArgb())
             .let { if (it in legacyAccents) defaultPrimaryColor.toArgb() else it }
-        // Removed secondary_color as it's no longer used
         
+        // TV boxes have weak GPUs and are viewed from afar: default to opaque glass there.
+        val defaultMaterial = if (DeviceUtils.isTv(context)) GlassMaterial.Solid else GlassMaterial.Regular
+        val material = prefs.getString("glass_material", null)
+            ?.let { name -> GlassMaterial.entries.firstOrNull { it.name == name } }
+            ?: defaultMaterial
+
         return ThemeSettings(
             themeMode = themeMode,
-            primaryColor = Color(primaryColor)
-            // Removed secondaryColor as it's no longer used
+            primaryColor = Color(primaryColor),
+            glassMaterial = material,
+            compactGrid = prefs.getBoolean("compact_grid", false),
+            haptics = prefs.getBoolean("haptics", true),
         )
     }
 }

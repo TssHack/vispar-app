@@ -39,6 +39,14 @@ import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.CleaningServices
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.runtime.LaunchedEffect
+import com.fazli.vispar.formatSpeed
+import com.fazli.vispar.ui.glass.GlassMaterial
+import com.fazli.vispar.ui.glass.LiquidToggle
+import com.fazli.vispar.ui.glass.tvFocusable
+import com.fazli.vispar.utils.WatchHistory
 import androidx.compose.material.icons.rounded.Subtitles
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -150,6 +158,9 @@ fun SettingsScreen(
     var showResetDialog by remember { mutableStateOf(false) }
     var latestVersionUrl by remember { mutableStateOf<String?>(null) }
     var isCheckingUpdate by remember { mutableStateOf(false) }
+    var showClearHistoryDialog by remember { mutableStateOf(false) }
+    var cacheSize by remember { mutableStateOf("…") }
+    LaunchedEffect(Unit) { cacheSize = withContext(Dispatchers.IO) { formatBytes(cacheBytes(context)) } }
 
     fun updateTheme(newSettings: ThemeSettings) {
         themeSettings = newSettings
@@ -247,12 +258,71 @@ fun SettingsScreen(
                         selected = themeSettings.primaryColor,
                         onSelect = { updateTheme(themeSettings.copy(primaryColor = it)) }
                     )
+                    Spacer(Modifier.height(6.dp))
+                    Label("جنس شیشه")
+                    LiquidTabs(
+                        selectedIndex = themeSettings.glassMaterial.ordinal,
+                        onTabSelected = { updateTheme(themeSettings.copy(glassMaterial = GlassMaterial.entries[it])) },
+                        tabsCount = GlassMaterial.entries.size,
+                        height = 52.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        GlassMaterial.entries.forEach { material ->
+                            LiquidTab(onClick = { updateTheme(themeSettings.copy(glassMaterial = material)) }) {
+                                Text(material.label, style = GlassType.CaptionBold.copy(fontSize = 11.sp), color = colors.content, maxLines = 1)
+                            }
+                        }
+                    }
+                    Text(
+                        "«بدون شفافیت» سریع‌ترین حالت است و روی تلویزیون به صورت پیش‌فرض فعال می‌شود.",
+                        style = GlassType.Caption,
+                        color = colors.contentTertiary
+                    )
+                    ToggleRow(
+                        title = "پوسترهای کوچک‌تر",
+                        subtitle = "نمایش عنوان‌های بیشتر در هر ردیف",
+                        checked = themeSettings.compactGrid,
+                        onCheckedChange = { updateTheme(themeSettings.copy(compactGrid = it)) }
+                    )
+                    ToggleRow(
+                        title = "بازخورد لمسی",
+                        subtitle = "لرزش کوتاه هنگام لمس دکمه‌ها و تب‌ها",
+                        checked = themeSettings.haptics,
+                        onCheckedChange = { updateTheme(themeSettings.copy(haptics = it)) }
+                    )
                 }
             }
 
             // Player & subtitles
             item {
                 SettingsCard(icon = Icons.Rounded.Subtitles, title = "پخش‌کننده و زیرنویس") {
+                    ToggleRow(
+                        title = "پخش خودکار",
+                        subtitle = "ویدیو بلافاصله پس از باز شدن پخش شود",
+                        checked = playerSettings.autoplay,
+                        onCheckedChange = { updatePlayer(playerSettings.copy(autoplay = it)) }
+                    )
+                    ToggleRow(
+                        title = "ادامه از جای قبلی",
+                        subtitle = "پخش از همان لحظه‌ای که متوقف کرده بودید",
+                        checked = playerSettings.resumePlayback,
+                        onCheckedChange = { updatePlayer(playerSettings.copy(resumePlayback = it)) }
+                    )
+                    Label("سرعت پیش‌فرض پخش")
+                    LiquidTabs(
+                        selectedIndex = VideoPlayerSettings.SPEEDS.indexOf(playerSettings.playbackSpeed).coerceAtLeast(0),
+                        onTabSelected = { updatePlayer(playerSettings.copy(playbackSpeed = VideoPlayerSettings.SPEEDS[it])) },
+                        tabsCount = VideoPlayerSettings.SPEEDS.size,
+                        height = 48.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        VideoPlayerSettings.SPEEDS.forEach { speed ->
+                            LiquidTab(onClick = { updatePlayer(playerSettings.copy(playbackSpeed = speed)) }) {
+                                Text(formatSpeed(speed), style = GlassType.CaptionBold, color = colors.content)
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
                     SubtitlePreview(subtitleSettings)
                     ValueLabel("زمان جلو/عقب رفتن", "${playerSettings.seekTimeSeconds} ثانیه")
                     LiquidSlider(
@@ -292,6 +362,37 @@ fun SettingsScreen(
                         options = listOf(Color.Transparent, Color.Black, Color.White, Color.Red, Color.Blue),
                         onSelect = { updateSubtitles(subtitleSettings.copy(borderColor = it.toArgb())) }
                     )
+                }
+            }
+
+            // Storage
+            item {
+                GlassSurface(Modifier.fillMaxWidth(), shape = RoundedRectangle(Glass.CardRadius)) {
+                    Column(Modifier.padding(vertical = 6.dp)) {
+                        GlassRow(
+                            icon = Icons.Rounded.CleaningServices,
+                            title = "پاک کردن حافظه موقت",
+                            subtitle = "تصاویر ذخیره شده: $cacheSize",
+                            iconTint = Color(0xFF30B0C7),
+                            onClick = {
+                                scope.launch {
+                                    withContext(Dispatchers.IO) { clearImageCache(context) }
+                                    cacheSize = withContext(Dispatchers.IO) { formatBytes(cacheBytes(context)) }
+                                    showToast(context, "حافظه موقت پاک شد")
+                                }
+                            },
+                            trailing = null
+                        )
+                        GlassDivider()
+                        GlassRow(
+                            icon = Icons.Rounded.History,
+                            title = "پاک کردن تاریخچه تماشا",
+                            subtitle = "حذف فهرست «ادامه تماشا»",
+                            iconTint = Color(0xFFFF9500),
+                            onClick = { showClearHistoryDialog = true },
+                            trailing = null
+                        )
+                    }
                 }
             }
 
@@ -340,6 +441,23 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+
+    if (showClearHistoryDialog) {
+        GlassAlertDialog(
+            title = "پاک کردن تاریخچه تماشا",
+            message = "فهرست «ادامه تماشا» و جای ذخیره شده همه ویدیوها حذف می‌شود.",
+            confirmText = "پاک کردن",
+            onConfirm = {
+                WatchHistory.clear(context)
+                showClearHistoryDialog = false
+                showToast(context, "تاریخچه تماشا پاک شد")
+            },
+            dismissText = "انصراف",
+            onDismiss = { showClearHistoryDialog = false },
+            icon = Icons.Rounded.History,
+            destructive = true
+        )
     }
 
     if (showResetDialog) {
@@ -394,6 +512,38 @@ private fun SettingsCard(
 }
 
 @Composable
+private fun ToggleRow(title: String, subtitle: String?, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    val colors = Glass.colors
+    Row(
+        Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = GlassType.Headline, color = colors.content)
+            if (subtitle != null) Text(subtitle, style = GlassType.Caption, color = colors.contentSecondary)
+        }
+        LiquidToggle(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+private fun cacheBytes(context: android.content.Context): Long =
+    context.cacheDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+
+private fun clearImageCache(context: android.content.Context) {
+    runCatching { coil.Coil.imageLoader(context).memoryCache?.clear() }
+    runCatching { coil.Coil.imageLoader(context).diskCache?.clear() }
+    context.cacheDir.listFiles()?.forEach { it.deleteRecursively() }
+}
+
+private fun formatBytes(bytes: Long): String = when {
+    bytes >= 1024L * 1024 * 1024 -> String.format(java.util.Locale.US, "%.1f GB", bytes / (1024.0 * 1024 * 1024))
+    bytes >= 1024L * 1024 -> String.format(java.util.Locale.US, "%.1f MB", bytes / (1024.0 * 1024))
+    bytes >= 1024 -> "${bytes / 1024} KB"
+    else -> "$bytes B"
+}
+
+@Composable
 private fun Label(text: String) {
     Text(text, style = GlassType.Headline, color = Glass.colors.contentSecondary)
 }
@@ -414,8 +564,10 @@ private fun AccentPalette(selected: Color, onSelect: (Color) -> Unit) {
         colorOptions.forEach { color ->
             val isSelected = color.toArgb() == selected.toArgb()
             val scale by animateFloatAsState(if (isSelected) 1.12f else 1f, spring(0.5f, 400f), label = "swatch")
+            var focused by remember { mutableStateOf(false) }
             Box(
                 Modifier
+                    .tvFocusable(Capsule(), focused) { focused = it }
                     .size(34.dp)
                     .graphicsLayer {
                         scaleX = scale
@@ -501,8 +653,10 @@ private fun SubtitleColorSetting(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             options.forEach { option ->
                 val isSelected = option.toArgb() == current.toArgb()
+                var focused by remember { mutableStateOf(false) }
                 Box(
                     Modifier
+                        .tvFocusable(RoundedRectangle(9.dp), focused) { focused = it }
                         .size(28.dp)
                         .clip(RoundedRectangle(9.dp))
                         .background(if (option.alpha == 0f) colors.content.copy(alpha = 0.06f) else option)

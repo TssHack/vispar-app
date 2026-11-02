@@ -45,7 +45,7 @@ import com.fazli.vispar.ui.glass.LiquidTabs
 import com.fazli.vispar.ui.glass.PosterCard
 import com.fazli.vispar.ui.glass.StatusView
 import com.fazli.vispar.ui.search.SearchViewModel
-import com.fazli.vispar.utils.DeviceUtils
+import com.fazli.vispar.ui.glass.LocalPosterColumns
 import com.fazli.vispar.utils.StorageUtils
 
 private val searchFilters = listOf("همه", "فیلم", "سریال")
@@ -61,7 +61,7 @@ fun SearchScreen(
     val focusRequester = remember { FocusRequester() }
     val gridState = rememberLazyGridState()
     val density = LocalDensity.current
-    val columns = DeviceUtils.getGridColumns(context.resources)
+    val columns = LocalPosterColumns.current
     var filter by rememberSaveable { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {

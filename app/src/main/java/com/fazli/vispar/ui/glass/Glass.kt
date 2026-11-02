@@ -12,7 +12,18 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.border
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -98,9 +109,9 @@ fun Modifier.glass(
     backdrop = backdrop,
     shape = { shape },
     effects = {
-        if (colors.isDark) vibrancy() else colorControls(brightness = 0.08f, saturation = 1.6f)
-        blur(style.blur.toPx())
-        lens(
+        glassEffects(
+            colors,
+            style.blur.toPx(),
             style.refractionHeight.toPx(),
             style.refractionAmount.toPx(),
             depthEffect = style.depthEffect,
@@ -111,14 +122,43 @@ fun Modifier.glass(
     shadow = { shadow },
     layerBlock = layerBlock,
     exportedBackdrop = exportedBackdrop,
+    onDrawBackdrop = colors.backdropDrawer,
     onDrawSurface = {
-        if (isRenderEffectSupported()) {
-            if (tint.isSpecified) drawRect(tint)
-        } else {
-            drawRect(colors.glassFallback)
-        }
+        val wash = colors.surfaceTint(tint)
+        if (wash.isSpecified) drawRect(wash)
     }
 )
+
+/**
+ * D-pad focus treatment shared by every glass control: the element grows slightly and gets a
+ * bright ring, the way tvOS lifts the focused item.
+ */
+@Composable
+fun Modifier.tvFocusable(shape: Shape, focused: Boolean, onFocus: (Boolean) -> Unit): Modifier {
+    val colors = Glass.colors
+    val scale by animateFloatAsState(if (focused) 1.06f else 1f, spring(0.6f, 420f), label = "focus")
+    return this
+        .graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }
+        .onFocusChanged { onFocus(it.isFocused) }
+        .then(if (focused) Modifier.border(2.5.dp, colors.content.copy(alpha = 0.9f), shape) else Modifier)
+}
+
+/** Click handler that adds a light haptic tick when haptics are enabled. */
+@Composable
+fun rememberHapticClick(onClick: () -> Unit): () -> Unit {
+    val haptics = LocalHapticFeedback.current
+    val enabled = LocalHapticsEnabled.current
+    val latest by rememberUpdatedState(onClick)
+    return remember(haptics, enabled) {
+        {
+            if (enabled) haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
+            latest()
+        }
+    }
+}
 
 /**
  * A rounded glass panel. When [onClick] is set the panel becomes a liquid control: it swells under
@@ -143,9 +183,12 @@ fun GlassSurface(
     val interactive = onClick != null && enabled
     val highlightFx = remember(scope) { InteractiveHighlight(scope) }
     val surfaceLayer = rememberLayerBackdrop()
+    var focused by remember { mutableStateOf(false) }
+    val click = rememberHapticClick(onClick ?: {})
 
     Box(
         modifier = modifier
+            .then(if (interactive) Modifier.tvFocusable(shape, focused) { focused = it } else Modifier)
             .glass(
                 backdrop = backdrop,
                 shape = shape,
@@ -174,7 +217,7 @@ fun GlassSurface(
                             interactionSource = null,
                             indication = null,
                             role = Role.Button,
-                            onClick = onClick
+                            onClick = click
                         )
                         .then(highlightFx.modifier)
                         .then(highlightFx.gestureModifier)
@@ -213,17 +256,17 @@ fun LiquidButton(
     val scope = rememberCoroutineScope()
     val highlightFx = remember(scope) { InteractiveHighlight(scope) }
     val interactive = isInteractive && enabled
+    var focused by remember { mutableStateOf(false) }
+    val click = rememberHapticClick(onClick)
 
     Row(
         modifier
+            .tvFocusable(shape, focused) { focused = it }
             .drawBackdrop(
                 backdrop = backdrop,
                 shape = { shape },
-                effects = {
-                    if (colors.isDark) vibrancy() else colorControls(brightness = 0.06f, saturation = 1.6f)
-                    blur(2.dp.toPx())
-                    lens(12.dp.toPx(), 24.dp.toPx())
-                },
+                effects = { glassEffects(colors, 2.dp.toPx(), 12.dp.toPx(), 24.dp.toPx()) },
+                onDrawBackdrop = colors.backdropDrawer,
                 shadow = { Shadow(radius = 12.dp, color = Color.Black.copy(alpha = 0.10f)) },
                 layerBlock = if (interactive) {
                     {
@@ -250,12 +293,12 @@ fun LiquidButton(
                 },
                 onDrawSurface = {
                     if (tint.isSpecified) {
-                        drawRect(tint, blendMode = BlendMode.Hue)
-                        drawRect(tint.copy(alpha = if (isRenderEffectSupported()) 0.78f else 0.95f))
-                    } else if (!isRenderEffectSupported()) {
+                        if (colors.liveGlass) drawRect(tint, blendMode = BlendMode.Hue)
+                        drawRect(tint.copy(alpha = if (colors.liveGlass) 0.78f else 1f))
+                    } else if (!colors.liveGlass) {
                         drawRect(colors.glassFallback)
                     } else {
-                        drawRect(colors.glassTint.copy(alpha = colors.glassTint.alpha * 0.6f))
+                        drawRect(colors.glassTint.copy(alpha = colors.glassTint.alpha * 0.6f * colors.material.tintScale))
                     }
                     if (surfaceColor.isSpecified) drawRect(surfaceColor)
                     if (!enabled) drawRect(Color.Gray.copy(alpha = 0.35f))
@@ -266,7 +309,7 @@ fun LiquidButton(
                 interactionSource = null,
                 indication = if (interactive) null else LocalIndication.current,
                 role = Role.Button,
-                onClick = onClick
+                onClick = click
             )
             .then(
                 if (interactive) {

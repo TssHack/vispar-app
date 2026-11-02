@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.fazli.vispar.ui.glass.GlassColors
 import com.fazli.vispar.ui.glass.LocalGlassColors
+import com.fazli.vispar.ui.glass.LocalHapticsEnabled
 import com.fazli.vispar.ui.glass.glassColors
 
 /**
@@ -30,8 +31,8 @@ fun visparTheme(
         ThemeMode.DARK -> true
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
-    val glass = remember(darkTheme, themeSettings.primaryColor) {
-        glassColors(isDark = darkTheme, accent = themeSettings.primaryColor)
+    val glass = remember(darkTheme, themeSettings.primaryColor, themeSettings.glassMaterial) {
+        glassColors(isDark = darkTheme, accent = themeSettings.primaryColor, material = themeSettings.glassMaterial)
     }
     val colorScheme = if (darkTheme) {
         darkColorScheme(
@@ -71,7 +72,10 @@ fun visparTheme(
         }
     }
 
-    CompositionLocalProvider(LocalGlassColors provides glass) {
+    CompositionLocalProvider(
+        LocalGlassColors provides glass,
+        LocalHapticsEnabled provides themeSettings.haptics,
+    ) {
         MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
     }
 }

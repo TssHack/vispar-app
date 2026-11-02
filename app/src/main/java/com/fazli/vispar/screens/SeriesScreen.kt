@@ -32,6 +32,8 @@ fun SeriesScreen(
     val series = viewModel.series
     val items = remember(series) { series.map { it.toCatalogItem() } }
 
+    val (continueWatching, removeContinue) = rememberContinueWatching("series")
+
     CatalogScreen(
         title = "سریال‌ها",
         subtitle = "فصل به فصل، قسمت به قسمت",
@@ -43,6 +45,8 @@ fun SeriesScreen(
         onRetry = { viewModel.retry() },
         onRefresh = { viewModel.refresh() },
         onLoadMore = { viewModel.loadMoreSeries() },
+        continueWatching = continueWatching,
+        onRemoveContinue = removeContinue,
         onItemClick = { item ->
             series.firstOrNull { it.id == item.id }?.let { StorageUtils.saveSeriesToFile(context, it) }
             navController?.navigate("single_series/${item.id}")

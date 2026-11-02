@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.fazli.vispar.PlayerMeta
 import com.fazli.vispar.VideoPlayerActivity
 import com.fazli.vispar.components.QualityPickerDialog
 import com.fazli.vispar.data.model.Episode
@@ -107,10 +108,25 @@ fun SingleSeriesScreen(
         }
     }
 
+    fun launch(episode: Episode, source: Source) {
+        val s = series
+        VideoPlayerActivity.start(
+            context,
+            PlayerMeta(
+                url = source.url,
+                title = s?.title ?: episode.title,
+                subtitle = if (s != null) episode.title else source.quality,
+                image = episode.image.ifBlank { s?.cover?.ifBlank { s.image } ?: "" },
+                contentId = seriesId,
+                type = "series"
+            )
+        )
+    }
+
     fun play(episode: Episode) {
         when (episode.sources.size) {
             0 -> Unit
-            1 -> VideoPlayerActivity.start(context, episode.sources.first().url)
+            1 -> launch(episode, episode.sources.first())
             else -> playPickerFor = episode
         }
     }
@@ -166,7 +182,7 @@ fun SingleSeriesScreen(
             icon = Icons.Rounded.PlayArrow,
             onPick = { source ->
                 playPickerFor = null
-                VideoPlayerActivity.start(context, source.url)
+                launch(episode, source)
             },
             onDismiss = { playPickerFor = null }
         )

@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.fazli.vispar.PlayerMeta
 import com.fazli.vispar.VideoPlayerActivity
 import com.fazli.vispar.components.DownloadOptionsDialog
 import com.fazli.vispar.components.QualityPickerDialog
@@ -75,6 +76,21 @@ fun SingleMovieScreen(
         loaded = true
     }
 
+    fun launch(source: Source) {
+        val m = movie ?: return
+        VideoPlayerActivity.start(
+            context,
+            PlayerMeta(
+                url = source.url,
+                title = m.title,
+                subtitle = source.quality,
+                image = m.cover.ifBlank { m.image },
+                contentId = m.id,
+                type = "movie"
+            )
+        )
+    }
+
     fun toggleFavorite() {
         if (isFavorite) {
             StorageUtils.removeFavorite(context, movieId, "movie")
@@ -108,11 +124,11 @@ fun SingleMovieScreen(
                     movie = current,
                     padding = padding,
                     scroll = scroll,
-                    onPlay = { source -> VideoPlayerActivity.start(context, source.url) },
+                    onPlay = { source -> launch(source) },
                     onPlayBest = {
                         when (current.sources.size) {
                             0 -> Unit
-                            1 -> VideoPlayerActivity.start(context, current.sources.first().url)
+                            1 -> launch(current.sources.first())
                             else -> pickQualityToPlay = true
                         }
                     },
@@ -141,7 +157,7 @@ fun SingleMovieScreen(
             },
             onPlay = {
                 optionsFor = null
-                VideoPlayerActivity.start(context, source.url)
+                launch(source)
             }
         )
     }
@@ -156,7 +172,7 @@ fun SingleMovieScreen(
             icon = Icons.Rounded.PlayArrow,
             onPick = { source ->
                 pickQualityToPlay = false
-                VideoPlayerActivity.start(context, source.url)
+                launch(source)
             },
             onDismiss = { pickQualityToPlay = false }
         )

@@ -44,6 +44,8 @@ import com.fazli.vispar.ui.glass.GlassOverlayLayer
 import com.fazli.vispar.ui.glass.LocalBackdrop
 import com.fazli.vispar.ui.glass.LocalBottomBarInset
 import com.fazli.vispar.ui.glass.LocalGlassOverlayHost
+import com.fazli.vispar.ui.glass.LocalIsTv
+import com.fazli.vispar.ui.glass.LocalPosterColumns
 import com.fazli.vispar.ui.theme.ThemeManager
 import com.fazli.vispar.ui.theme.ThemeSettings
 import com.fazli.vispar.ui.theme.visparTheme
@@ -76,6 +78,7 @@ fun MainApp() {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         visparTheme(themeSettings) {
             MainScreen(
+                themeSettings = themeSettings,
                 onThemeSettingsChanged = {
                     themeSettings = it
                     themeManager.saveThemeSettings(it)
@@ -93,7 +96,10 @@ fun MainApp() {
  * 3. floating chrome — the liquid tab bar and dialogs — which refracts both layers below it.
  */
 @Composable
-fun MainScreen(onThemeSettingsChanged: (ThemeSettings) -> Unit = {}) {
+fun MainScreen(
+    themeSettings: ThemeSettings = ThemeSettings(),
+    onThemeSettingsChanged: (ThemeSettings) -> Unit = {}
+) {
     val navController = rememberNavController()
     val context = LocalContext.current
     val isTv = remember { DeviceUtils.isTv(context) }
@@ -114,6 +120,10 @@ fun MainScreen(onThemeSettingsChanged: (ThemeSettings) -> Unit = {}) {
     CompositionLocalProvider(
         LocalGlassOverlayHost provides overlayHost,
         LocalBottomBarInset provides if (showTabBar) 84.dp else 0.dp,
+        LocalIsTv provides isTv,
+        LocalPosterColumns provides remember(themeSettings.compactGrid, context.resources.configuration.screenWidthDp) {
+            DeviceUtils.posterColumns(context.resources, themeSettings.compactGrid)
+        },
     ) {
         Box(Modifier.fillMaxSize()) {
             AmbientBackground(Modifier.fillMaxSize().layerBackdrop(backgroundLayer))

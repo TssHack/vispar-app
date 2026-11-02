@@ -57,7 +57,7 @@ import com.fazli.vispar.ui.glass.PosterSkeleton
 import com.fazli.vispar.ui.glass.StatusView
 import com.fazli.vispar.ui.glass.formatRating
 import com.fazli.vispar.ui.glass.glass
-import com.fazli.vispar.utils.DeviceUtils
+import com.fazli.vispar.ui.glass.LocalPosterColumns
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.kyant.backdrop.drawBackdrop
@@ -93,10 +93,12 @@ fun CatalogScreen(
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
     onItemClick: (CatalogItem) -> Unit,
+    continueWatching: List<com.fazli.vispar.utils.WatchEntry> = emptyList(),
+    onRemoveContinue: (String) -> Unit = {},
 ) {
     val colors = Glass.colors
     val gridState = rememberLazyGridState()
-    val columns = DeviceUtils.getGridColumns(LocalContext.current.resources)
+    val columns = LocalPosterColumns.current
     val density = LocalDensity.current
 
     GlassScaffold(
@@ -151,6 +153,11 @@ fun CatalogScreen(
                     item(span = { GridItemSpan(maxLineSpan) }, key = "title") {
                         LargeTitle(title, subtitle, Modifier.padding(bottom = 4.dp))
                     }
+                    if (continueWatching.isNotEmpty()) {
+                        item(span = { GridItemSpan(maxLineSpan) }, key = "continue") {
+                            ContinueWatchingShelf(continueWatching, onRemoveContinue)
+                        }
+                    }
                     items.firstOrNull()?.let { hero ->
                         item(span = { GridItemSpan(maxLineSpan) }, key = "hero") {
                             SpotlightCard(hero, onClick = { onItemClick(hero) })
@@ -186,6 +193,9 @@ fun CatalogScreen(
     }
 }
 
+/** The spotlight is 16:10 on phones and a cinematic strip on tablets and TVs. */
+fun spotlightRatio(columns: Int): Float = if (columns >= 4) 21f / 7f else 16f / 10f
+
 /** 0 while the large title is visible, fading to 1 once it scrolled under the bar. */
 fun compactTitleAlpha(state: LazyGridState, distancePx: Float): Float =
     if (state.firstVisibleItemIndex > 0) 1f
@@ -208,7 +218,7 @@ private fun SkeletonGrid(columns: Int, padding: PaddingValues, title: String, su
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) { LargeTitle(title, subtitle) }
         item(span = { GridItemSpan(maxLineSpan) }) {
-            GlassSurface(Modifier.fillMaxWidth().aspectRatio(16f / 10f), shape = RoundedRectangle(32.dp), style = GlassStyle.Frosted) {}
+            GlassSurface(Modifier.fillMaxWidth().aspectRatio(spotlightRatio(columns)), shape = RoundedRectangle(32.dp), style = GlassStyle.Frosted) {}
         }
         items(columns * 2) { PosterSkeleton() }
     }
@@ -226,7 +236,7 @@ fun SpotlightCard(item: CatalogItem, onClick: () -> Unit) {
     Box(
         Modifier
             .fillMaxWidth()
-            .aspectRatio(16f / 10f)
+            .aspectRatio(spotlightRatio(LocalPosterColumns.current))
             .drawBackdrop(
                 backdrop = com.kyant.backdrop.backdrops.emptyBackdrop(),
                 shape = { shape },

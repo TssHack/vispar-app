@@ -32,6 +32,8 @@ fun MoviesScreen(
     val movies = viewModel.movies
     val items = remember(movies) { movies.map { it.toCatalogItem() } }
 
+    val (continueWatching, removeContinue) = rememberContinueWatching("movie")
+
     CatalogScreen(
         title = "فیلم‌ها",
         subtitle = "تازه‌ترین فیلم‌های جهان، یک لمس فاصله",
@@ -43,6 +45,8 @@ fun MoviesScreen(
         onRetry = { viewModel.retry() },
         onRefresh = { viewModel.refresh() },
         onLoadMore = { viewModel.loadMoreMovies() },
+        continueWatching = continueWatching,
+        onRemoveContinue = removeContinue,
         onItemClick = { item ->
             movies.firstOrNull { it.id == item.id }?.let { StorageUtils.saveMovieToFile(context, it) }
             navController?.navigate("single_movie/${item.id}")

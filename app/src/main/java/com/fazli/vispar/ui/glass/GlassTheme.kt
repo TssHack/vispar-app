@@ -8,6 +8,14 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.isSpecified
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import com.kyant.backdrop.BackdropEffectScope
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.colorControls
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
+import com.kyant.backdrop.isRenderEffectSupported
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.kyant.backdrop.Backdrop
@@ -47,7 +55,57 @@ data class GlassColors(
     val gold: Color,
     val heart: Color,
     val scrim: Color,
+    /** How much the glass blurs and refracts; user preference. */
+    val material: GlassMaterial = GlassMaterial.Regular,
 )
+
+/**
+ * Glass "material" presets, from crystal clear to fully opaque. [Solid] is the equivalent of iOS'
+ * "Reduce Transparency": no blur or refraction at all, which is also far cheaper to render and is
+ * the default on Android TV boxes.
+ */
+enum class GlassMaterial(val label: String, val blurScale: Float, val tintScale: Float) {
+    Clear("شفاف", 0.35f, 0.55f),
+    Regular("شیشه‌ای", 1f, 1f),
+    Frosted("مات", 1.9f, 1.4f),
+    Solid("بدون شفافیت", 0f, 0f),
+}
+
+/** True when glass is actually rendered live (blur available and transparency not reduced). */
+val GlassColors.liveGlass: Boolean
+    get() = material != GlassMaterial.Solid && isRenderEffectSupported()
+
+/** The wash to paint over a glass surface for the current material. */
+fun GlassColors.surfaceTint(tint: Color): Color = when {
+    liveGlass -> if (tint.isSpecified) tint.copy(alpha = (tint.alpha * material.tintScale).coerceIn(0f, 1f)) else tint
+    !tint.isSpecified || tint == glassTint || tint == glassTintStrong -> glassFallback
+    else -> tint.copy(alpha = (tint.alpha * 2.6f).coerceIn(0.6f, 0.94f))
+}
+
+/**
+ * Standard glass effect chain (vibrancy, blur, lens) scaled for the current [GlassMaterial].
+ * Does nothing for [GlassMaterial.Solid].
+ */
+fun BackdropEffectScope.glassEffects(
+    colors: GlassColors,
+    blurRadius: Float,
+    refractionHeight: Float,
+    refractionAmount: Float,
+    depthEffect: Boolean = false,
+    chromaticAberration: Boolean = false,
+) {
+    if (colors.material == GlassMaterial.Solid) return
+    if (colors.isDark) vibrancy() else colorControls(brightness = 0.08f, saturation = 1.6f)
+    blur(blurRadius * colors.material.blurScale)
+    lens(refractionHeight, refractionAmount, depthEffect = depthEffect, chromaticAberration = chromaticAberration)
+}
+
+/** For [GlassMaterial.Solid] the backdrop is not drawn at all — only the opaque wash. */
+val GlassColors.backdropDrawer: DrawScope.(drawBackdrop: DrawScope.() -> Unit) -> Unit
+    get() = if (material == GlassMaterial.Solid) NoBackdrop else DrawBackdrop
+
+private val NoBackdrop: DrawScope.(DrawScope.() -> Unit) -> Unit = { }
+private val DrawBackdrop: DrawScope.(DrawScope.() -> Unit) -> Unit = { it() }
 
 /**
  * Sentinel accent meaning "monochrome": white on dark, black on light, the way Apple's media apps
@@ -62,7 +120,7 @@ fun resolveAccent(accent: Color, isDark: Boolean): Color =
         accent
     }
 
-fun glassColors(isDark: Boolean, accent: Color): GlassColors {
+fun glassColors(isDark: Boolean, accent: Color, material: GlassMaterial = GlassMaterial.Regular): GlassColors {
     @Suppress("NAME_SHADOWING")
     val accent = resolveAccent(accent, isDark)
     val onAccent = if (accent.luminance() > 0.55f) Color(0xFF111111) else Color.White
@@ -85,6 +143,7 @@ fun glassColors(isDark: Boolean, accent: Color): GlassColors {
             gold = Color(0xFFFFD60A),
             heart = Color(0xFFFF375F),
             scrim = Color.Black.copy(alpha = 0.45f),
+            material = material,
         )
     } else {
         GlassColors(
@@ -105,6 +164,7 @@ fun glassColors(isDark: Boolean, accent: Color): GlassColors {
             gold = Color(0xFFFF9F0A),
             heart = Color(0xFFFF2D55),
             scrim = Color.Black.copy(alpha = 0.20f),
+            material = material,
         )
     }
 }
@@ -116,6 +176,15 @@ val LocalGlassColors = staticCompositionLocalOf { glassColors(isDark = true, acc
  * here; screens with their own hero artwork provide a richer one.
  */
 val LocalBackdrop = compositionLocalOf<Backdrop> { emptyBackdrop() }
+
+/** Whether liquid controls give haptic feedback. */
+val LocalHapticsEnabled = staticCompositionLocalOf { true }
+
+/** Number of poster columns for grids, decided by device and the user's density preference. */
+val LocalPosterColumns = compositionLocalOf { 2 }
+
+/** True on Android TV: controls show a focus ring and grow when focused by the D-pad. */
+val LocalIsTv = staticCompositionLocalOf { false }
 
 /** Space a screen must leave at the bottom so content can scroll beneath the floating tab bar. */
 val LocalBottomBarInset = compositionLocalOf { 0.dp }

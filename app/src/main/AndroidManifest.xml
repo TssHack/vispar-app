@@ -18,6 +18,7 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
+        android:banner="@drawable/tv_banner"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="false"
@@ -31,7 +32,8 @@
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.vispar"
-            android:configChanges="orientation|screenSize|keyboardHidden">
+            android:banner="@drawable/tv_banner"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -46,8 +48,8 @@
             android:name=".VideoPlayerActivity"
             android:exported="false"
             android:theme="@style/Theme.vispar.FullScreen"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:screenOrientation="landscape" />
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation"
+            android:screenOrientation="sensorLandscape" />
     </application>
 
 </manifest>
