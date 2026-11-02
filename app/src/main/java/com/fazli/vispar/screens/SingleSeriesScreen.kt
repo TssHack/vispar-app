@@ -1,16 +1,12 @@
 package com.fazli.vispar.screens
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,1077 +14,408 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.LayersClear
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import com.fazli.vispar.R
 import com.fazli.vispar.VideoPlayerActivity
-import com.fazli.vispar.components.DownloadOptionsDialog
-import com.fazli.vispar.data.model.FavoriteItem
+import com.fazli.vispar.components.QualityPickerDialog
 import com.fazli.vispar.data.model.Episode
+import com.fazli.vispar.data.model.FavoriteItem
 import com.fazli.vispar.data.model.Season
 import com.fazli.vispar.data.model.Series
 import com.fazli.vispar.data.model.Source
+import com.fazli.vispar.ui.glass.Glass
+import com.fazli.vispar.ui.glass.GlassChip
+import com.fazli.vispar.ui.glass.GlassScaffold
+import com.fazli.vispar.ui.glass.GlassSurface
+import com.fazli.vispar.ui.glass.GlassType
+import com.fazli.vispar.ui.glass.LiquidButton
+import com.fazli.vispar.ui.glass.LiquidIconButton
+import com.fazli.vispar.ui.glass.LiquidLoader
+import com.fazli.vispar.ui.glass.LiquidTab
+import com.fazli.vispar.ui.glass.LiquidTabs
+import com.fazli.vispar.ui.glass.SectionHeader
+import com.fazli.vispar.ui.glass.StatusView
 import com.fazli.vispar.ui.series.SeasonsViewModel
-import com.fazli.vispar.ui.theme.VazirFontFamily  // import فونت از فایل مشترک
-import com.fazli.vispar.utils.DownloadUtils
 import com.fazli.vispar.utils.StorageUtils
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.shapes.RoundedRectangle
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SingleSeriesScreen(
     seriesId: Int,
     navController: NavController
 ) {
-    var series by remember { mutableStateOf<Series?>(null) }
     val context = LocalContext.current
     val seasonsViewModel: SeasonsViewModel = viewModel()
-    var selectedEpisode by remember { mutableStateOf<Episode?>(null) }
-    var showSourceDialog by remember { mutableStateOf(false) }
-    var showDownloadMenu by remember { mutableStateOf(false) }
-    var downloadSources by remember { mutableStateOf<List<Source>>(emptyList()) }
-    
+    var series by remember { mutableStateOf<Series?>(null) }
+    var loaded by remember { mutableStateOf(false) }
+    var isFavorite by remember { mutableStateOf(false) }
+    var playPickerFor by remember { mutableStateOf<Episode?>(null) }
+    var downloadPickerFor by remember { mutableStateOf<Episode?>(null) }
+    var downloadFor by remember { mutableStateOf<Source?>(null) }
+    val listState = rememberLazyListState()
+
     LaunchedEffect(seriesId) {
         series = StorageUtils.loadSeriesFromFile(context, seriesId)
+        isFavorite = StorageUtils.isFavorite(context, seriesId, "series")
+        loaded = true
         seasonsViewModel.loadSeasons(seriesId)
     }
-    
-    // دیالوگ انتخاب منبع
-    if (showSourceDialog && selectedEpisode != null) {
-        SourceOptionsDialog(
-            episode = selectedEpisode!!,
-            onDismiss = { showSourceDialog = false },
-            onDownload = { source ->
-                showSourceDialog = false
-                openUrlSeries(context, source.url)
+
+    fun toggleFavorite() {
+        if (isFavorite) {
+            StorageUtils.removeFavorite(context, seriesId, "series")
+            isFavorite = false
+            showToast(context, "از موارد مورد علاقه حذف شد")
+        } else {
+            series?.let {
+                StorageUtils.saveFavorite(context, it.toFavorite())
+                isFavorite = true
+                showToast(context, "به موارد مورد علاقه اضافه شد")
+            }
+        }
+    }
+
+    fun play(episode: Episode) {
+        when (episode.sources.size) {
+            0 -> Unit
+            1 -> VideoPlayerActivity.start(context, episode.sources.first().url)
+            else -> playPickerFor = episode
+        }
+    }
+
+    fun download(episode: Episode) {
+        when (episode.sources.size) {
+            0 -> Unit
+            1 -> downloadFor = episode.sources.first()
+            else -> downloadPickerFor = episode
+        }
+    }
+
+    CoverArtBackdrop(
+        coverUrl = series?.cover.orEmpty(),
+        scrollOffset = { listState.scrollOffsetPx() }
+    ) { backdrop ->
+        GlassScaffold(
+            title = series?.title ?: "جزئیات سریال",
+            titleAlpha = { ((listState.scrollOffsetPx() - 260f) / 140f).coerceIn(0f, 1f) },
+            onBack = { navController.popBackStack() },
+            actions = {
+                if (series != null) FavoriteToggle(isFavorite, ::toggleFavorite)
             },
-            onPlay = { source ->
-                showSourceDialog = false
-                // راه‌اندازی اکتیویتی پخش ویدیو با URL منبع انتخاب شده
+            background = backdrop
+        ) { padding ->
+            val current = series
+            when {
+                current != null -> SeriesDetails(
+                    series = current,
+                    viewModel = seasonsViewModel,
+                    listState = listState,
+                    padding = padding,
+                    onPlay = ::play,
+                    onDownload = ::download
+                )
+
+                loaded -> DetailNotFound(
+                    title = "سریال یافت نشد",
+                    message = "متاسفانه اطلاعات سریال مورد نظر در دسترس نیست",
+                    padding = padding
+                )
+
+                else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LiquidLoader() }
+            }
+        }
+    }
+
+    playPickerFor?.let { episode ->
+        QualityPickerDialog(
+            title = episode.title,
+            message = "کیفیت را برای پخش انتخاب کنید",
+            sources = episode.sources,
+            icon = Icons.Rounded.PlayArrow,
+            onPick = { source ->
+                playPickerFor = null
                 VideoPlayerActivity.start(context, source.url)
-            }
+            },
+            onDismiss = { playPickerFor = null }
         )
     }
-    
-    // منوی دانلود
-    if (showDownloadMenu && downloadSources.isNotEmpty()) {
-        DownloadMenu(
-            sources = downloadSources,
-            onDismiss = { showDownloadMenu = false },
-            onDownload = { source ->
-                showDownloadMenu = false
-                openUrlSeries(context, source.url)
-            }
+
+    downloadPickerFor?.let { episode ->
+        QualityPickerDialog(
+            title = "انتخاب کیفیت برای دانلود",
+            message = "یک گزینه کیفیت برای دانلود انتخاب کنید",
+            sources = episode.sources,
+            icon = Icons.Rounded.Download,
+            primary = false,
+            onPick = { source ->
+                downloadPickerFor = null
+                downloadFor = source
+            },
+            onDismiss = { downloadPickerFor = null }
         )
     }
-    
-    // تنظیم جهت‌گیری راست‌چین برای کل صفحه
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Column {
-                // نوار بالایی حرفه‌ای
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "جزئیات سریال",
-                            fontFamily = VazirFontFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 22.sp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "بازگشت",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    },
-                    actions = {
-                        var isFavorite by remember { mutableStateOf(false) }
-                        
-                        // بررسی اینکه آیا سریال قبلاً مورد علاقه شده است
-                        LaunchedEffect(seriesId) {
-                            isFavorite = StorageUtils.isFavorite(context, seriesId, "series")
-                        }
-                        
-                        IconButton(
-                            onClick = {
-                                if (isFavorite) {
-                                    StorageUtils.removeFavorite(context, seriesId, "series")
-                                    isFavorite = false
-                                    // نمایش پیام Toast
-                                    android.widget.Toast.makeText(context, "از موارد مورد علاقه حذف شد", android.widget.Toast.LENGTH_SHORT).show()
-                                } else {
-                                    series?.let {
-                                        // تبدیل سریال به مورد علاقه
-                                        val favoriteItem = FavoriteItem(
-                                            id = it.id,
-                                            type = "series",
-                                            title = it.title,
-                                            description = it.description,
-                                            year = it.year,
-                                            imdb = it.imdb,
-                                            rating = it.rating,
-                                            duration = it.duration,
-                                            image = it.image,
-                                            cover = it.cover,
-                                            genres = it.genres,
-                                            country = it.country
-                                        )
-                                        StorageUtils.saveFavorite(context, favoriteItem)
-                                        isFavorite = true
-                                        // نمایش پیام Toast
-                                        android.widget.Toast.makeText(context, "به موارد مورد علاقه اضافه شد", android.widget.Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = "مورد علاقه",
-                                tint = if (isFavorite) Color(0xFFE91E63) else MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )
-                
-                if (series != null) {
-                    SeriesDetailsContent(
-                        series = series!!,
-                        seasonsViewModel = seasonsViewModel,
-                        onEpisodeClick = { episode ->
-                            if (episode.sources.isNotEmpty()) {
-                                if (episode.sources.size > 1) {
-                                    // نمایش دیالوگ انتخاب منبع اگر منابع متعدد وجود داشته باشد
-                                    selectedEpisode = episode
-                                    showSourceDialog = true
-                                } else {
-                                    // پخش مستقیم اگر فقط یک منبع وجود داشته باشد
-                                    VideoPlayerActivity.start(context, episode.sources[0].url)
-                                }
-                            }
-                        },
-                        onDownloadClick = { episode ->
-                            if (episode.sources.isNotEmpty()) {
-                                if (episode.sources.size > 1) {
-                                    // نمایش منوی دانلود اگر منابع متعدد وجود داشته باشد
-                                    downloadSources = episode.sources
-                                    showDownloadMenu = true
-                                } else {
-                                    // نمایش گزینه‌های دانلود حتی برای منبع تکی
-                                    downloadSources = episode.sources
-                                    showDownloadMenu = true
-                                }
-                            }
-                        }
-                    )
-                } else {
-                    // نمایش وضعیت بارگذاری یا خطا
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.primaryContainer,
-                                        MaterialTheme.colorScheme.surface
-                                    )
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(32.dp)
-                        ) {
-                            Card(
-                                modifier = Modifier.size(120.dp),
-                                shape = CircleShape,
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer
-                                ),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                            ) {
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(64.dp),
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Text(
-                                text = "سریال یافت نشد",
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontFamily = VazirFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 22.sp,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "متاسفانه اطلاعات سریال مورد نظر در دسترس نیست",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontFamily = VazirFontFamily,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
+
+    downloadFor?.let { source -> DownloadOptions(context, source) { downloadFor = null } }
 }
 
-@Composable
-fun SourceOptionsDialog(
-    episode: Episode,
-    onDismiss: () -> Unit,
-    onDownload: (Source) -> Unit,
-    onPlay: (Source) -> Unit
-) {
-    val context = LocalContext.current
-    var selectedSource by remember { mutableStateOf<Source?>(null) }
-    var showDownloadOptions by remember { mutableStateOf(false) }
-    
-    if (showDownloadOptions && selectedSource != null) {
-        DownloadOptionsDialog(
-            source = selectedSource!!,
-            onDismiss = { showDownloadOptions = false },
-            onCopyLink = { DownloadUtils.copyToClipboard(context, selectedSource!!.url) },
-            onDownloadWithBrowser = { DownloadUtils.openUrl(context, selectedSource!!.url) },
-            onDownloadWithADM = { DownloadUtils.openWithADM(context, selectedSource!!.url) },
-            onOpenInVLC = { DownloadUtils.openWithVLC(context, selectedSource!!.url) },
-            onOpenInMXPlayer = { DownloadUtils.openWithMXPlayer(context, selectedSource!!.url) },
-            onOpenInKMPlayer = { DownloadUtils.openWithKMPlayer(context, selectedSource!!.url) }
-        )
-    }
-    
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "قسمت: ${episode.title}",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                fontFamily = VazirFontFamily,
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        },
-        text = {
-            Text(
-                text = "کیفیت را برای پخش انتخاب کنید",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontFamily = VazirFontFamily,
-                fontSize = 16.sp
-            )
-        },
-        confirmButton = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // دکمه‌های پخش برای هر منبع/کیفیت
-                episode.sources.forEach { source ->
-                    Button(
-                        onClick = { onPlay(source) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = ButtonDefaults.elevatedButtonElevation()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "پخش",
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "پخش ${source.quality}",
-                            fontFamily = VazirFontFamily,
-                            fontSize = 16.sp
-                        )
-                    }
-                }
-                
-                // دکمه انصراف
-                TextButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(
-                        text = "انصراف",
-                        fontFamily = VazirFontFamily,
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(20.dp),
-        tonalElevation = 6.dp
-    )
-}
+/** Scroll distance usable for parallax; large once the header has scrolled away. */
+private fun LazyListState.scrollOffsetPx(): Float =
+    if (firstVisibleItemIndex == 0) firstVisibleItemScrollOffset.toFloat() else 2000f
 
 @Composable
-fun DownloadMenu(
-    sources: List<Source>,
-    onDismiss: () -> Unit,
-    onDownload: (Source) -> Unit
-) {
-    val context = LocalContext.current
-    var selectedSource by remember { mutableStateOf<Source?>(null) }
-    var showDownloadOptions by remember { mutableStateOf(false) }
-    
-    // اگر فقط یک منبع وجود دارد، مستقیماً به عنوان انتخاب شده تنظیم و گزینه‌های دانلود را نمایش می‌دهیم
-    LaunchedEffect(sources) {
-        if (sources.size == 1) {
-            selectedSource = sources[0]
-            showDownloadOptions = true
-        }
-    }
-    
-    if (showDownloadOptions && selectedSource != null) {
-        DownloadOptionsDialog(
-            source = selectedSource!!,
-            onDismiss = { 
-                showDownloadOptions = false
-                // اگر فقط یک منبع داشتیم، منو را نیز ببند
-                if (sources.size == 1) {
-                    onDismiss()
-                }
-            },
-            onCopyLink = { DownloadUtils.copyToClipboard(context, selectedSource!!.url) },
-            onDownloadWithBrowser = { DownloadUtils.openUrl(context, selectedSource!!.url) },
-            onDownloadWithADM = { DownloadUtils.openWithADM(context, selectedSource!!.url) },
-            onOpenInVLC = { DownloadUtils.openWithVLC(context, selectedSource!!.url) },
-            onOpenInMXPlayer = { DownloadUtils.openWithMXPlayer(context, selectedSource!!.url) },
-            onOpenInKMPlayer = { DownloadUtils.openWithKMPlayer(context, selectedSource!!.url) }
-        )
-    }
-    
-    // فقط انتخاب کیفیت را نمایش می‌دهیم اگر منابع متعدد وجود داشته باشد
-    if (sources.size > 1) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = {
-                Text(
-                    text = "انتخاب کیفیت برای دانلود",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = VazirFontFamily,
-                    fontSize = 20.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            },
-            text = {
-                Text(
-                    text = "یک گزینه کیفیت برای دانلود انتخاب کنید",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontFamily = VazirFontFamily,
-                    fontSize = 16.sp
-                )
-            },
-            confirmButton = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    sources.forEach { source ->
-                        Button(
-                            onClick = { 
-                                selectedSource = source
-                                showDownloadOptions = true
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            ),
-                            elevation = ButtonDefaults.elevatedButtonElevation()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Download,
-                                contentDescription = "دانلود",
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = source.quality,
-                                fontFamily = VazirFontFamily,
-                                fontSize = 16.sp
-                            )
-                        }
-                    }
-                    
-                    // دکمه انصراف
-                    TextButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text(
-                            text = "انصراف",
-                            fontFamily = VazirFontFamily,
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(20.dp),
-            tonalElevation = 6.dp
-        )
-    }
-}
-
-@Composable
-fun SeriesDetailsContent(
+private fun SeriesDetails(
     series: Series,
-    seasonsViewModel: SeasonsViewModel,
-    onEpisodeClick: (Episode) -> Unit,
-    onDownloadClick: (Episode) -> Unit,
-    modifier: Modifier = Modifier
+    viewModel: SeasonsViewModel,
+    listState: LazyListState,
+    padding: PaddingValues,
+    onPlay: (Episode) -> Unit,
+    onDownload: (Episode) -> Unit,
 ) {
-    var selectedSeasonIndex by remember { mutableStateOf(0) }
-    
+    val colors = Glass.colors
+    val seasons = viewModel.seasons
+    var selectedSeason by rememberSaveable { mutableIntStateOf(0) }
+    val season: Season? = seasons.getOrNull(selectedSeason.coerceIn(0, (seasons.size - 1).coerceAtLeast(0)))
+
     LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primaryContainer,
-                        MaterialTheme.colorScheme.surface
-                    )
-                )
-            )
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(top = padding.calculateTopPadding(), bottom = padding.calculateBottomPadding()),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        item {
-            // هدر سریال با پس‌زمینه کاور و تصویر پیش‌زمینه
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(320.dp)
-            ) {
-                // تصویر پس‌زمینه کاور (تار شده)
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current)
-                            .data(series.cover)
-                            .crossfade(true)
-                            .build()
-                    ),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-                
-                // هم‌گرادینت همپوشانی برای خوانایی بهتر متن
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-                                    MaterialTheme.colorScheme.surface
-                                )
-                            )
-                        )
-                )
-                
-                // پوستر پیش‌زمینه سریال
-                Card(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-                        .height(220.dp)
-                        .width(160.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(
-                            ImageRequest.Builder(LocalContext.current)
-                                .data(series.image)
-                                .crossfade(true)
-                                .build()
-                        ),
-                        contentDescription = series.title,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
-        }
-        
-        item {
-            // عنوان سریال با کشور و سال
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    text = series.title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontFamily = VazirFontFamily,
-                    fontSize = 26.sp
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // کشور و سال
-                val countryText = if (series.country.isNotEmpty()) {
-                    "${series.country.joinToString(", ") { it.title }} (${series.year})"
-                } else {
-                    "(${series.year})"
-                }
-                
-                Text(
-                    text = countryText,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontFamily = VazirFontFamily,
-                    fontSize = 16.sp
-                )
-            }
-        }
-        
-        item {
-            // امتیاز
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                        RoundedCornerShape(20.dp)
-                    )
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = "امتیاز",
-                    tint = Color(0xFFFFC107),
-                    modifier = Modifier.size(24.dp)
-                )
-                
-                Spacer(modifier = Modifier.width(8.dp))
-                
-                Text(
-                    text = String.format("%.1f", series.imdb),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontFamily = VazirFontFamily,
-                    fontSize = 22.sp
-                )
-            }
-        }
-        
-        item {
-            // ژانرها
-            if (series.genres.isNotEmpty()) {
-                Text(
-                    text = "ژانرها",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                    fontFamily = VazirFontFamily,
-                    fontSize = 18.sp
-                )
-                
-                // نمایش بهبود یافته ژانرها با بسته‌بندی و استایل بهتر
-                LazyRow(
-                    modifier = Modifier
-                        .padding(start = 16.dp, end = 16.dp, top = 8.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(series.genres) { genre ->
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            ),
-                            shape = RoundedCornerShape(50.dp), // گوشه‌های گردتر
-                            modifier = Modifier
-                                .height(32.dp) // ارتفاع ثابت برای یکنواختی
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp)
-                            ) {
-                                Text(
-                                    text = genre.title,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    fontWeight = FontWeight.Medium,
-                                    fontFamily = VazirFontFamily,
-                                    fontSize = 14.sp
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        item {
-            // توضیحات
-            Text(
-                text = "توضیحات",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                fontFamily = VazirFontFamily,
-                fontSize = 18.sp
+        item(key = "header") {
+            DetailHeader(
+                title = series.title,
+                poster = series.image,
+                year = series.year,
+                countries = series.country.map { it.title },
+                rating = series.imdb,
+                duration = series.duration
             )
         }
-        
-        item {
-            // تنظیم جهت‌چینی برای متن توضیحات به RTL
-            Card(
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 16.dp)
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                )
-            ) {
-                Text(
-                    text = series.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    textAlign = TextAlign.Right,
-                    fontFamily = VazirFontFamily,
-                    fontSize = 16.sp,
-                    lineHeight = 24.sp
-                )
-            }
-        }
-        
-        // انتخاب فصل‌ها
-        if (seasonsViewModel.seasons.isNotEmpty()) {
-            item {
-                Text(
-                    text = "فصل‌ها",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                    fontFamily = VazirFontFamily,
-                    fontSize = 18.sp
-                )
-            }
-            
-            item {
-                LazyRow(
-                    modifier = Modifier
-                        .padding(start = 16.dp, end = 16.dp, top = 8.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+        val firstEpisode = seasons.firstOrNull()?.episodes?.firstOrNull()
+        if (firstEpisode != null) {
+            item(key = "play") {
+                LiquidButton(
+                    onClick = { onPlay(season?.episodes?.firstOrNull() ?: firstEpisode) },
+                    tint = colors.accent,
+                    height = 54.dp,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Glass.ScreenPadding)
                 ) {
-                    items(seasonsViewModel.seasons.size) { index ->
-                        val season = seasonsViewModel.seasons[index]
-                        Card(
-                            modifier = Modifier
-                                .clickable { selectedSeasonIndex = index },
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (selectedSeasonIndex == index) 
-                                    MaterialTheme.colorScheme.primary 
-                                else 
-                                    MaterialTheme.colorScheme.surfaceVariant
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            elevation = if (selectedSeasonIndex == index) 
-                                CardDefaults.cardElevation(defaultElevation = 4.dp) 
-                            else 
-                                CardDefaults.cardElevation(defaultElevation = 1.dp)
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = season.title,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = if (selectedSeasonIndex == index) 
-                                        MaterialTheme.colorScheme.onPrimary 
-                                    else 
-                                        MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = FontWeight.Medium,
-                                    fontFamily = VazirFontFamily,
-                                    fontSize = 14.sp
-                                )
-                            }
-                        }
-                    }
+                    Icon(Icons.Rounded.PlayArrow, null, tint = colors.onAccent, modifier = Modifier.size(26.dp))
+                    Text(
+                        "پخش ${season?.title ?: "قسمت اول"}",
+                        style = GlassType.Headline,
+                        color = colors.onAccent,
+                        maxLines = 1
+                    )
                 }
             }
         }
-        
-        // قسمت‌های فصل انتخاب شده
-        item {
-            if (seasonsViewModel.isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(48.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            strokeWidth = 4.dp
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "در حال بارگذاری فصل‌ها...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontFamily = VazirFontFamily,
-                            fontSize = 16.sp
-                        )
-                    }
+        item(key = "genres") { GenreChips(series.genres.map { it.title }) }
+        item(key = "description") { DescriptionCard(series.description) }
+
+        when {
+            viewModel.isLoading -> item(key = "seasons-loading") {
+                Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    LiquidLoader()
+                    Text("در حال بارگذاری فصل‌ها...", style = GlassType.Callout, color = colors.contentSecondary, modifier = Modifier.padding(top = 12.dp))
                 }
-            } else if (seasonsViewModel.errorMessage != null) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Card(
-                        modifier = Modifier.size(80.dp),
-                        shape = CircleShape,
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                modifier = Modifier.size(40.dp),
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "خطا در بارگذاری فصل‌ها: ${seasonsViewModel.errorMessage}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(16.dp),
-                        fontFamily = VazirFontFamily,
-                        fontSize = 16.sp,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { seasonsViewModel.loadSeasons(series.id) },
-                        modifier = Modifier.padding(16.dp),
-                        shape = RoundedCornerShape(30.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                    ) {
-                        Text(
-                            text = "تلاش مجدد",
-                            fontFamily = VazirFontFamily,
-                            fontSize = 16.sp
-                        )
-                    }
+            }
+
+            viewModel.errorMessage != null -> item(key = "seasons-error") {
+                StatusView(
+                    icon = Icons.Rounded.CloudOff,
+                    title = "خطا در بارگذاری فصل‌ها",
+                    message = viewModel.errorMessage,
+                    iconTint = colors.danger,
+                    actionText = "تلاش مجدد",
+                    actionIcon = Icons.Rounded.Refresh,
+                    onAction = { viewModel.loadSeasons(series.id) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            seasons.isEmpty() -> item(key = "seasons-empty") {
+                StatusView(icon = Icons.Rounded.LayersClear, title = "فصلی موجود نیست", modifier = Modifier.fillMaxWidth())
+            }
+
+            else -> {
+                item(key = "seasons-title") {
+                    SectionHeader("فصل‌ها", trailing = "${seasons.size} فصل")
                 }
-            } else if (seasonsViewModel.seasons.isNotEmpty()) {
-                val selectedSeason = seasonsViewModel.seasons[selectedSeasonIndex]
-                Column {
-                    Text(
-                        text = selectedSeason.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                        fontFamily = VazirFontFamily,
-                        fontSize = 18.sp
-                    )
-                    
-                    selectedSeason.episodes.forEach { episode ->
-                        EpisodeItem(
+                item(key = "seasons-picker") {
+                    SeasonPicker(seasons, selectedSeason) { selectedSeason = it }
+                }
+                if (season != null) {
+                    item(key = "episodes-title") {
+                        SectionHeader(season.title, trailing = "${season.episodes.size} قسمت")
+                    }
+                    itemsIndexed(season.episodes, key = { _, e -> "e${season.id}-${e.id}" }) { index, episode ->
+                        EpisodeCard(
+                            number = index + 1,
                             episode = episode,
-                            onPlayClick = { onEpisodeClick(episode) },
-                            onDownloadClick = { onDownloadClick(episode) }
+                            onPlay = { onPlay(episode) },
+                            onDownload = { onDownload(episode) }
                         )
                     }
                 }
-            } else {
-                Text(
-                    text = "فصلی موجود نیست",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(16.dp),
-                    fontFamily = VazirFontFamily,
-                    fontSize = 16.sp
-                )
             }
         }
-        
-        item {
-            Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+/** Liquid segmented control for a handful of seasons, a scrolling row of liquid pills otherwise. */
+@Composable
+private fun SeasonPicker(seasons: List<Season>, selected: Int, onSelect: (Int) -> Unit) {
+    val colors = Glass.colors
+    if (seasons.size in 2..4) {
+        LiquidTabs(
+            selectedIndex = selected,
+            onTabSelected = onSelect,
+            tabsCount = seasons.size,
+            height = 50.dp,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = Glass.ScreenPadding)
+        ) {
+            seasons.forEachIndexed { index, s ->
+                LiquidTab(onClick = { onSelect(index) }) {
+                    Text(s.title, style = GlassType.Headline, color = colors.content, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
+    } else {
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = Glass.ScreenPadding),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            itemsIndexed(seasons) { index, s ->
+                val isSelected = index == selected
+                LiquidButton(
+                    onClick = { onSelect(index) },
+                    tint = if (isSelected) colors.accent else Color.Unspecified,
+                    height = 44.dp
+                ) {
+                    Text(s.title, style = GlassType.Headline, color = if (isSelected) colors.onAccent else colors.content)
+                }
+            }
         }
     }
 }
 
 @Composable
-fun EpisodeItem(
-    episode: Episode,
-    onPlayClick: () -> Unit,
-    onDownloadClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        )
+private fun EpisodeCard(number: Int, episode: Episode, onPlay: () -> Unit, onDownload: () -> Unit) {
+    val colors = Glass.colors
+    val thumbLayer = rememberLayerBackdrop()
+    GlassSurface(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = Glass.ScreenPadding),
+        shape = RoundedRectangle(26.dp),
+        onClick = onPlay
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
+        Row(
+            Modifier.padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                Modifier
+                    .width(124.dp)
+                    .height(72.dp)
+                    .clip(RoundedRectangle(18.dp))
             ) {
-                // تصویر قسمت
-                if (episode.image.isNotEmpty()) {
-                    Card(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
+                Box(Modifier.fillMaxSize().layerBackdrop(thumbLayer).background(colors.accent.copy(alpha = 0.3f))) {
+                    if (episode.image.isNotEmpty()) {
                         Image(
                             painter = rememberAsyncImagePainter(
-                                ImageRequest.Builder(LocalContext.current)
-                                    .data(episode.image)
-                                    .crossfade(true)
-                                    .build()
+                                ImageRequest.Builder(LocalContext.current).data(episode.image).crossfade(true).build()
                             ),
                             contentDescription = episode.title,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.width(16.dp))
-                }
-                
-                // جزئیات قسمت
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = episode.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontFamily = VazirFontFamily,
-                        fontSize = 18.sp
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    // نمایش تعداد منابع اگر منابع متعدد وجود داشته باشد
-                    if (episode.sources.size > 1) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .background(
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                                    RoundedCornerShape(20.dp)
-                                )
-                                .padding(horizontal = 12.dp, vertical = 4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "${episode.sources.size} کیفیت موجود",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontFamily = VazirFontFamily,
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
-                }
-            }
-            
-            // دکمه‌های عملیات
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                // دکمه دانلود
-                if (episode.sources.isNotEmpty()) {
-                    Card(
-                        shape = CircleShape,
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        IconButton(
-                            onClick = { onDownloadClick() },
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Download,
-                                contentDescription = "دانلود",
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-                }
-                
-                Spacer(modifier = Modifier.width(12.dp))
-                
-                // دکمه پخش
-                Card(
-                    shape = CircleShape,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    IconButton(
-                        onClick = { onPlayClick() },
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "پخش",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(20.dp)
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
                 }
+                GlassChip(
+                    modifier = Modifier.align(Alignment.Center),
+                    backdrop = thumbLayer,
+                    tint = Color.Black.copy(alpha = 0.2f),
+                    contentPadding = PaddingValues(6.dp)
+                ) {
+                    Icon(Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                }
+                GlassChip(
+                    modifier = Modifier.align(Alignment.TopStart).padding(5.dp),
+                    backdrop = thumbLayer,
+                    tint = Color.Black.copy(alpha = 0.25f),
+                    contentPadding = PaddingValues(horizontal = 7.dp, vertical = 1.dp)
+                ) {
+                    Text("$number", style = GlassType.CaptionBold, color = Color.White)
+                }
             }
-            
-            Spacer(modifier = Modifier.height(8.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(episode.title, style = GlassType.Headline, color = colors.content, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                val meta = listOfNotNull(
+                    episode.duration?.takeIf { it.isNotBlank() },
+                    episode.sources.size.takeIf { it > 1 }?.let { "$it کیفیت" }
+                ).joinToString("  •  ")
+                if (meta.isNotEmpty()) {
+                    Text(meta, style = GlassType.Caption, color = colors.contentSecondary)
+                }
+            }
+            if (episode.sources.isNotEmpty()) {
+                LiquidIconButton(
+                    onClick = onDownload,
+                    icon = Icons.Rounded.Download,
+                    contentDescription = "دانلود",
+                    size = 40.dp,
+                    iconSize = 20.dp
+                )
+            }
         }
     }
 }
 
-fun openUrlSeries(context: Context, url: String) {
-    DownloadUtils.openUrl(context, url)
-}
+private fun Series.toFavorite() = FavoriteItem(
+    id = id,
+    type = "series",
+    title = title,
+    description = description,
+    year = year,
+    imdb = imdb,
+    rating = rating,
+    duration = duration,
+    image = image,
+    cover = cover,
+    genres = genres,
+    country = country
+)

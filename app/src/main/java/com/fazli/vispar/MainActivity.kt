@@ -5,56 +5,57 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.fazli.vispar.navigation.AppNavigation
 import com.fazli.vispar.navigation.AppScreens
-import com.fazli.vispar.navigation.BottomNavigationBar
+import com.fazli.vispar.navigation.LiquidBottomBar
 import com.fazli.vispar.navigation.SidebarNavigation
-import com.fazli.vispar.ui.theme.visparTheme
+import com.fazli.vispar.ui.glass.AmbientBackground
+import com.fazli.vispar.ui.glass.GlassOverlayHost
+import com.fazli.vispar.ui.glass.GlassOverlayLayer
+import com.fazli.vispar.ui.glass.LocalBackdrop
+import com.fazli.vispar.ui.glass.LocalBottomBarInset
+import com.fazli.vispar.ui.glass.LocalGlassOverlayHost
 import com.fazli.vispar.ui.theme.ThemeManager
 import com.fazli.vispar.ui.theme.ThemeSettings
-import com.fazli.vispar.ui.theme.VazirFontFamily
+import com.fazli.vispar.ui.theme.visparTheme
 import com.fazli.vispar.utils.DeviceUtils
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberCombinedBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Set default orientation to portrait for mobile/tablet
-        // For TV, we don't set orientation as it's typically fixed
+        // Portrait on phones and tablets; TVs have a fixed orientation.
         if (!DeviceUtils.isTv(this)) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
@@ -67,113 +68,92 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainApp() {
-    val themeManager = ThemeManager(androidx.compose.ui.platform.LocalContext.current)
+    val context = LocalContext.current
+    val themeManager = remember { ThemeManager(context) }
     var themeSettings by remember { mutableStateOf(themeManager.loadThemeSettings()) }
-    
-    // Save theme settings when they change
-    LaunchedEffect(themeSettings) {
-        themeManager.saveThemeSettings(themeSettings)
-    }
-    
-    // تنظیم راست‌چینی برای کل برنامه
-    androidx.compose.runtime.CompositionLocalProvider(
-        LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Rtl
-    ) {
+
+    // The whole app is right-to-left (Persian).
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         visparTheme(themeSettings) {
-            MainScreen(onThemeSettingsChanged = { themeSettings = it })
+            MainScreen(
+                onThemeSettingsChanged = {
+                    themeSettings = it
+                    themeManager.saveThemeSettings(it)
+                }
+            )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Root of the glass UI. The scene is built from three stacked layers:
+ *
+ * 1. the ambient aurora background (recorded as `backgroundLayer`),
+ * 2. the navigation host with every screen (recorded as `screensLayer`),
+ * 3. floating chrome — the liquid tab bar and dialogs — which refracts both layers below it.
+ */
 @Composable
 fun MainScreen(onThemeSettingsChanged: (ThemeSettings) -> Unit = {}) {
     val navController = rememberNavController()
-    val themeManager = ThemeManager(androidx.compose.ui.platform.LocalContext.current)
-    val themeSettings = themeManager.loadThemeSettings()
-    val configuration = LocalConfiguration.current
-    val isTv = DeviceUtils.isTv(androidx.compose.ui.platform.LocalContext.current)
-    
+    val context = LocalContext.current
+    val isTv = remember { DeviceUtils.isTv(context) }
+
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
-    
-    // Find the current screen, including the SingleMovie and SingleSeries screens
-    val currentScreen = when {
-        currentRoute?.startsWith("single_movie") == true -> AppScreens.SingleMovie
-        currentRoute?.startsWith("single_series") == true -> AppScreens.SingleSeries
-        currentRoute == AppScreens.Favorites.route -> AppScreens.Favorites
-        currentRoute == AppScreens.About.route -> AppScreens.About
-        else -> AppScreens.screens.find { it.route == currentRoute } ?: AppScreens.Movies
-    }
-    
-    // System UI controller for edge-to-edge support
-    val systemUiController = rememberSystemUiController()
-    val useDarkIcons = themeSettings.themeMode != com.fazli.vispar.ui.theme.ThemeMode.DARK
-    
-    LaunchedEffect(themeSettings) {
-        systemUiController.setStatusBarColor(
-            color = androidx.compose.ui.graphics.Color.Transparent,
-            darkIcons = useDarkIcons
-        )
-        systemUiController.setNavigationBarColor(
-            color = androidx.compose.ui.graphics.Color.Transparent,
-            darkIcons = useDarkIcons
-        )
-    }
-    
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = {
-            // Only show bottom bar if the current screen requires it and we're not on splash
-            // and we're not on TV (TV uses sidebar instead)
-            if (!isTv && currentScreen.showBottomBar && currentRoute != AppScreens.Splash.route) {
-                BottomNavigationBar(navController)
-            }
-        }
-    ) { innerPadding ->
-        if (isTv) {
-            // TV layout with sidebar navigation
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                // Sidebar navigation for TV
-                SidebarNavigation(navController)
-                
-                // Main content area with padding to separate from sidebar
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 16.dp, end = 24.dp, top = 24.dp, bottom = 24.dp)
-                ) {
-                    // Pass theme settings callback to navigation
-                    AppNavigation(navController, onThemeSettingsChanged)
+    val currentScreen = AppScreens.fromRoute(currentRoute)
+    val showTabBar = !isTv && currentScreen.showBottomBar && currentRoute != null &&
+            currentRoute != AppScreens.Splash.route
+    val showSidebar = isTv && currentScreen.showSidebar && currentRoute != null &&
+            currentRoute != AppScreens.Splash.route
+
+    val backgroundLayer = rememberLayerBackdrop()
+    val screensLayer = rememberLayerBackdrop()
+    val chromeBackdrop = rememberCombinedBackdrop(backgroundLayer, screensLayer)
+    val overlayHost = remember { GlassOverlayHost() }
+
+    CompositionLocalProvider(
+        LocalGlassOverlayHost provides overlayHost,
+        LocalBottomBarInset provides if (showTabBar) 84.dp else 0.dp,
+    ) {
+        Box(Modifier.fillMaxSize()) {
+            AmbientBackground(Modifier.fillMaxSize().layerBackdrop(backgroundLayer))
+
+            Box(Modifier.fillMaxSize().layerBackdrop(screensLayer)) {
+                CompositionLocalProvider(LocalBackdrop provides backgroundLayer) {
+                    if (isTv) {
+                        Row(Modifier.fillMaxSize()) {
+                            AnimatedVisibility(visible = showSidebar) {
+                                SidebarNavigation(navController)
+                            }
+                            Box(Modifier.weight(1f)) {
+                                AppNavigation(navController, onThemeSettingsChanged)
+                            }
+                        }
+                    } else {
+                        AppNavigation(navController, onThemeSettingsChanged)
+                    }
                 }
             }
-        } else {
-            // Mobile/tablet layout with bottom navigation
-            Box(modifier = Modifier.padding(innerPadding)) {
-                // Pass theme settings callback to navigation
-                AppNavigation(navController, onThemeSettingsChanged)
+
+            AnimatedVisibility(
+                visible = showTabBar,
+                modifier = Modifier.align(Alignment.BottomCenter),
+                enter = fadeIn() + slideInVertically(spring(0.75f, 320f, IntOffset.VisibilityThreshold)) { it },
+                exit = fadeOut() + slideOutVertically { it }
+            ) {
+                CompositionLocalProvider(LocalBackdrop provides chromeBackdrop) {
+                    LiquidBottomBar(
+                        navController = navController,
+                        modifier = Modifier
+                            .navigationBarsPadding()
+                            .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
+                            .widthIn(max = 520.dp)
+                            .fillMaxWidth()
+                    )
+                }
             }
+
+            GlassOverlayLayer(overlayHost, chromeBackdrop)
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    val themeManager = ThemeManager(androidx.compose.ui.platform.LocalContext.current)
-    val themeSettings = themeManager.loadThemeSettings()
-    
-    // تنظیم راست‌چینی برای پیش‌نمایش
-    androidx.compose.runtime.CompositionLocalProvider(
-        LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Rtl
-    ) {
-        visparTheme(themeSettings) {
-            MainScreen()
-        }
-    }
-
 }

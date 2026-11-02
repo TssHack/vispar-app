@@ -35,7 +35,7 @@ object LanguageUtils {
             if (char.isLetter()) {
                 totalCharCount++
                 // Check if it's a Latin character (English alphabet)
-                if (char.toLowerCase() in 'a'..'z') {
+                if (char.lowercaseChar() in 'a'..'z') {
                     latinCharCount++
                 }
             }

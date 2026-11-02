@@ -1,94 +1,100 @@
 package com.fazli.vispar.screens
 
-
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.toArgb
 import android.content.Intent
-import android.net.Uri
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material.icons.filled.Brightness1
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FormatColorFill
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.TextFields
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.rounded.BrightnessAuto
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.SystemUpdate
+import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.Subtitles
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.fazli.vispar.BuildConfig
-import com.fazli.vispar.R
 import com.fazli.vispar.data.model.SubtitleSettings
 import com.fazli.vispar.data.model.VideoPlayerSettings
+import com.fazli.vispar.ui.glass.Glass
+import com.fazli.vispar.ui.glass.GlassAlertDialog
+import com.fazli.vispar.ui.glass.GlassDivider
+import com.fazli.vispar.ui.glass.GlassRow
+import com.fazli.vispar.ui.glass.GlassScaffold
+import com.fazli.vispar.ui.glass.GlassStyle
+import com.fazli.vispar.ui.glass.GlassSurface
+import com.fazli.vispar.ui.glass.GlassType
+import com.fazli.vispar.ui.glass.IconTile
+import com.fazli.vispar.ui.glass.LargeTitle
+import com.fazli.vispar.ui.glass.LiquidIconButton
+import com.fazli.vispar.ui.glass.LiquidSlider
+import com.fazli.vispar.ui.glass.LiquidTab
+import com.fazli.vispar.ui.glass.LiquidTabs
+import com.fazli.vispar.ui.glass.shiftHue
+import com.fazli.vispar.ui.theme.ThemeManager
 import com.fazli.vispar.ui.theme.ThemeMode
 import com.fazli.vispar.ui.theme.ThemeSettings
-import com.fazli.vispar.ui.theme.ThemeManager
-import com.fazli.vispar.ui.theme.VazirFontFamily  // import فونت از فایل مشترک
 import com.fazli.vispar.ui.theme.colorOptions
-import com.fazli.vispar.ui.theme.defaultPrimaryColor
 import com.fazli.vispar.utils.StorageUtils
-import kotlinx.coroutines.CoroutineScope
+import com.kyant.backdrop.backdrops.emptyBackdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.highlight.Highlight
+import com.kyant.backdrop.shadow.Shadow
+import com.kyant.shapes.Capsule
+import com.kyant.shapes.RoundedRectangle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.net.URL
 
@@ -99,1170 +105,421 @@ data class GitHubRelease(
     val html_url: String
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val themeModes = listOf(
+    Triple(ThemeMode.LIGHT, "روشن", Icons.Rounded.LightMode),
+    Triple(ThemeMode.DARK, "تاریک", Icons.Rounded.DarkMode),
+    Triple(ThemeMode.SYSTEM, "سیستم", Icons.Rounded.BrightnessAuto),
+)
+
+private val json = Json { ignoreUnknownKeys = true }
+
+/** True when [latestVersion] (e.g. "v1.2.0") is newer than [currentVersion]. */
+fun isVersionNewer(currentVersion: String, latestVersion: String): Boolean = try {
+    val current = currentVersion.removePrefix("v").split(".").map { it.toIntOrNull() ?: 0 }
+    val latest = latestVersion.removePrefix("v").split(".").map { it.toIntOrNull() ?: 0 }
+    var result = false
+    for (i in 0 until maxOf(current.size, latest.size)) {
+        val c = current.getOrElse(i) { 0 }
+        val l = latest.getOrElse(i) { 0 }
+        if (l != c) {
+            result = l > c
+            break
+        }
+    }
+    result
+} catch (e: Exception) {
+    Log.e("SettingsScreen", "Error comparing versions", e)
+    false
+}
+
 @Composable
 fun SettingsScreen(
     onThemeSettingsChanged: (ThemeSettings) -> Unit = {},
     navController: NavController? = null
 ) {
-    val themeManager = ThemeManager(LocalContext.current)
-    var themeSettings by remember { mutableStateOf(themeManager.loadThemeSettings()) }
     val context = LocalContext.current
+    val colors = Glass.colors
+    val scope = rememberCoroutineScope()
+    val themeManager = remember { ThemeManager(context) }
+    val listState = rememberLazyListState()
+    val density = LocalDensity.current
+
+    var themeSettings by remember { mutableStateOf(themeManager.loadThemeSettings()) }
     var subtitleSettings by remember { mutableStateOf(StorageUtils.loadSubtitleSettings(context)) }
-    var videoPlayerSettings by remember { mutableStateOf(StorageUtils.loadVideoPlayerSettings(context)) }
+    var playerSettings by remember { mutableStateOf(StorageUtils.loadVideoPlayerSettings(context)) }
     var showResetDialog by remember { mutableStateOf(false) }
-    var showUpdateDialog by remember { mutableStateOf(false) }
-    var latestVersionUrl by remember { mutableStateOf("") }
+    var latestVersionUrl by remember { mutableStateOf<String?>(null) }
     var isCheckingUpdate by remember { mutableStateOf(false) }
-    
-    // Configure JSON to ignore unknown keys
-    val json = Json { ignoreUnknownKeys = true }
-    
-    // Update parent when settings change
-    fun updateThemeSettings(newSettings: ThemeSettings) {
+
+    fun updateTheme(newSettings: ThemeSettings) {
         themeSettings = newSettings
         onThemeSettingsChanged(newSettings)
         themeManager.saveThemeSettings(newSettings)
     }
-    
-    // Update subtitle settings
-    fun updateSubtitleSettings(newSettings: SubtitleSettings) {
+
+    fun updateSubtitles(newSettings: SubtitleSettings) {
         subtitleSettings = newSettings
         StorageUtils.saveSubtitleSettings(context, newSettings)
     }
-    
-    // Update video player settings
-    fun updateVideoPlayerSettings(newSettings: VideoPlayerSettings) {
-        videoPlayerSettings = newSettings
+
+    fun updatePlayer(newSettings: VideoPlayerSettings) {
+        playerSettings = newSettings
         StorageUtils.saveVideoPlayerSettings(context, newSettings)
     }
-    
-    // Reset all settings to defaults
-    fun resetToDefaults() {
-        val defaultSettings = ThemeSettings()
-        updateThemeSettings(defaultSettings)
-        // Reset subtitle settings to default as well
-        val defaultSubtitleSettings = SubtitleSettings.DEFAULT
-        updateSubtitleSettings(defaultSubtitleSettings)
-        // Reset video player settings to default as well
-        val defaultVideoPlayerSettings = VideoPlayerSettings.DEFAULT
-        updateVideoPlayerSettings(defaultVideoPlayerSettings)
-    }
-    
-    // Compare version strings
-    fun isVersionNewer(currentVersion: String, latestVersion: String): Boolean {
-        try {
-            // Remove 'v' prefix if present
-            val current = currentVersion.removePrefix("v")
-            val latest = latestVersion.removePrefix("v")
-            
-            // Split version numbers
-            val currentParts = current.split(".").map { it.toIntOrNull() ?: 0 }
-            val latestParts = latest.split(".").map { it.toIntOrNull() ?: 0 }
-            
-            // Compare each part
-            for (i in 0 until maxOf(currentParts.size, latestParts.size)) {
-                val currentPart = if (i < currentParts.size) currentParts[i] else 0
-                val latestPart = if (i < latestParts.size) latestParts[i] else 0
-                
-                if (latestPart > currentPart) return true
-                if (latestPart < currentPart) return false
-            }
-            
-            return false // Versions are equal
-        } catch (e: Exception) {
-            Log.e("SettingsScreen", "Error comparing versions", e)
-            return false
-        }
-    }
-    
-    // Check for updates
+
     fun checkForUpdates() {
+        if (isCheckingUpdate) return
         isCheckingUpdate = true
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val url = URL("https://api.github.com/repos/tsshack/vispar/releases")
-                val connection = url.openConnection()
-                connection.setRequestProperty("User-Agent", "vispar-App")
-                val response = connection.getInputStream().bufferedReader().use { it.readText() }
-                
-                val releases = json.decodeFromString<List<GitHubRelease>>(response)
-                if (releases.isNotEmpty()) {
-                    val latestRelease = releases.first()
-                    val latestVersion = latestRelease.tag_name
-                    val currentVersion = "v${BuildConfig.VERSION_NAME}"
-                    
-                    withContext(Dispatchers.Main) {
-                        isCheckingUpdate = false
-                        if (isVersionNewer(currentVersion, latestVersion)) {
-                            latestVersionUrl = latestRelease.html_url
-                            showUpdateDialog = true
-                        } else {
-                            Toast.makeText(context, "برنامه به‌روز است", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        isCheckingUpdate = false
-                        Toast.makeText(context, "خطا در بررسی به‌روزرسانی", Toast.LENGTH_SHORT).show()
-                    }
+        scope.launch {
+            val newer: String? = try {
+                withContext(Dispatchers.IO) {
+                    val connection = URL("https://api.github.com/repos/tsshack/vispar/releases").openConnection()
+                    connection.setRequestProperty("User-Agent", "vispar-App")
+                    val response = connection.getInputStream().bufferedReader().use { it.readText() }
+                    val latest = json.decodeFromString<List<GitHubRelease>>(response).firstOrNull()
+                        ?: throw IllegalStateException("No releases")
+                    if (isVersionNewer("v${BuildConfig.VERSION_NAME}", latest.tag_name)) latest.html_url else ""
                 }
             } catch (e: Exception) {
                 Log.e("SettingsScreen", "Error checking for updates", e)
-                withContext(Dispatchers.Main) {
-                    isCheckingUpdate = false
-                    Toast.makeText(context, "خطا در بررسی به‌روزرسانی", Toast.LENGTH_SHORT).show()
-                }
+                null
+            }
+            isCheckingUpdate = false
+            when {
+                newer == null -> showToast(context, "خطا در بررسی به‌روزرسانی")
+                newer.isEmpty() -> showToast(context, "برنامه به‌روز است")
+                else -> latestVersionUrl = newer
             }
         }
     }
-    
-    // تنظیم جهت‌گیری راست‌چین برای کل صفحه
-    androidx.compose.runtime.CompositionLocalProvider(
-        LocalLayoutDirection provides LayoutDirection.Rtl
-    ) {
-        Surface(
+
+    GlassScaffold(
+        title = "تنظیمات",
+        titleAlpha = {
+            if (listState.firstVisibleItemIndex > 0) 1f
+            else (listState.firstVisibleItemScrollOffset / with(density) { 56.dp.toPx() }).coerceIn(0f, 1f)
+        },
+        actions = {
+            navController?.let {
+                LiquidIconButton(
+                    onClick = { it.navigate("favorites") },
+                    icon = Icons.Rounded.Favorite,
+                    contentDescription = "علاقه‌مندی‌ها",
+                    iconTint = colors.heart
+                )
+            }
+        }
+    ) { padding ->
+        LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+            contentPadding = PaddingValues(
+                start = Glass.ScreenPadding,
+                end = Glass.ScreenPadding,
+                top = padding.calculateTopPadding(),
+                bottom = padding.calculateBottomPadding()
+            ),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            Column {
-                // نوار بالایی حرفه‌ای
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "تنظیمات",
-                            fontFamily = VazirFontFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 22.sp,
-                            color = MaterialTheme.colorScheme.onPrimary
+            item { LargeTitle("تنظیمات", "ظاهر و پخش را به سلیقه خودت تنظیم کن") }
+
+            // Appearance
+            item {
+                SettingsCard(icon = Icons.Rounded.Palette, title = "ظاهر") {
+                    Label("حالت نمایش")
+                    LiquidTabs(
+                        selectedIndex = themeModes.indexOfFirst { it.first == themeSettings.themeMode }.coerceAtLeast(0),
+                        onTabSelected = { updateTheme(themeSettings.copy(themeMode = themeModes[it].first)) },
+                        tabsCount = themeModes.size,
+                        height = 56.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        themeModes.forEach { (mode, label, icon) ->
+                            LiquidTab(onClick = { updateTheme(themeSettings.copy(themeMode = mode)) }) {
+                                Icon(icon, null, tint = colors.content, modifier = Modifier.size(20.dp))
+                                Text(label, style = GlassType.CaptionBold.copy(fontSize = 11.sp), color = colors.content)
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Label("رنگ اصلی")
+                    AccentPalette(
+                        selected = themeSettings.primaryColor,
+                        onSelect = { updateTheme(themeSettings.copy(primaryColor = it)) }
+                    )
+                }
+            }
+
+            // Player & subtitles
+            item {
+                SettingsCard(icon = Icons.Rounded.Subtitles, title = "پخش‌کننده و زیرنویس") {
+                    SubtitlePreview(subtitleSettings)
+                    ValueLabel("زمان جلو/عقب رفتن", "${playerSettings.seekTimeSeconds} ثانیه")
+                    LiquidSlider(
+                        value = playerSettings.seekTimeSeconds.toFloat(),
+                        onValueChange = { v ->
+                            val seconds = v.toInt().coerceIn(5, 30)
+                            if (seconds != playerSettings.seekTimeSeconds) updatePlayer(playerSettings.copy(seekTimeSeconds = seconds))
+                        },
+                        valueRange = 5f..30f,
+                        steps = 24
+                    )
+                    ValueLabel("اندازه متن زیرنویس", "${subtitleSettings.textSize.toInt()}sp")
+                    LiquidSlider(
+                        value = subtitleSettings.textSize,
+                        onValueChange = { v ->
+                            val size = v.coerceIn(10f, 30f)
+                            if (size.toInt() != subtitleSettings.textSize.toInt()) updateSubtitles(subtitleSettings.copy(textSize = size))
+                        },
+                        valueRange = 10f..30f,
+                        steps = 19
+                    )
+                    SubtitleColorSetting(
+                        title = "رنگ متن",
+                        current = Color(subtitleSettings.textColor),
+                        options = listOf(Color.Yellow, Color.White, Color(0xFF64D2FF), Color(0xFF30D158), Color(0xFFFF9F0A)),
+                        onSelect = { updateSubtitles(subtitleSettings.copy(textColor = it.toArgb())) }
+                    )
+                    SubtitleColorSetting(
+                        title = "رنگ پس‌زمینه",
+                        current = Color(subtitleSettings.backgroundColor),
+                        options = listOf(Color.Transparent, Color.Black, Color.Black.copy(alpha = 0.5f), Color(0xFF1C1C1E), Color.White),
+                        onSelect = { updateSubtitles(subtitleSettings.copy(backgroundColor = it.toArgb())) }
+                    )
+                    SubtitleColorSetting(
+                        title = "رنگ حاشیه",
+                        current = Color(subtitleSettings.borderColor),
+                        options = listOf(Color.Transparent, Color.Black, Color.White, Color.Red, Color.Blue),
+                        onSelect = { updateSubtitles(subtitleSettings.copy(borderColor = it.toArgb())) }
+                    )
+                }
+            }
+
+            // Links & maintenance
+            item {
+                GlassSurface(Modifier.fillMaxWidth(), shape = RoundedRectangle(Glass.CardRadius)) {
+                    Column(Modifier.padding(vertical = 6.dp)) {
+                        GlassRow(
+                            icon = Icons.Rounded.Favorite,
+                            title = "علاقه‌مندی‌ها",
+                            subtitle = "فیلم‌ها و سریال‌های ذخیره شده",
+                            iconTint = colors.heart,
+                            onClick = { navController?.navigate("favorites") }
                         )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                    actions = {
-                        // Add like icon button that navigates to favorites
-                        navController?.let {
-                            IconButton(
-                                onClick = { navController.navigate("favorites") },
-                                modifier = Modifier.size(48.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Favorite,
-                                    contentDescription = "علاقه‌مندی‌ها",
-                                    tint = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-                        }
-                    }
-                )
-                
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primaryContainer,
-                                    MaterialTheme.colorScheme.surface
-                                )
-                            )
+                        GlassDivider()
+                        GlassRow(
+                            icon = Icons.Rounded.Info,
+                            title = "درباره ویسپار",
+                            subtitle = "نسخه ${BuildConfig.VERSION_NAME}",
+                            iconTint = colors.accent.shiftHue(-40f),
+                            onClick = { navController?.navigate("about") }
                         )
-                        .padding(16.dp)
-                ) {
-                    item {
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(300)) + slideInVertically(animationSpec = tween(300)),
-                            exit = fadeOut(animationSpec = tween(300)) + slideOutVertically(animationSpec = tween(300))
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "تنظیمات برنامه",
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    modifier = Modifier.weight(1f),
-                                    fontFamily = VazirFontFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    fontSize = 24.sp
-                                )
+                        GlassDivider()
+                        GlassRow(
+                            icon = Icons.Rounded.SystemUpdate,
+                            title = "بررسی به‌روزرسانی",
+                            subtitle = "دریافت آخرین نسخه از گیت‌هاب",
+                            iconTint = colors.accent.shiftHue(120f),
+                            onClick = { checkForUpdates() },
+                            trailing = if (isCheckingUpdate) {
+                                { SpinningIcon() }
+                            } else {
+                                null
                             }
-                        }
-                    }
-                    
-                    // Theme Settings Card
-                    item {
-                        var isExpanded by remember { mutableStateOf(false) }
-                        
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(400)) + slideInVertically(animationSpec = tween(400, delayMillis = 100)),
-                            exit = fadeOut(animationSpec = tween(400)) + slideOutVertically(animationSpec = tween(400))
-                        ) {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { isExpanded = !isExpanded },
-                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
-                                )
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(bottom = 12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Card(
-                                            modifier = Modifier.size(40.dp),
-                                            shape = CircleShape,
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                                            )
-                                        ) {
-                                            Box(
-                                                contentAlignment = Alignment.Center,
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.FormatColorFill,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                            }
-                                        }
-                                        Text(
-                                            text = "تنظیمات ظاهر",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            modifier = Modifier
-                                                .padding(start = 12.dp)
-                                                .weight(1f),
-                                            fontFamily = VazirFontFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Icon(
-                                            imageVector = if (isExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
-                                            contentDescription = if (isExpanded) "بستن" else "باز کردن",
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    
-                                    AnimatedVisibility(visible = isExpanded) {
-                                        Column(modifier = Modifier.fillMaxWidth()) {
-                                            // Theme Mode Section
-                                            Text(
-                                                text = "حالت ظاهر",
-                                                style = MaterialTheme.typography.titleMedium,
-                                                modifier = Modifier.padding(bottom = 12.dp, top = 8.dp),
-                                                fontFamily = VazirFontFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                            
-                                            ThemeModeOption(
-                                                mode = ThemeMode.LIGHT,
-                                                label = "روشن",
-                                                isSelected = themeSettings.themeMode == ThemeMode.LIGHT,
-                                                onSelect = { mode ->
-                                                    val newSettings = themeSettings.copy(themeMode = mode)
-                                                    updateThemeSettings(newSettings)
-                                                }
-                                            )
-                                            
-                                            ThemeModeOption(
-                                                mode = ThemeMode.DARK,
-                                                label = "تاریک",
-                                                isSelected = themeSettings.themeMode == ThemeMode.DARK,
-                                                onSelect = { mode ->
-                                                    val newSettings = themeSettings.copy(themeMode = mode)
-                                                    updateThemeSettings(newSettings)
-                                                }
-                                            )
-                                            
-                                            ThemeModeOption(
-                                                mode = ThemeMode.SYSTEM,
-                                                label = "پیش‌فرض سیستم",
-                                                isSelected = themeSettings.themeMode == ThemeMode.SYSTEM,
-                                                onSelect = { mode ->
-                                                    val newSettings = themeSettings.copy(themeMode = mode)
-                                                    updateThemeSettings(newSettings)
-                                                }
-                                            )
-                                            
-                                            Spacer(modifier = Modifier.height(16.dp))
-                                            
-                                            // Primary Color Section
-                                            Text(
-                                                text = "رنگ اصلی",
-                                                style = MaterialTheme.typography.titleMedium,
-                                                modifier = Modifier.padding(bottom = 12.dp),
-                                                fontFamily = VazirFontFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                            
-                                            // Display color options in rows of 4
-                                            for (rowColors in colorOptions.chunked(4)) {
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(vertical = 4.dp),
-                                                    horizontalArrangement = Arrangement.SpaceBetween
-                                                ) {
-                                                    rowColors.forEach { color ->
-                                                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                                                            ColorOption(
-                                                                color = color,
-                                                                isSelected = themeSettings.primaryColor == color,
-                                                                onSelect = { selectedColor ->
-                                                                    val newSettings = themeSettings.copy(primaryColor = selectedColor)
-                                                                    updateThemeSettings(newSettings)
-                                                                }
-                                                            )
-                                                        }
-                                                    }
-                                                    // Fill remaining spaces if less than 4 items
-                                                    repeat(4 - rowColors.size) {
-                                                        Spacer(modifier = Modifier.weight(1f))
-                                                    }
-                                                }
-                                            }
-                                            
-                                            // Add default color option
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(vertical = 4.dp),
-                                                horizontalArrangement = Arrangement.Start
-                                            ) {
-                                                val defaultColor = defaultPrimaryColor
-                                                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                                                    ColorOption(
-                                                        color = defaultColor,
-                                                        isSelected = themeSettings.primaryColor == defaultColor,
-                                                        onSelect = { selectedColor ->
-                                                            val newSettings = themeSettings.copy(primaryColor = selectedColor)
-                                                            updateThemeSettings(newSettings)
-                                                        },
-                                                        label = "پیش‌فرض"
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    item {
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(500)) + slideInVertically(animationSpec = tween(500, delayMillis = 200)),
-                            exit = fadeOut(animationSpec = tween(500)) + slideOutVertically(animationSpec = tween(500))
-                        ) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-                    }
-                    
-                    // Video Player Settings Card
-                    item {
-                        var isExpanded by remember { mutableStateOf(false) }
-                        
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(600)) + slideInVertically(animationSpec = tween(600, delayMillis = 300)),
-                            exit = fadeOut(animationSpec = tween(600)) + slideOutVertically(animationSpec = tween(600))
-                        ) {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { isExpanded = !isExpanded },
-                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
-                                )
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(bottom = 12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Card(
-                                            modifier = Modifier.size(40.dp),
-                                            shape = CircleShape,
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                                            )
-                                        ) {
-                                            Box(
-                                                contentAlignment = Alignment.Center,
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.TextFields,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                            }
-                                        }
-                                        Text(
-                                            text = "تنظیمات پخش‌کننده ویدیو",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            modifier = Modifier
-                                                .padding(start = 12.dp)
-                                                .weight(1f),
-                                            fontFamily = VazirFontFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Icon(
-                                            imageVector = if (isExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
-                                            contentDescription = if (isExpanded) "بستن" else "باز کردن",
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    
-                                    AnimatedVisibility(visible = isExpanded) {
-                                        Column(modifier = Modifier.fillMaxWidth()) {
-                                            Text(
-                                                text = "زمان جستجو: ${videoPlayerSettings.seekTimeSeconds} ثانیه",
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                modifier = Modifier.padding(bottom = 8.dp),
-                                                fontFamily = VazirFontFamily,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                            
-                                            androidx.compose.material3.Slider(
-                                                value = videoPlayerSettings.seekTimeSeconds.toFloat(),
-                                                onValueChange = { seconds ->
-                                                    updateVideoPlayerSettings(videoPlayerSettings.copy(seekTimeSeconds = seconds.toInt()))
-                                                },
-                                                valueRange = 5f..30f,
-                                                steps = 24, // Allow values from 5 to 30 in 1-second increments,
-                                                modifier = Modifier.fillMaxWidth()
-                                            )
-                                            
-                                            Spacer(modifier = Modifier.height(16.dp))
-                                            
-                                            // Subtitle Settings Section
-                                            Text(
-                                                text = "تنظیمات زیرنویس",
-                                                style = MaterialTheme.typography.titleMedium,
-                                                modifier = Modifier.padding(bottom = 12.dp),
-                                                fontFamily = VazirFontFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                            
-                                            // Background color setting
-                                            SubtitleColorSetting(
-                                                title = "رنگ پس‌زمینه",
-                                                currentColor = Color(subtitleSettings.backgroundColor),
-                                                onColorSelected = { color ->
-                                                    updateSubtitleSettings(subtitleSettings.copy(backgroundColor = color.toArgb()))
-                                                },
-                                                noColorOption = true
-                                            )
-                                            
-                                            Spacer(modifier = Modifier.height(12.dp))
-                                            
-                                            // Text color setting
-                                            SubtitleColorSetting(
-                                                title = "رنگ متن",
-                                                currentColor = Color(subtitleSettings.textColor),
-                                                onColorSelected = { color ->
-                                                    updateSubtitleSettings(subtitleSettings.copy(textColor = color.toArgb()))
-                                                },
-                                                defaultColor = Color.Yellow
-                                            )
-                                            
-                                            Spacer(modifier = Modifier.height(12.dp))
-                                            
-                                            // Border color setting
-                                            SubtitleColorSetting(
-                                                title = "رنگ حاشیه",
-                                                currentColor = Color(subtitleSettings.borderColor),
-                                                onColorSelected = { color ->
-                                                    updateSubtitleSettings(subtitleSettings.copy(borderColor = color.toArgb()))
-                                                },
-                                                noColorOption = true
-                                            )
-                                            
-                                            Spacer(modifier = Modifier.height(12.dp))
-                                            
-                                            // Text size setting
-                                            Text(
-                                                text = "اندازه متن: ${subtitleSettings.textSize.toInt()}sp",
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                modifier = Modifier.padding(bottom = 8.dp),
-                                                fontFamily = VazirFontFamily,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                            
-                                            androidx.compose.material3.Slider(
-                                                value = subtitleSettings.textSize,
-                                                onValueChange = { size ->
-                                                    updateSubtitleSettings(subtitleSettings.copy(textSize = size))
-                                                },
-                                                valueRange = 10f..30f,
-                                                modifier = Modifier.fillMaxWidth()
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    item {
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(700)) + slideInVertically(animationSpec = tween(700, delayMillis = 400)),
-                            exit = fadeOut(animationSpec = tween(700)) + slideOutVertically(animationSpec = tween(700))
-                        ) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-                    }
-                    
-                    // Favorites Card
-                    item {
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(800)) + slideInVertically(animationSpec = tween(800, delayMillis = 500)),
-                            exit = fadeOut(animationSpec = tween(800)) + slideOutVertically(animationSpec = tween(800))
-                        ) {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { navController?.navigate("favorites") },
-                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
-                                )
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(bottom = 12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Card(
-                                            modifier = Modifier.size(40.dp),
-                                            shape = CircleShape,
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                                            )
-                                        ) {
-                                            Box(
-                                                contentAlignment = Alignment.Center,
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Favorite,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                            }
-                                        }
-                                        Text(
-                                            text = "علاقه‌مندی‌ها",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            modifier = Modifier
-                                                .padding(start = 12.dp)
-                                                .weight(1f),
-                                            fontFamily = VazirFontFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                    
-                                    Text(
-                                        text = "مشاهده و مدیریت فیلم‌ها و سریال‌های مورد علاقه خود",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontFamily = VazirFontFamily
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    
-                    item {
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(900)) + slideInVertically(animationSpec = tween(900, delayMillis = 600)),
-                            exit = fadeOut(animationSpec = tween(900)) + slideOutVertically(animationSpec = tween(900))
-                        ) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-                    }
-                    
-                    // About Card
-                    item {
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(animationSpec = tween(1000, delayMillis = 700)),
-                            exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically(animationSpec = tween(1000))
-                        ) {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { navController?.navigate("about") },
-                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
-                                )
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(bottom = 12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Card(
-                                            modifier = Modifier.size(40.dp),
-                                            shape = CircleShape,
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                                            )
-                                        ) {
-                                            Box(
-                                                contentAlignment = Alignment.Center,
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Info,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                            }
-                                        }
-                                        Text(
-                                            text = "درباره",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            modifier = Modifier
-                                                .padding(start = 12.dp)
-                                                .weight(1f),
-                                            fontFamily = VazirFontFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                    
-                                    Text(
-                                        text = "اطلاعات بیشتر درباره ویسپار و توسعه‌دهنده آن",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontFamily = VazirFontFamily
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    
-                    item {
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(1100)) + slideInVertically(animationSpec = tween(1100, delayMillis = 800)),
-                            exit = fadeOut(animationSpec = tween(1100)) + slideOutVertically(animationSpec = tween(1100))
-                        ) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-                    }
-                    
-                    // Check for Updates Card
-                    item {
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(1200)) + slideInVertically(animationSpec = tween(1200, delayMillis = 900)),
-                            exit = fadeOut(animationSpec = tween(1200)) + slideOutVertically(animationSpec = tween(1200))
-                        ) {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { 
-                                        if (!isCheckingUpdate) {
-                                            checkForUpdates()
-                                        }
-                                    },
-                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
-                                )
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(bottom = 12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Card(
-                                            modifier = Modifier.size(40.dp),
-                                            shape = CircleShape,
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                                            )
-                                        ) {
-                                            Box(
-                                                contentAlignment = Alignment.Center,
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Refresh,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                            }
-                                        }
-                                        Text(
-                                            text = "بررسی به‌روزرسانی",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            modifier = Modifier
-                                                .padding(start = 12.dp)
-                                                .weight(1f),
-                                            fontFamily = VazirFontFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        if (isCheckingUpdate) {
-                                            // Show loading indicator
-                                            androidx.compose.animation.core.Animatable(0f).apply {
-                                                androidx.compose.runtime.LaunchedEffect(Unit) {
-                                                    animateTo(
-                                                        targetValue = 360f,
-                                                        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
-                                                            animation = androidx.compose.animation.core.tween(
-                                                                durationMillis = 1000,
-                                                                easing = androidx.compose.animation.core.LinearEasing
-                                                            )
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                            Icon(
-                                                imageVector = Icons.Default.Refresh,
-                                                contentDescription = "در حال بررسی",
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier
-                                                    .size(24.dp)
-                                                    .padding(2.dp)
-                                            )
-                                        }
-                                    }
-                                    
-                                    Text(
-                                        text = "بررسی آخرین نسخه برنامه",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontFamily = VazirFontFamily
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    
-                    item {
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(1300)) + slideInVertically(animationSpec = tween(1300, delayMillis = 1000)),
-                            exit = fadeOut(animationSpec = tween(1300)) + slideOutVertically(animationSpec = tween(1300))
-                        ) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-                    }
-                    
-                    // Reset to Defaults Card
-                    item {
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(1400)) + slideInVertically(animationSpec = tween(1400, delayMillis = 1100)),
-                            exit = fadeOut(animationSpec = tween(1400)) + slideOutVertically(animationSpec = tween(1400))
-                        ) {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { showResetDialog = true },
-                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
-                                )
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(bottom = 12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Card(
-                                            modifier = Modifier.size(40.dp),
-                                            shape = CircleShape,
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = MaterialTheme.colorScheme.errorContainer
-                                            )
-                                        ) {
-                                            Box(
-                                                contentAlignment = Alignment.Center,
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Brightness1,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.error,
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                            }
-                                        }
-                                        Text(
-                                            text = "بازنشانی به پیش‌فرض",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            modifier = Modifier
-                                                .padding(start = 12.dp)
-                                                .weight(1f),
-                                            fontFamily = VazirFontFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                    
-                                    Text(
-                                        text = "برای بازنشانی تمام تنظیمات به مقادیر پیش‌فرض، اینجا ضربه بزنید",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontFamily = VazirFontFamily
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    
-                    item {
-                        Spacer(modifier = Modifier.height(32.dp))
+                        )
+                        GlassDivider()
+                        GlassRow(
+                            icon = Icons.Rounded.RestartAlt,
+                            title = "بازنشانی تنظیمات",
+                            subtitle = "بازگشت همه گزینه‌ها به حالت پیش‌فرض",
+                            iconTint = colors.danger,
+                            onClick = { showResetDialog = true },
+                            trailing = null
+                        )
                     }
                 }
             }
         }
     }
-    
-    // Reset confirmation dialog
+
     if (showResetDialog) {
-        AlertDialog(
-            onDismissRequest = { showResetDialog = false },
-            title = {
-                Text(
-                    text = "بازنشانی تنظیمات",
-                    fontFamily = VazirFontFamily,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+        GlassAlertDialog(
+            title = "بازنشانی تنظیمات",
+            message = "آیا مطمئن هستید که می‌خواهید تمام تنظیمات را به مقادیر پیش‌فرض بازنشانی کنید؟",
+            confirmText = "بازنشانی",
+            onConfirm = {
+                updateTheme(ThemeSettings())
+                updateSubtitles(SubtitleSettings.DEFAULT)
+                updatePlayer(VideoPlayerSettings.DEFAULT)
+                showResetDialog = false
             },
-            text = {
-                Text(
-                    text = "آیا مطمئن هستید که می‌خواهید تمام تنظیمات را به مقادیر پیش‌فرض بازنشانی کنید؟",
-                    fontFamily = VazirFontFamily,
-                    textAlign = TextAlign.Right,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        resetToDefaults()
-                        showResetDialog = false
-                    }
-                ) {
-                    Text(
-                        text = "بازنشانی",
-                        fontFamily = VazirFontFamily,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showResetDialog = false }
-                ) {
-                    Text(
-                        text = "انصراف",
-                        fontFamily = VazirFontFamily,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(16.dp)
+            dismissText = "انصراف",
+            onDismiss = { showResetDialog = false },
+            icon = Icons.Rounded.RestartAlt,
+            destructive = true
         )
     }
-    
-    // Update available dialog
-    if (showUpdateDialog) {
-        AlertDialog(
-            onDismissRequest = { showUpdateDialog = false },
-            title = {
-                Text(
-                    text = "به‌روزرسانی موجود است",
-                    fontFamily = VazirFontFamily,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+
+    latestVersionUrl?.let { url ->
+        GlassAlertDialog(
+            title = "به‌روزرسانی موجود است",
+            message = "نسخه جدیدی از برنامه موجود است. آیا مایلید اکنون آن را دانلود کنید؟",
+            confirmText = "دانلود",
+            onConfirm = {
+                latestVersionUrl = null
+                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
             },
-            text = {
-                Text(
-                    text = "نسخه جدیدی از برنامه موجود است. آیا مایلید اکنون آن را دانلود کنید؟",
-                    fontFamily = VazirFontFamily,
-                    textAlign = TextAlign.Right,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(latestVersionUrl))
-                        context.startActivity(intent)
-                        showUpdateDialog = false
-                    }
-                ) {
-                    Text(
-                        text = "دانلود",
-                        fontFamily = VazirFontFamily,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showUpdateDialog = false }
-                ) {
-                    Text(
-                        text = "بعداً",
-                        fontFamily = VazirFontFamily,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(16.dp)
+            dismissText = "بعداً",
+            onDismiss = { latestVersionUrl = null },
+            icon = Icons.Rounded.SystemUpdate
         )
     }
 }
 
 @Composable
-fun ThemeModeOption(
-    mode: ThemeMode,
-    label: String,
-    isSelected: Boolean,
-    onSelect: (ThemeMode) -> Unit
+private fun SettingsCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onSelect(mode) }
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = isSelected,
-            onClick = { onSelect(mode) }
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(start = 8.dp),
-            fontFamily = VazirFontFamily,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+    GlassSurface(Modifier.fillMaxWidth(), shape = RoundedRectangle(Glass.CardRadius)) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                IconTile(icon)
+                Text(title, style = GlassType.Title2, color = Glass.colors.content)
+            }
+            content()
+        }
     }
 }
 
 @Composable
-fun ColorOption(
-    color: Color,
-    isSelected: Boolean,
-    onSelect: (Color) -> Unit,
-    label: String? = null
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Card(
-            modifier = Modifier
-                .size(48.dp)
-                .clickable { onSelect(color) },
-            shape = CircleShape,
-            elevation = if (isSelected) CardDefaults.cardElevation(defaultElevation = 4.dp) else CardDefaults.cardElevation(defaultElevation = 2.dp),
-            colors = CardDefaults.cardColors(containerColor = color)
-        ) {
+private fun Label(text: String) {
+    Text(text, style = GlassType.Headline, color = Glass.colors.contentSecondary)
+}
+
+@Composable
+private fun ValueLabel(label: String, value: String) {
+    Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, style = GlassType.Headline, color = Glass.colors.contentSecondary, modifier = Modifier.weight(1f))
+        Text(value, style = GlassType.Headline, color = Glass.colors.accent)
+    }
+}
+
+/** Accent colours as glossy glass marbles; the chosen one grows and gets a check mark. */
+@Composable
+private fun AccentPalette(selected: Color, onSelect: (Color) -> Unit) {
+    val colors = Glass.colors
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        colorOptions.forEach { color ->
+            val isSelected = color.toArgb() == selected.toArgb()
+            val scale by animateFloatAsState(if (isSelected) 1.12f else 1f, spring(0.5f, 400f), label = "swatch")
             Box(
-                modifier = Modifier.fillMaxSize(),
+                Modifier
+                    .size(34.dp)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }
+                    .drawBackdrop(
+                        backdrop = emptyBackdrop(),
+                        shape = { Capsule() },
+                        effects = {},
+                        highlight = { Highlight.Default },
+                        shadow = { Shadow(radius = 8.dp, color = color.copy(alpha = 0.45f)) }
+                    )
+                    .background(Brush.linearGradient(listOf(color.shiftHue(18f), color, color.shiftHue(-14f))))
+                    .then(if (isSelected) Modifier.border(2.dp, colors.content.copy(alpha = 0.85f), Capsule()) else Modifier)
+                    .clickable { onSelect(color) },
                 contentAlignment = Alignment.Center
             ) {
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "انتخاب شده",
-                        tint = if (color == Color.White || color == Color.Yellow) Color.Black else Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                if (isSelected) Icon(Icons.Rounded.Check, "انتخاب شده", tint = Color.White, modifier = Modifier.size(18.dp))
             }
-        }
-        
-        if (label != null) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 4.dp),
-                fontFamily = VazirFontFamily,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
 
+/** A mock video frame that shows the subtitle exactly as the player will render it. */
 @Composable
-fun SubtitleColorSetting(
-    title: String,
-    currentColor: Color,
-    onColorSelected: (Color) -> Unit,
-    noColorOption: Boolean = false,
-    defaultColor: Color? = null
-) {
-    Column {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(bottom = 8.dp),
-            fontFamily = VazirFontFamily,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Color options
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // No color option (transparent)
-                if (noColorOption) {
-                    ColorOptionButton(
-                        color = Color.Transparent,
-                        isSelected = currentColor == Color.Transparent,
-                        onClick = { onColorSelected(Color.Transparent) },
-                        showBorder = true
-                    )
-                }
-                
-                // Default color option
-                if (defaultColor != null) {
-                    ColorOptionButton(
-                        color = defaultColor,
-                        isSelected = currentColor == defaultColor,
-                        onClick = { onColorSelected(defaultColor) }
-                    )
-                }
-                
-                // Standard color options
-                listOf(Color.White, Color.Black, Color.Red, Color.Blue, Color.Green).forEach { color ->
-                    ColorOptionButton(
-                        color = color,
-                        isSelected = currentColor == color,
-                        onClick = { onColorSelected(color) }
-                    )
-                }
-            }
-            
-            // Current color preview
-            Card(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (currentColor == Color.Transparent) {
-                        Color.Gray.copy(alpha = 0.3f)
-                    } else {
-                        currentColor
-                    }
+private fun SubtitlePreview(settings: SubtitleSettings) {
+    val colors = Glass.colors
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .aspectRatio(21f / 9f)
+            .clip(RoundedRectangle(20.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(colors.accent.shiftHue(-30f, value = 0.35f), colors.accent.shiftHue(40f, value = 0.22f), Color(0xFF0B0B10))
                 )
-            ) {
-                Box(modifier = Modifier.fillMaxSize())
-            }
-        }
-    }
-}
-
-@Composable
-fun ColorOptionButton(
-    color: Color,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    showBorder: Boolean = false
-) {
-    Card(
-        modifier = Modifier
-            .size(32.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(4.dp),
-        elevation = if (isSelected) CardDefaults.cardElevation(defaultElevation = 4.dp) else CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (color == Color.Transparent && showBorder) {
-                Color.Transparent
-            } else {
-                color
-            }
-        ),
-        border = if (color == Color.Transparent && showBorder) {
-            androidx.compose.foundation.BorderStroke(1.dp, Color.Gray)
-        } else {
-            null
-        }
+            ),
+        contentAlignment = Alignment.BottomCenter
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "انتخاب شده",
-                    tint = if (color == Color.White || color == Color.Yellow) Color.Black else Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
-            } else if (color == Color.Transparent && showBorder) {
-                Icon(
-                    imageVector = Icons.Default.Brightness1,
-                    contentDescription = "بدون رنگ",
-                    tint = Color.White.copy(alpha = 0.5f),
-                    modifier = Modifier.size(16.dp)
-                )
+        val border = Color(settings.borderColor)
+        Text(
+            "این یک نمونه زیرنویس است",
+            color = Color(settings.textColor),
+            fontSize = settings.textSize.sp,
+            fontWeight = FontWeight.Bold,
+            style = GlassType.Body.copy(
+                shadow = if (border.alpha > 0f) androidx.compose.ui.graphics.Shadow(border, blurRadius = 6f) else null
+            ),
+            modifier = Modifier
+                .padding(bottom = 14.dp)
+                .background(Color(settings.backgroundColor), RoundedRectangle(6.dp))
+                .padding(horizontal = 8.dp, vertical = 2.dp)
+        )
+    }
+}
+
+@Composable
+private fun SubtitleColorSetting(
+    title: String,
+    current: Color,
+    options: List<Color>,
+    onSelect: (Color) -> Unit
+) {
+    val colors = Glass.colors
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, style = GlassType.Callout, color = colors.contentSecondary, modifier = Modifier.weight(1f))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            options.forEach { option ->
+                val isSelected = option.toArgb() == current.toArgb()
+                Box(
+                    Modifier
+                        .size(28.dp)
+                        .clip(RoundedRectangle(9.dp))
+                        .background(if (option.alpha == 0f) colors.content.copy(alpha = 0.06f) else option)
+                        .border(
+                            width = if (isSelected) 2.dp else 0.5.dp,
+                            color = if (isSelected) colors.accent else colors.content.copy(alpha = 0.2f),
+                            shape = RoundedRectangle(9.dp)
+                        )
+                        .clickable { onSelect(option) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    when {
+                        isSelected -> Icon(
+                            Icons.Rounded.Check, null,
+                            tint = if (option.alpha == 0f || option.toArgb() == Color.White.toArgb() || option.toArgb() == Color.Yellow.toArgb()) colors.accent else Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        option.alpha == 0f -> Icon(Icons.Rounded.Block, "بدون رنگ", tint = colors.contentTertiary, modifier = Modifier.size(16.dp))
+                    }
+                }
             }
         }
     }
+}
+
+@Composable
+private fun SpinningIcon() {
+    val transition = rememberInfiniteTransition(label = "spin")
+    val rotation by transition.animateFloat(0f, 360f, infiniteRepeatable(tween(900, easing = LinearEasing)), label = "r")
+    Icon(
+        Icons.Rounded.Sync,
+        "در حال بررسی",
+        tint = Glass.colors.accent,
+        modifier = Modifier.size(22.dp).graphicsLayer { rotationZ = rotation }
+    )
 }

@@ -1,61 +1,25 @@
 package com.fazli.vispar.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.fazli.vispar.ui.glass.GlassColors
+import com.fazli.vispar.ui.glass.LocalGlassColors
+import com.fazli.vispar.ui.glass.glassColors
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80,
-    background = Color(0xFF121212),
-    surface = Color(0xFF1E1E1E),
-    surfaceVariant = Color(0xFF2D2D2D),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color.White,
-    onSurface = Color.White,
-    onSurfaceVariant = Color(0xFFE0E0E0)
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    surfaceVariant = Color(0xFFE7E0EC),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    onSurfaceVariant = Color(0xFF49454F)
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-)
-
+/**
+ * App theme. The visual language is Liquid Glass ([GlassColors]); a matching Material colour
+ * scheme is still provided so that the few platform primitives we use (Text, Icon) pick sensible
+ * defaults.
+ */
 @Composable
 fun visparTheme(
     themeSettings: ThemeSettings = ThemeSettings(),
@@ -66,62 +30,48 @@ fun visparTheme(
         ThemeMode.DARK -> true
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
-    
-    val colorScheme = when {
-        themeSettings.primaryColor != defaultPrimaryColor -> {
-            // Custom colors - using the same color for primary and secondary since we removed secondary color setting
-            if (darkTheme) {
-                darkColorScheme(
-                    primary = themeSettings.primaryColor,
-                    secondary = themeSettings.primaryColor,
-                    tertiary = Pink80,
-                    background = Color(0xFF121212),
-                    surface = Color(0xFF1E1E1E),
-                    surfaceVariant = Color(0xFF2D2D2D),
-                    onPrimary = Color.White,
-                    onSecondary = Color.White,
-                    onTertiary = Color.White,
-                    onBackground = Color.White,
-                    onSurface = Color.White,
-                    onSurfaceVariant = Color(0xFFE0E0E0)
-                )
-            } else {
-                lightColorScheme(
-                    primary = themeSettings.primaryColor,
-                    secondary = themeSettings.primaryColor,
-                    tertiary = Pink40,
-                    background = Color(0xFFFFFBFE),
-                    surface = Color(0xFFFFFBFE),
-                    surfaceVariant = Color(0xFFE7E0EC),
-                    onPrimary = Color.White,
-                    onSecondary = Color.White,
-                    onTertiary = Color.White,
-                    onBackground = Color(0xFF1C1B1F),
-                    onSurface = Color(0xFF1C1B1F),
-                    onSurfaceVariant = Color(0xFF49454F)
-                )
-            }
-        }
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    val glass = remember(darkTheme, themeSettings.primaryColor) {
+        glassColors(isDark = darkTheme, accent = themeSettings.primaryColor)
     }
-    
+    val colorScheme = if (darkTheme) {
+        darkColorScheme(
+            primary = glass.accent,
+            onPrimary = glass.onAccent,
+            secondary = glass.accent,
+            background = glass.backgroundTop,
+            surface = glass.backgroundTop,
+            onBackground = glass.content,
+            onSurface = glass.content,
+            onSurfaceVariant = glass.contentSecondary,
+            error = glass.danger,
+        )
+    } else {
+        lightColorScheme(
+            primary = glass.accent,
+            onPrimary = glass.onAccent,
+            secondary = glass.accent,
+            background = glass.backgroundTop,
+            surface = glass.backgroundTop,
+            onBackground = glass.content,
+            onSurface = glass.content,
+            onSurfaceVariant = glass.contentSecondary,
+            error = glass.danger,
+        )
+    }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            val window = (view.context as? Activity)?.window ?: return@SideEffect
+            // Edge-to-edge: bars are transparent, only the icon colour follows the theme.
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !darkTheme
+                isAppearanceLightNavigationBars = !darkTheme
+            }
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalGlassColors provides glass) {
+        MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+    }
 }

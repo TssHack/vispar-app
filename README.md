@@ -28,7 +28,7 @@ vispar is a modern Android streaming application built with Jetpack Compose and 
 ### 🎨 Personalization
 - **Theme Customization**: Light, dark, and system themes with color options
 - **Subtitle Settings**: Customize subtitle appearance (background, text color, border, size)
-- **Responsive UI**: Material Design 3 interface that adapts to all screen sizes
+- **Liquid Glass UI**: A refractive, iOS-style glass interface built with [AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass) that adapts to all screen sizes
 
 ### 📱 User Experience
 - **Intuitive Navigation**: Bottom navigation for mobile/tablet and sidebar navigation for TV
@@ -49,12 +49,28 @@ vispar is a modern Android streaming application built with Jetpack Compose and 
 - **ExoPlayer** - Media playback library
 - **Kotlin Serialization** - JSON serialization
 - **Coil** - Image loading library
-- **Material Design 3** - UI components and design system
+- **Liquid Glass (Backdrop)** - Real-time blur, lens refraction and specular highlights via [Kyant0/AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass)
 - **Navigation Component** - For seamless screen transitions
 - **ViewModel & LiveData** - For state management
 - **Coroutines** - For asynchronous operations
 - **OkHttp** - For network requests
 - **Leanback** - Android TV support library
+
+## 💧 Liquid Glass Design
+
+The UI is built on a small design system in `app/src/main/java/com/fazli/vispar/ui/glass`:
+
+- **AmbientBackground** – an aurora canvas derived from the accent colour that every glass surface refracts.
+- **GlassSurface / glass()** – blurred, saturated and lens-refracted panels; nested controls refract their parent panel.
+- **LiquidButton / LiquidIconButton** – capsule buttons that swell and follow the finger like a drop of water.
+- **LiquidTabs** – the floating tab bar and segmented controls, with a draggable lens that stretches with velocity.
+- **LiquidSlider** – a glass thumb that magnifies the track with chromatic aberration while dragged.
+- **GlassScaffold** – floating glass top bar plus a progressive "scroll edge" blur under the status bar.
+- **GlassDialog** – dialogs rendered in an in-window overlay so they can refract the whole screen.
+
+The video player renders into a `TextureView`, so its glass controls refract the playing video.
+
+Full blur needs Android 12+, refraction needs Android 13+. Older devices fall back to a frosted tint.
 
 ## 🏗️ Architecture
 
@@ -72,7 +88,8 @@ The app follows a clean architecture pattern with the following components:
 ### Prerequisites
 
 - Android Studio Ladybug or later
-- Android SDK API 36 (Android 16)
+- Android SDK API 37
+- JDK 17+
 
 ### Installation
 

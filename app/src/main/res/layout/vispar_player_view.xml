@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PlayerView rendering into a TextureView instead of the default SurfaceView. A SurfaceView punches
+  a hole through the window, so Compose cannot capture its pixels; a TextureView is part of the
+  view's display list, which lets the liquid glass controls refract the playing video.
+-->
+<androidx.media3.ui.PlayerView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:surface_type="texture_view"
+    app:use_controller="false"
+    app:resize_mode="fit" />

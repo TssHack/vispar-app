@@ -1,5 +1,43 @@
 package com.fazli.vispar
 
+import android.view.LayoutInflater
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.FastRewind
+import androidx.compose.material.icons.rounded.Forward10
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Replay10
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import com.fazli.vispar.ui.glass.Glass
+import com.fazli.vispar.ui.glass.GlassStyle
+import com.fazli.vispar.ui.glass.GlassSurface
+import com.fazli.vispar.ui.glass.GlassType
+import com.fazli.vispar.ui.glass.LiquidIconButton
+import com.fazli.vispar.ui.glass.LiquidLoader
+import com.fazli.vispar.ui.glass.LiquidSlider
+import com.fazli.vispar.ui.glass.LocalBackdrop
+import com.fazli.vispar.ui.glass.LocalGlassColors
+import com.fazli.vispar.ui.glass.StatusView
+import com.fazli.vispar.ui.glass.glass
+import com.fazli.vispar.ui.glass.glassColors
+import com.fazli.vispar.ui.theme.ThemeManager
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.shapes.Capsule
+import com.kyant.shapes.RoundedRectangle
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -30,15 +68,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Forward
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -63,8 +93,6 @@ import androidx.media3.ui.PlayerView
 import com.fazli.vispar.data.model.SubtitleSettings
 import com.fazli.vispar.data.model.VideoPlayerSettings
 import com.fazli.vispar.utils.StorageUtils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -122,9 +150,16 @@ class VideoPlayerActivity : ComponentActivity() {
         videoUrl = intent.getStringExtra(EXTRA_VIDEO_URL)
         
         if (videoUrl != null) {
+            val accent = ThemeManager(this).loadThemeSettings().primaryColor
             setContent {
-                VideoPlayerScreen(videoUrl!!, this::finish) { player ->
-                    exoPlayer = player
+                // The player is always dark: glass is tuned for video content.
+                CompositionLocalProvider(
+                    LocalGlassColors provides glassColors(isDark = true, accent = accent),
+                    LocalLayoutDirection provides LayoutDirection.Rtl
+                ) {
+                    VideoPlayerScreen(videoUrl!!, this::finish) { player ->
+                        exoPlayer = player
+                    }
                 }
             }
         } else {
@@ -190,6 +225,7 @@ fun VideoPlayerScreen(
     onPlayerReady: (ExoPlayer) -> Unit
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var isPlaying by remember { mutableStateOf(false) }
     var currentPosition by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
@@ -356,6 +392,37 @@ fun VideoPlayerScreen(
         }
     }
     
+    fun seekBy(deltaMs: Long) {
+        val player = exoPlayer ?: return
+        wasPlayingBeforeSeek = isPlaying
+        isSeeking = true
+        try {
+            val target = (player.currentPosition + deltaMs)
+                .coerceAtLeast(0L)
+                .let { if (player.duration > 0) it.coerceAtMost(player.duration) else it }
+            player.seekTo(target)
+            currentPosition = target
+            if (deltaMs < 0) showRewindIndicator = true else showForwardIndicator = true
+            if (wasPlayingBeforeSeek) player.playWhenReady = true
+        } catch (e: Exception) {
+            // Ignore seek errors
+        }
+        scope.launch {
+            delay(500)
+            isSeeking = false
+            try {
+                player.playWhenReady = wasPlayingBeforeSeek
+                isPlaying = wasPlayingBeforeSeek
+            } catch (e: Exception) {
+                // Ignore errors
+            }
+        }
+    }
+
+    val seekMs = videoPlayerSettings.seekTimeSeconds * 1000L
+    val videoLayer = rememberLayerBackdrop()
+    val glassColors = Glass.colors
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -363,321 +430,211 @@ fun VideoPlayerScreen(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onDoubleTap = { offset ->
-                        // Calculate if the tap is on the left or right side
-                        val screenWidth = size.width
-                        val tapX = offset.x
-                        
-                        // Store the playing state before seeking
-                        wasPlayingBeforeSeek = isPlaying
-                        isSeeking = true
-                        
-                        if (tapX < screenWidth / 2) {
-                            // Left side - rewind specified seconds
-                            try {
-                                exoPlayer?.let { player ->
-                                    val seekTimeMs = videoPlayerSettings.seekTimeSeconds * 1000L
-                                    val newPosition = (player.currentPosition - seekTimeMs).coerceAtLeast(0L)
-                                    player.seekTo(newPosition)
-                                    currentPosition = newPosition
-                                    showRewindIndicator = true
-                                    // Keep the player playing during seeking if it was playing before
-                                    if (wasPlayingBeforeSeek) {
-                                        player.playWhenReady = true
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                // Ignore seek errors
-                            }
-                        } else {
-                            // Right side - forward specified seconds
-                            try {
-                                exoPlayer?.let { player ->
-                                    val seekTimeMs = videoPlayerSettings.seekTimeSeconds * 1000L
-                                    val newPosition = (player.currentPosition + seekTimeMs).coerceAtMost(player.duration)
-                                    player.seekTo(newPosition)
-                                    currentPosition = newPosition
-                                    showForwardIndicator = true
-                                    // Keep the player playing during seeking if it was playing before
-                                    if (wasPlayingBeforeSeek) {
-                                        player.playWhenReady = true
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                // Ignore seek errors
-                            }
-                        }
-                        
-                        // Reset seeking state after a short delay using a coroutine scope
-                        CoroutineScope(Dispatchers.Main).launch {
-                            delay(500) // Reset after 500ms
-                            isSeeking = false
-                            // Restore the playing state after seeking is finished
-                            try {
-                                exoPlayer?.playWhenReady = wasPlayingBeforeSeek
-                                // Update isPlaying state to match the player's actual state
-                                isPlaying = wasPlayingBeforeSeek
-                            } catch (e: Exception) {
-                                // Ignore errors
-                            }
-                        }
+                        // Left half rewinds, right half skips forward.
+                        if (offset.x < size.width / 2) seekBy(-seekMs) else seekBy(seekMs)
                     },
-                    onTap = {
-                        showControls = !showControls
-                        // Reset the auto-hide timer when controls are shown
-                        if (showControls && isPlaying) {
-                            // The LaunchedEffect above will handle the auto-hide
-                        }
-                    }
+                    onTap = { showControls = !showControls }
                 )
             }
     ) {
-        // Show error message if player failed to initialize
         if (playerError != null) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = playerError ?: "Unknown error occurred",
-                        color = Color.Red,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    IconButton(
-                        onClick = onBack,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.7f),
-                                shape = androidx.compose.foundation.shape.CircleShape
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
-                        )
-                    }
-                }
-            }
-            return@Box
-        }
-        
-        // Check if player is initialized
-        if (exoPlayer == null) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Initializing player...",
-                    color = Color.White,
-                    modifier = Modifier.padding(16.dp)
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                StatusView(
+                    icon = Icons.Rounded.ErrorOutline,
+                    title = "پخش ویدیو ممکن نیست",
+                    message = playerError ?: "خطای نامشخص",
+                    iconTint = glassColors.danger,
+                    actionText = "بازگشت",
+                    onAction = onBack
                 )
             }
             return@Box
         }
-        
-        // Video player
-        AndroidView(
-            factory = { ctx ->
-                PlayerView(ctx).apply {
-                    player = exoPlayer
-                    useController = false // We're using our own controls
-                    layoutParams = FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                    // Make the player view fill the entire screen
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                    
-                    // Apply subtitle settings to the player view
-                    // Set subtitle styling
-                    setSubtitleTextSize(subtitleSettings.textSize)
-                    setSubtitleColors(subtitleSettings)
-                }
-            },
-            modifier = Modifier.fillMaxSize(),
-            update = { playerView ->
-                // Update the player view when subtitle settings change
-                // Update subtitle styling when settings change
-                playerView.setSubtitleTextSize(subtitleSettings.textSize)
-                playerView.setSubtitleColors(subtitleSettings)
-            }
-        )
-        
-        // Rewind indicator
-        if (showRewindIndicator) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Replay,
-                        contentDescription = "Rewind ${videoPlayerSettings.seekTimeSeconds} seconds",
-                        tint = Color.White,
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Text(
-                        text = "${videoPlayerSettings.seekTimeSeconds}s",
-                        color = Color.White,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-            }
+
+        if (exoPlayer == null) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LiquidLoader() }
+            return@Box
         }
-        
-        // Forward indicator
-        if (showForwardIndicator) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Forward,
-                        contentDescription = "Forward ${videoPlayerSettings.seekTimeSeconds} seconds",
-                        tint = Color.White,
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Text(
-                        text = "${videoPlayerSettings.seekTimeSeconds}s",
-                        color = Color.White,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
+
+        // The video, recorded so the controls can refract it.
+        Box(Modifier.fillMaxSize().layerBackdrop(videoLayer)) {
+            AndroidView(
+                factory = { ctx ->
+                    (LayoutInflater.from(ctx).inflate(R.layout.vispar_player_view, null, false) as PlayerView).apply {
+                        player = exoPlayer
+                        useController = false
+                        layoutParams = FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                        setSubtitleTextSize(subtitleSettings.textSize)
+                        setSubtitleColors(subtitleSettings)
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
+                update = { playerView ->
+                    playerView.setSubtitleTextSize(subtitleSettings.textSize)
+                    playerView.setSubtitleColors(subtitleSettings)
                 }
-            }
+            )
         }
-        
-        // Custom controls overlay
-        if (showControls) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
+
+        CompositionLocalProvider(LocalBackdrop provides videoLayer) {
+            // Double-tap feedback: a glass bubble on the side that was tapped.
+            SeekIndicator(
+                visible = showRewindIndicator,
+                icon = Icons.Rounded.FastRewind,
+                label = "${videoPlayerSettings.seekTimeSeconds} ثانیه",
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 64.dp)
+            )
+            SeekIndicator(
+                visible = showForwardIndicator,
+                icon = Icons.Rounded.FastForward,
+                label = "${videoPlayerSettings.seekTimeSeconds} ثانیه",
+                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 64.dp)
+            )
+
+            AnimatedVisibility(
+                visible = showControls,
+                enter = fadeIn(tween(220)),
+                exit = fadeOut(tween(300)),
+                modifier = Modifier.fillMaxSize()
             ) {
-                // Top bar with back button
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    IconButton(
+                Box(Modifier.fillMaxSize()) {
+                    // Soft scrims keep the chrome legible without dimming the whole picture.
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    0f to Color.Black.copy(alpha = 0.45f),
+                                    0.25f to Color.Transparent,
+                                    0.7f to Color.Transparent,
+                                    1f to Color.Black.copy(alpha = 0.55f)
+                                )
+                            )
+                    )
+
+                    LiquidIconButton(
                         onClick = onBack,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.7f),
-                                shape = androidx.compose.foundation.shape.CircleShape
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
-                        )
-                    }
-                }
-                
-                // Middle play/pause button
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    IconButton(
-                        onClick = { isPlaying = !isPlaying },
-                        modifier = Modifier
-                            .size(64.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.7f),
-                                shape = androidx.compose.foundation.shape.CircleShape
-                            )
-                    ) {
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (isPlaying) "Pause" else "Play",
-                            tint = Color.White,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
-                }
-                
-                // Bottom controls
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.7f))
-                        .padding(16.dp)
-                ) {
-                    // Progress slider
-                    Slider(
-                        value = if (duration > 0) currentPosition.toFloat() / duration.toFloat() else 0f,
-                        onValueChange = { progress ->
-                            // Store the playing state before seeking
-                            if (!isSeeking) {
-                                wasPlayingBeforeSeek = isPlaying
-                            }
-                            isSeeking = true
-                            val newPosition = (progress * duration).toLong()
-                            try {
-                                exoPlayer?.seekTo(newPosition)
-                                currentPosition = newPosition
-                                // Keep the player playing during seeking if it was playing before
-                                if (wasPlayingBeforeSeek) {
-                                    exoPlayer?.playWhenReady = true
-                                }
-                            } catch (e: Exception) {
-                                // Ignore seek errors
-                            }
-                        },
-                        onValueChangeFinished = {
-                            isSeeking = false
-                            // Restore the playing state after seeking is finished
-                            try {
-                                exoPlayer?.playWhenReady = wasPlayingBeforeSeek
-                                // Update isPlaying state to match the player's actual state
-                                isPlaying = wasPlayingBeforeSeek
-                            } catch (e: Exception) {
-                                // Ignore errors
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
+                        icon = Icons.AutoMirrored.Rounded.ArrowBack,
+                        contentDescription = "بازگشت",
+                        iconTint = Color.White,
+                        modifier = Modifier.align(Alignment.TopStart).padding(24.dp)
                     )
-                    
-                    // Time and controls row
+
+                    // Transport cluster
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        Modifier.align(Alignment.Center),
+                        horizontalArrangement = Arrangement.spacedBy(28.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = formatTime(currentPosition),
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodySmall
+                        LiquidIconButton(
+                            onClick = { seekBy(-seekMs) },
+                            icon = Icons.Rounded.Replay10,
+                            contentDescription = "عقب",
+                            iconTint = Color.White,
+                            size = 56.dp,
+                            iconSize = 28.dp
                         )
-                        
-                        Spacer(modifier = Modifier.weight(1f))
-                        
-                        Text(
-                            text = formatTime(duration),
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodySmall
+                        LiquidIconButton(
+                            onClick = { isPlaying = !isPlaying },
+                            icon = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                            contentDescription = if (isPlaying) "توقف" else "پخش",
+                            iconTint = Color.White,
+                            size = 80.dp,
+                            iconSize = 42.dp
+                        )
+                        LiquidIconButton(
+                            onClick = { seekBy(seekMs) },
+                            icon = Icons.Rounded.Forward10,
+                            contentDescription = "جلو",
+                            iconTint = Color.White,
+                            size = 56.dp,
+                            iconSize = 28.dp
                         )
                     }
+
+                    // Timeline on a pane of glass
+                    Row(
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(horizontal = 24.dp, vertical = 20.dp)
+                            .fillMaxWidth()
+                            .glass(
+                                backdrop = videoLayer,
+                                shape = RoundedRectangle(28.dp),
+                                colors = glassColors,
+                                style = GlassStyle(blur = 16.dp, refractionHeight = 16.dp, refractionAmount = 32.dp),
+                                tint = Color.Black.copy(alpha = 0.25f)
+                            )
+                            .padding(horizontal = 20.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        // Media time reads left-to-right regardless of the app's language.
+                        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                            Text(formatTime(currentPosition), style = GlassType.CaptionBold, color = Color.White)
+                            LiquidSlider(
+                                value = if (duration > 0) currentPosition.toFloat() / duration.toFloat() else 0f,
+                                onValueChange = { progress ->
+                                    if (!isSeeking) wasPlayingBeforeSeek = isPlaying
+                                    isSeeking = true
+                                    val newPosition = (progress * duration).toLong()
+                                    try {
+                                        exoPlayer.seekTo(newPosition)
+                                        currentPosition = newPosition
+                                        if (wasPlayingBeforeSeek) exoPlayer.playWhenReady = true
+                                    } catch (e: Exception) {
+                                        // Ignore seek errors
+                                    }
+                                },
+                                onValueChangeFinished = {
+                                    isSeeking = false
+                                    try {
+                                        exoPlayer.playWhenReady = wasPlayingBeforeSeek
+                                        isPlaying = wasPlayingBeforeSeek
+                                    } catch (e: Exception) {
+                                        // Ignore errors
+                                    }
+                                },
+                                valueRange = 0f..1f,
+                                accentColor = Color.White,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(formatTime(duration), style = GlassType.CaptionBold, color = Color.White.copy(alpha = 0.75f))
+                        }
+                    }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SeekIndicator(
+    visible: Boolean,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(120)) + scaleIn(initialScale = 0.7f),
+        exit = fadeOut(tween(300)) + scaleOut(targetScale = 1.1f),
+        modifier = modifier
+    ) {
+        GlassSurface(
+            modifier = Modifier.size(96.dp),
+            shape = Capsule(),
+            style = GlassStyle(blur = 8.dp, refractionHeight = 24.dp, refractionAmount = 48.dp, chromaticAberration = true),
+            tint = Color.Black.copy(alpha = 0.15f),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(icon, null, tint = Color.White, modifier = Modifier.size(36.dp))
+                Text(label, style = GlassType.Caption, color = Color.White)
             }
         }
     }

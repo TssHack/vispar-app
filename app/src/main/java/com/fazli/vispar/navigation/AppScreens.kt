@@ -75,7 +75,18 @@ sealed class AppScreens(
     )
 
     companion object {
+        /** Destinations shown in the tab bar / TV sidebar, in order. */
         val screens = listOf(Movies, Series, Search, Settings)
+
+        fun fromRoute(route: String?): AppScreens = when {
+            route == null -> Splash
+            route.startsWith("single_movie") -> SingleMovie
+            route.startsWith("single_series") -> SingleSeries
+            route == Favorites.route -> Favorites
+            route == About.route -> About
+            route == Splash.route -> Splash
+            else -> screens.find { it.route == route } ?: Movies
+        }
     }
 }
 

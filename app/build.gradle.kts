@@ -3,14 +3,13 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
 }
 
 android {
     namespace = "com.fazli.vispar"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.fazli.vispar"
@@ -55,9 +54,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = "11"
-    }
 
     // پشتیبانی از صفحه‌نمایش‌های مختلف (مثلاً تلویزیون)
     sourceSets {
@@ -76,6 +72,12 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -88,8 +90,11 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.material.icons.extended)
-    implementation(libs.accompanist.systemuicontroller)
     implementation(libs.coil.compose)
+
+    // Liquid Glass (Backdrop) — https://github.com/Kyant0/AndroidLiquidGlass
+    implementation(libs.backdrop)
+    implementation(libs.kyant.shapes)
 
     // ExoPlayer برای پخش ویدیو
     implementation("androidx.media3:media3-exoplayer:1.4.1")
@@ -98,14 +103,14 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-hls:1.4.1")
 
     // Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
     // Networking
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
     // ViewModel
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
 
     // Leanback برای پشتیبانی از Android TV
     implementation(libs.androidx.leanback)
