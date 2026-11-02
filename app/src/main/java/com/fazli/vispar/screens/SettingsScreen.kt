@@ -79,7 +79,7 @@ import com.fazli.vispar.ui.glass.LiquidIconButton
 import com.fazli.vispar.ui.glass.LiquidSlider
 import com.fazli.vispar.ui.glass.LiquidTab
 import com.fazli.vispar.ui.glass.LiquidTabs
-import com.fazli.vispar.ui.glass.shiftHue
+import com.fazli.vispar.ui.glass.MonochromeAccent
 import com.fazli.vispar.ui.theme.ThemeManager
 import com.fazli.vispar.ui.theme.ThemeMode
 import com.fazli.vispar.ui.theme.ThemeSettings
@@ -311,7 +311,7 @@ fun SettingsScreen(
                             icon = Icons.Rounded.Info,
                             title = "درباره ویسپار",
                             subtitle = "نسخه ${BuildConfig.VERSION_NAME}",
-                            iconTint = colors.accent.shiftHue(-40f),
+                            iconTint = Color(0xFF8E8E93),
                             onClick = { navController?.navigate("about") }
                         )
                         GlassDivider()
@@ -319,7 +319,7 @@ fun SettingsScreen(
                             icon = Icons.Rounded.SystemUpdate,
                             title = "بررسی به‌روزرسانی",
                             subtitle = "دریافت آخرین نسخه از گیت‌هاب",
-                            iconTint = colors.accent.shiftHue(120f),
+                            iconTint = Color(0xFF34C759),
                             onClick = { checkForUpdates() },
                             trailing = if (isCheckingUpdate) {
                                 { SpinningIcon() }
@@ -428,12 +428,28 @@ private fun AccentPalette(selected: Color, onSelect: (Color) -> Unit) {
                         highlight = { Highlight.Default },
                         shadow = { Shadow(radius = 8.dp, color = color.copy(alpha = 0.45f)) }
                     )
-                    .background(Brush.linearGradient(listOf(color.shiftHue(18f), color, color.shiftHue(-14f))))
-                    .then(if (isSelected) Modifier.border(2.dp, colors.content.copy(alpha = 0.85f), Capsule()) else Modifier)
+                    .background(
+                        if (color.toArgb() == MonochromeAccent.toArgb()) {
+                            // Half black, half white: the monochrome option.
+                            Brush.linearGradient(0.5f to Color.White, 0.5f to Color.Black)
+                        } else {
+                            androidx.compose.ui.graphics.SolidColor(color)
+                        }
+                    )
+                    .then(if (isSelected) Modifier.border(2.dp, colors.content.copy(alpha = 0.85f), Capsule()) else Modifier.border(0.5.dp, colors.separator, Capsule()))
                     .clickable { onSelect(color) },
                 contentAlignment = Alignment.Center
             ) {
-                if (isSelected) Icon(Icons.Rounded.Check, "انتخاب شده", tint = Color.White, modifier = Modifier.size(18.dp))
+                if (isSelected) {
+                    Icon(
+                        Icons.Rounded.Check, "انتخاب شده",
+                        tint = if (color.toArgb() == MonochromeAccent.toArgb()) colors.accent else Color.White,
+                        modifier = Modifier
+                            .size(22.dp)
+                            .background(if (color.toArgb() == MonochromeAccent.toArgb()) colors.onAccent else Color.Transparent, Capsule())
+                            .padding(2.dp)
+                    )
+                }
             }
         }
     }
@@ -450,7 +466,7 @@ private fun SubtitlePreview(settings: SubtitleSettings) {
             .clip(RoundedRectangle(20.dp))
             .background(
                 Brush.linearGradient(
-                    listOf(colors.accent.shiftHue(-30f, value = 0.35f), colors.accent.shiftHue(40f, value = 0.22f), Color(0xFF0B0B10))
+                    listOf(Color(0xFF3A3A3C), Color(0xFF1C1C1E), Color.Black)
                 )
             ),
         contentAlignment = Alignment.BottomCenter

@@ -30,6 +30,7 @@ class ThemeManager(private val context: Context) {
         }
         
         val primaryColor = prefs.getInt("primary_color", defaultPrimaryColor.toArgb())
+            .let { if (it in legacyAccents) defaultPrimaryColor.toArgb() else it }
         // Removed secondary_color as it's no longer used
         
         return ThemeSettings(

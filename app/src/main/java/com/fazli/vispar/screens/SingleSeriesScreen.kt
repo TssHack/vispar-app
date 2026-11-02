@@ -353,7 +353,7 @@ private fun EpisodeCard(number: Int, episode: Episode, onPlay: () -> Unit, onDow
                     .height(72.dp)
                     .clip(RoundedRectangle(18.dp))
             ) {
-                Box(Modifier.fillMaxSize().layerBackdrop(thumbLayer).background(colors.accent.copy(alpha = 0.3f))) {
+                Box(Modifier.fillMaxSize().layerBackdrop(thumbLayer).background(colors.placeholder)) {
                     if (episode.image.isNotEmpty()) {
                         Image(
                             painter = rememberAsyncImagePainter(

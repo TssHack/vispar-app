@@ -235,7 +235,7 @@ fun SpotlightCard(item: CatalogItem, onClick: () -> Unit) {
                 shadow = { Shadow(radius = 24.dp, color = Color.Black.copy(alpha = if (colors.isDark) 0.5f else 0.2f)) }
             )
     ) {
-        Box(Modifier.fillMaxSize().layerBackdrop(artLayer).background(colors.accent.copy(alpha = 0.3f))) {
+        Box(Modifier.fillMaxSize().layerBackdrop(artLayer).background(colors.placeholder)) {
             Image(
                 painter = rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current)
@@ -257,9 +257,9 @@ fun SpotlightCard(item: CatalogItem, onClick: () -> Unit) {
         GlassChip(
             modifier = Modifier.align(Alignment.TopStart).padding(12.dp),
             backdrop = artLayer,
-            tint = colors.accent.copy(alpha = 0.55f),
+            tint = colors.accent.copy(alpha = 0.85f),
         ) {
-            Text("تازه‌ترین", style = GlassType.CaptionBold, color = Color.White)
+            Text("تازه‌ترین", style = GlassType.CaptionBold, color = colors.onAccent)
         }
 
         Row(

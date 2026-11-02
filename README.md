@@ -60,7 +60,7 @@ vispar is a modern Android streaming application built with Jetpack Compose and 
 
 The UI is built on a small design system in `app/src/main/java/com/fazli/vispar/ui/glass`:
 
-- **AmbientBackground** – an aurora canvas derived from the accent colour that every glass surface refracts.
+- **AmbientBackground** – Apple-style neutral canvas: pure black in dark mode, white to system grey in light mode.
 - **GlassSurface / glass()** – blurred, saturated and lens-refracted panels; nested controls refract their parent panel.
 - **LiquidButton / LiquidIconButton** – capsule buttons that swell and follow the finger like a drop of water.
 - **LiquidTabs** – the floating tab bar and segmented controls, with a draggable lens that stretches with velocity.

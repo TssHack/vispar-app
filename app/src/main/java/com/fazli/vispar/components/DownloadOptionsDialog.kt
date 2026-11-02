@@ -25,7 +25,7 @@ import com.fazli.vispar.ui.glass.GlassDialog
 import com.fazli.vispar.ui.glass.GlassRow
 import com.fazli.vispar.ui.glass.GlassStyle
 import com.fazli.vispar.ui.glass.GlassSurface
-import com.fazli.vispar.ui.glass.shiftHue
+import androidx.compose.ui.graphics.Color
 import com.kyant.shapes.RoundedRectangle
 
 /** Every way to take a video out of the app, as a grouped glass list. */
@@ -40,7 +40,11 @@ fun DownloadOptionsDialog(
     onOpenInMXPlayer: () -> Unit,
     onOpenInKMPlayer: () -> Unit
 ) {
-    val accent = Glass.colors.accent
+    // Apple system colours, one per destination.
+    val tints = listOf(
+        Color(0xFF8E8E93), Color(0xFF007AFF), Color(0xFF34C759),
+        Color(0xFFFF9500), Color(0xFF30B0C7), Color(0xFFFF2D55)
+    )
     val options: List<Triple<ImageVector, String, () -> Unit>> = listOf(
         Triple(Icons.Rounded.ContentCopy, "کپی لینک", onCopyLink),
         Triple(Icons.Rounded.Language, "دانلود با مرورگر", onDownloadWithBrowser),
@@ -67,7 +71,7 @@ fun DownloadOptionsDialog(
                     GlassRow(
                         icon = icon,
                         title = label,
-                        iconTint = accent.shiftHue(index * 22f),
+                        iconTint = tints[index % tints.size],
                         onClick = {
                             action()
                             onDismiss()

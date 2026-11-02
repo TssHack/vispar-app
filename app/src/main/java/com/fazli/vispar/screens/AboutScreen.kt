@@ -40,7 +40,7 @@ import com.fazli.vispar.ui.glass.GlassStyle
 import com.fazli.vispar.ui.glass.GlassSurface
 import com.fazli.vispar.ui.glass.GlassType
 import com.fazli.vispar.ui.glass.SectionHeader
-import com.fazli.vispar.ui.glass.shiftHue
+import androidx.compose.ui.graphics.Color
 import com.kyant.shapes.RoundedRectangle
 import java.util.Calendar
 
@@ -123,7 +123,7 @@ fun AboutScreen(navController: NavController?) {
                         icon = Icons.AutoMirrored.Rounded.Send,
                         title = "کانال تلگرام",
                         subtitle = "t.me/nexzoteam",
-                        iconTint = colors.accent.shiftHue(-60f),
+                        iconTint = Color(0xFF2AABEE),
                         onClick = { open("https://t.me/nexzoteam") }
                     )
                     GlassDivider()
@@ -131,7 +131,7 @@ fun AboutScreen(navController: NavController?) {
                         icon = Icons.AutoMirrored.Rounded.Send,
                         title = "تلگرام توسعه‌دهنده",
                         subtitle = "t.me/Devehsan",
-                        iconTint = colors.accent.shiftHue(-30f),
+                        iconTint = Color(0xFF2AABEE),
                         onClick = { open("https://t.me/Devehsan") }
                     )
                     GlassDivider()
@@ -139,7 +139,7 @@ fun AboutScreen(navController: NavController?) {
                         icon = Icons.Rounded.Email,
                         title = "ایمیل توسعه‌دهنده",
                         subtitle = "ehsanfazlinejad@gmail.com",
-                        iconTint = colors.accent.shiftHue(30f),
+                        iconTint = Color(0xFFFF9500),
                         onClick = { open("ehsanfazlinejad@gmail.com", isEmail = true) }
                     )
                 }

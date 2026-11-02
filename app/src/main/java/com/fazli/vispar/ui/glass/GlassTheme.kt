@@ -6,8 +6,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -42,29 +41,47 @@ data class GlassColors(
     /** Base colours of the ambient background. */
     val backgroundTop: Color,
     val backgroundBottom: Color,
+    /** Neutral fill behind images while they load. */
+    val placeholder: Color,
     val danger: Color,
     val gold: Color,
     val heart: Color,
     val scrim: Color,
 )
 
+/**
+ * Sentinel accent meaning "monochrome": white on dark, black on light, the way Apple's media apps
+ * draw their primary buttons.
+ */
+val MonochromeAccent = Color(0xFF000000)
+
+fun resolveAccent(accent: Color, isDark: Boolean): Color =
+    if (accent.toArgb() == MonochromeAccent.toArgb()) {
+        if (isDark) Color.White else Color(0xFF111111)
+    } else {
+        accent
+    }
+
 fun glassColors(isDark: Boolean, accent: Color): GlassColors {
-    val onAccent = if (accent.luminance() > 0.55f) Color(0xFF111114) else Color.White
+    @Suppress("NAME_SHADOWING")
+    val accent = resolveAccent(accent, isDark)
+    val onAccent = if (accent.luminance() > 0.55f) Color(0xFF111111) else Color.White
     return if (isDark) {
         GlassColors(
             isDark = true,
-            accent = lerp(accent, Color.White, 0.12f),
+            accent = accent,
             onAccent = onAccent,
             content = Color.White,
             contentSecondary = Color.White.copy(alpha = 0.72f),
             contentTertiary = Color.White.copy(alpha = 0.48f),
-            glassTint = Color(0xFF16161C).copy(alpha = 0.34f),
-            glassTintStrong = Color(0xFF101016).copy(alpha = 0.55f),
-            glassFallback = Color(0xFF1C1C24).copy(alpha = 0.86f),
+            glassTint = Color(0xFF1C1C1E).copy(alpha = 0.40f),
+            glassTintStrong = Color(0xFF1C1C1E).copy(alpha = 0.62f),
+            glassFallback = Color(0xFF1C1C1E).copy(alpha = 0.90f),
             separator = Color.White.copy(alpha = 0.10f),
-            backgroundTop = Color(0xFF07070C),
-            backgroundBottom = lerp(Color(0xFF0B0B12), accent, 0.10f),
-            danger = Color(0xFFFF6961),
+            backgroundTop = Color.Black,
+            backgroundBottom = Color.Black,
+            placeholder = Color(0xFF1C1C1E),
+            danger = Color(0xFFFF453A),
             gold = Color(0xFFFFD60A),
             heart = Color(0xFFFF375F),
             scrim = Color.Black.copy(alpha = 0.45f),
@@ -74,24 +91,25 @@ fun glassColors(isDark: Boolean, accent: Color): GlassColors {
             isDark = false,
             accent = accent,
             onAccent = onAccent,
-            content = Color(0xFF0E0E12),
-            contentSecondary = Color(0xFF0E0E12).copy(alpha = 0.66f),
-            contentTertiary = Color(0xFF0E0E12).copy(alpha = 0.42f),
-            glassTint = Color.White.copy(alpha = 0.42f),
-            glassTintStrong = Color.White.copy(alpha = 0.62f),
-            glassFallback = Color.White.copy(alpha = 0.88f),
-            separator = Color.Black.copy(alpha = 0.08f),
-            backgroundTop = Color(0xFFF6F5FA),
-            backgroundBottom = lerp(Color(0xFFEDEBF4), accent, 0.10f).compositeOver(Color.White),
-            danger = Color(0xFFE5383B),
-            gold = Color(0xFFF5A300),
+            content = Color.Black,
+            contentSecondary = Color(0xFF3C3C43).copy(alpha = 0.75f),
+            contentTertiary = Color(0xFF3C3C43).copy(alpha = 0.45f),
+            glassTint = Color.White.copy(alpha = 0.55f),
+            glassTintStrong = Color.White.copy(alpha = 0.72f),
+            glassFallback = Color.White.copy(alpha = 0.92f),
+            separator = Color(0xFF3C3C43).copy(alpha = 0.18f),
+            backgroundTop = Color.White,
+            backgroundBottom = Color(0xFFF2F2F7),
+            placeholder = Color(0xFFE5E5EA),
+            danger = Color(0xFFFF3B30),
+            gold = Color(0xFFFF9F0A),
             heart = Color(0xFFFF2D55),
-            scrim = Color(0xFF1B1B2A).copy(alpha = 0.22f),
+            scrim = Color.Black.copy(alpha = 0.20f),
         )
     }
 }
 
-val LocalGlassColors = staticCompositionLocalOf { glassColors(isDark = true, accent = Color(0xFF7C5CFF)) }
+val LocalGlassColors = staticCompositionLocalOf { glassColors(isDark = true, accent = MonochromeAccent) }
 
 /**
  * The backdrop glass surfaces sample by default. The app shell provides the ambient background

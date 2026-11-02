@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -127,11 +128,7 @@ fun PosterCard(
             Modifier
                 .fillMaxSize()
                 .layerBackdrop(posterLayer)
-                .background(
-                    Brush.linearGradient(
-                        listOf(colors.accent.copy(alpha = 0.35f), colors.accent.shiftHue(50f).copy(alpha = 0.18f))
-                    )
-                )
+                .background(colors.placeholder)
         ) {
             Image(
                 painter = rememberAsyncImagePainter(
@@ -165,10 +162,10 @@ fun PosterCard(
             if (badge != null) {
                 GlassChip(
                     backdrop = posterLayer,
-                    tint = colors.accent.copy(alpha = 0.55f),
+                    tint = colors.accent.copy(alpha = 0.85f),
                     contentPadding = PaddingValues(horizontal = 9.dp, vertical = 4.dp)
                 ) {
-                    Text(badge, style = GlassType.CaptionBold, color = Color.White)
+                    Text(badge, style = GlassType.CaptionBold, color = colors.onAccent)
                 }
             }
         }
@@ -259,7 +256,7 @@ fun LiquidLoader(modifier: Modifier = Modifier, size: Dp = 64.dp) {
         Canvas(Modifier.size(size * 0.5f).graphicsLayer { rotationZ = rotation }) {
             val stroke = 3.5.dp.toPx()
             drawArc(
-                brush = Brush.sweepGradient(listOf(Color.Transparent, colors.accent, colors.accent.shiftHue(40f))),
+                brush = Brush.sweepGradient(listOf(Color.Transparent, colors.accent.copy(alpha = 0.4f), colors.accent)),
                 startAngle = 0f,
                 sweepAngle = 300f,
                 useCenter = false,
@@ -384,10 +381,11 @@ fun IconTile(icon: ImageVector, tint: Color = Glass.colors.accent, size: Dp = 40
         Modifier
             .size(size)
             .clip(RoundedRectangle(size * 0.32f))
-            .background(Brush.linearGradient(listOf(tint, tint.shiftHue(28f)))),
+            .background(tint),
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, null, tint = Color.White, modifier = Modifier.size(size * 0.55f))
+        val iconColor = if (tint.luminance() > 0.55f) Color.Black else Color.White
+        Icon(icon, null, tint = iconColor, modifier = Modifier.size(size * 0.55f))
     }
 }
 

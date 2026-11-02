@@ -142,7 +142,7 @@ fun FramedPoster(imageUrl: String, contentDescription: String, modifier: Modifie
                 highlight = { Highlight.Default },
                 shadow = { Shadow(radius = 28.dp, color = Color.Black.copy(alpha = if (colors.isDark) 0.55f else 0.25f)) }
             )
-            .background(colors.accent.copy(alpha = 0.25f))
+            .background(colors.placeholder)
     ) {
         Image(
             painter = rememberAsyncImagePainter(

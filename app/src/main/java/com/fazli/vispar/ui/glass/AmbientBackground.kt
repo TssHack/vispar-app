@@ -33,9 +33,9 @@ fun Color.shiftHue(degrees: Float, saturation: Float? = null, value: Float? = nu
 }
 
 /**
- * The "aurora" canvas every glass surface floats on: a deep base gradient with a few large, soft
- * colour fields derived from the accent colour. Glass needs something colourful behind it to
- * refract, otherwise it reads as flat grey.
+ * The canvas every glass surface floats on, in the Apple manner: pure black in dark mode, white
+ * fading to system grey in light mode, lit by a faint neutral glow. The colour comes from the
+ * posters and artwork that scroll beneath the glass.
  *
  * The background is static by default — an always-animating backdrop would force every glass
  * surface on screen to re-render each frame. Set [animated] for hero moments (splash, empty
@@ -59,14 +59,13 @@ fun AmbientBackground(
         remember { mutableFloatStateOf(0.18f) }
     }
 
-    val accent = colors.accent
-    val fields = remember(accent, colors.isDark) {
-        val alpha = if (colors.isDark) 1f else 0.85f
+    // Neutral light only: a soft top glow gives glass something to catch without adding colour.
+    val glow = if (colors.isDark) Color.White.copy(alpha = 0.07f) else Color.White
+    val shade = if (colors.isDark) Color.White.copy(alpha = 0.035f) else Color.Black.copy(alpha = 0.035f)
+    val fields = remember(colors.isDark) {
         listOf(
-            AuroraField(accent.copy(alpha = 0.55f * alpha), 0.18f, 0.10f, 0.75f, 0.0f),
-            AuroraField(accent.shiftHue(48f).copy(alpha = 0.42f * alpha), 0.90f, 0.32f, 0.65f, 0.33f),
-            AuroraField(accent.shiftHue(-62f).copy(alpha = 0.38f * alpha), 0.30f, 0.72f, 0.70f, 0.66f),
-            AuroraField(accent.shiftHue(160f).copy(alpha = 0.22f * alpha), 0.85f, 0.95f, 0.60f, 0.5f),
+            AuroraField(glow, 0.5f, -0.05f, 0.75f, 0.0f),
+            AuroraField(shade, 0.15f, 0.85f, 0.6f, 0.5f),
         )
     }
 
@@ -74,14 +73,6 @@ fun AmbientBackground(
         drawRect(Brush.verticalGradient(listOf(colors.backgroundTop, colors.backgroundBottom)))
         val t = phase.value
         fields.forEach { drawField(it, t) }
-        // A faint vignette grounds the composition and helps the floating chrome stand out.
-        drawRect(
-            Brush.radialGradient(
-                colors = listOf(Color.Transparent, colors.backgroundTop.copy(alpha = if (colors.isDark) 0.55f else 0.25f)),
-                center = Offset(size.width / 2f, size.height * 0.45f),
-                radius = size.maxDimension * 0.85f
-            )
-        )
     }
 }
 
