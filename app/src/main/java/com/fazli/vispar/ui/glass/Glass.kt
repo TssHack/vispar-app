@@ -248,6 +248,10 @@ fun LiquidButton(
     shape: Shape = Capsule(),
     height: Dp = 48.dp,
     contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp),
+    blurRadius: Dp = 2.dp,
+    refractionHeight: Dp = 12.dp,
+    refractionAmount: Dp = 24.dp,
+    tintAlpha: Float = 0.78f,
     enabled: Boolean = true,
     isInteractive: Boolean = true,
     content: @Composable RowScope.() -> Unit
@@ -265,7 +269,7 @@ fun LiquidButton(
             .drawBackdrop(
                 backdrop = backdrop,
                 shape = { shape },
-                effects = { glassEffects(colors, 2.dp.toPx(), 12.dp.toPx(), 24.dp.toPx()) },
+                effects = { glassEffects(colors, blurRadius.toPx(), refractionHeight.toPx(), refractionAmount.toPx()) },
                 onDrawBackdrop = colors.backdropDrawer,
                 shadow = { Shadow(radius = 12.dp, color = Color.Black.copy(alpha = 0.10f)) },
                 layerBlock = if (interactive) {
@@ -294,7 +298,7 @@ fun LiquidButton(
                 onDrawSurface = {
                     if (tint.isSpecified) {
                         if (colors.liveGlass) drawRect(tint, blendMode = BlendMode.Hue)
-                        drawRect(tint.copy(alpha = if (colors.liveGlass) 0.78f else 1f))
+                        drawRect(tint.copy(alpha = if (colors.liveGlass) tintAlpha else 1f))
                     } else if (!colors.liveGlass) {
                         drawRect(colors.glassFallback)
                     } else {

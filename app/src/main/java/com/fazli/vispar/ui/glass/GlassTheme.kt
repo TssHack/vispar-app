@@ -71,6 +71,10 @@ enum class GlassMaterial(val label: String, val blurScale: Float, val tintScale:
     Solid("بدون شفافیت", 0f, 0f),
 }
 
+/** True when the user picked the monochrome (black/white) accent. */
+val GlassColors.isMonochromeAccent: Boolean
+    get() = accent.toArgb() == resolveAccent(MonochromeAccent, isDark).toArgb()
+
 /** True when glass is actually rendered live (blur available and transparency not reduced). */
 val GlassColors.liveGlass: Boolean
     get() = material != GlassMaterial.Solid && isRenderEffectSupported()

@@ -88,8 +88,13 @@ fun LiquidTabs(
     backdrop: Backdrop = LocalBackdrop.current,
     height: Dp = 64.dp,
     accentColor: Color = Glass.colors.accent,
+    /** Hide the lens when the current destination is not one of these tabs. */
+    showLens: Boolean = true,
     content: @Composable RowScope.() -> Unit
 ) {
+    val lensAlpha by androidx.compose.animation.core.animateFloatAsState(
+        if (showLens) 1f else 0f, androidx.compose.animation.core.tween(220), label = "lens"
+    )
     val colors = Glass.colors
     val containerColor = colors.surfaceTint(colors.glassTint)
     val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
@@ -229,6 +234,7 @@ fun LiquidTabs(
             Modifier
                 .padding(horizontal = innerPadding)
                 .graphicsLayer {
+                    alpha = lensAlpha
                     translationX =
                         if (isLtr) dampedDragAnimation.value * tabWidth + panelOffset
                         else size.width - (dampedDragAnimation.value + 1f) * tabWidth + panelOffset
