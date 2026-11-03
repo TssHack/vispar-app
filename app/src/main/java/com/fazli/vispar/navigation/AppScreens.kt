@@ -66,6 +66,13 @@ sealed class AppScreens(
         showSidebar = false
     )
 
+    data object Account : AppScreens(
+        route = "account",
+        resourceId = R.string.account,
+        showBottomBar = false,
+        showSidebar = false
+    )
+
     data object About : AppScreens(
         route = "about",
         resourceId = R.string.about,
@@ -84,6 +91,7 @@ sealed class AppScreens(
             route.startsWith("single_series") -> SingleSeries
             route == Favorites.route -> Favorites
             route == About.route -> About
+            route == Account.route -> Account
             route == Splash.route -> Splash
             else -> screens.find { it.route == route } ?: Movies
         }

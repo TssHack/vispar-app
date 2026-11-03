@@ -3,27 +3,21 @@ package com.fazli.vispar.data.repository
 import com.fazli.vispar.data.model.Country
 import com.fazli.vispar.data.model.Genre
 import com.fazli.vispar.data.model.Series
+import com.fazli.vispar.data.api.Api
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
 
 class SeriesRepository {
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
+    private val client get() = Api.client
     
-    private val BASE_URL = "https://hostinnegar.com/api/serie/by/filtres/0/created"
-    private val API_KEY = "4F5A9C3D9A86FA54EACEDDD635185"
     
     suspend fun getSeries(page: Int = 0): List<Series> {
         return withContext(Dispatchers.IO) {
             try {
-                val url = "$BASE_URL/$page/$API_KEY"
+                val url = Api.series(page)
                 val request = Request.Builder()
                     .url(url)
                     .build()

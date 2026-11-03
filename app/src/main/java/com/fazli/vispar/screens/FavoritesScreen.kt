@@ -25,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +58,8 @@ fun FavoritesScreen(navController: NavController) {
     var favorites by remember { mutableStateOf<List<FavoriteItem>>(emptyList()) }
     var confirmClearAll by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    val syncRevision by com.fazli.vispar.account.SyncManager.revision.collectAsState()
+    LaunchedEffect(syncRevision) {
         favorites = StorageUtils.loadAllFavorites(context)
     }
 

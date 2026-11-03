@@ -2,6 +2,7 @@ package com.fazli.vispar.utils
 
 import android.content.Context
 import android.util.Log
+import com.fazli.vispar.account.SyncManager
 import com.fazli.vispar.data.model.FavoriteItem
 import com.fazli.vispar.data.model.Movie
 import com.fazli.vispar.data.model.Series
@@ -15,81 +16,59 @@ import java.util.Date
 object StorageUtils {
     private const val TAG = "StorageUtils"
     
-    // Favorites functions - using a single JSON file for all favorites
+    // Favorites: one JSON file, newest first. Every change is stamped and reported to the sync.
+    private val favoritesJson = Json { ignoreUnknownKeys = true }
+
     fun saveFavorite(context: Context, favorite: FavoriteItem) {
         try {
-            val favorites = loadAllFavorites(context).toMutableList()
-            
-            // Remove existing favorite with same id and type if it exists
-            favorites.removeAll { it.id == favorite.id && it.type == favorite.type }
-            
-            // Add the new favorite at the beginning of the list (newest first)
-            favorites.add(0, favorite)
-            
-            // Save all favorites to a single file
-            val jsonString = Json.encodeToString(favorites)
-            val file = File(context.filesDir, "favorites.json")
-            file.writeText(jsonString)
-            Log.d(TAG, "Favorite saved: ${favorite.title}")
+            val stamped = favorite.copy(updatedAt = System.currentTimeMillis())
+            val favorites = loadAllFavorites(context).filterNot { it.id == favorite.id && it.type == favorite.type }
+            writeFavorites(context, listOf(stamped) + favorites)
+            SyncManager.favoriteChanged(context, favorite.type, favorite.id, deleted = false)
         } catch (e: Exception) {
             Log.e(TAG, "Error saving favorite", e)
         }
     }
-    
+
     fun removeFavorite(context: Context, id: Int, type: String) {
         try {
-            val favorites = loadAllFavorites(context).toMutableList()
-            
-            // Remove the favorite with matching id and type
-            favorites.removeAll { it.id == id && it.type == type }
-            
-            // Save updated favorites list
-            val jsonString = Json.encodeToString(favorites)
-            val file = File(context.filesDir, "favorites.json")
-            file.writeText(jsonString)
-            Log.d(TAG, "Favorite removed: $id ($type)")
+            writeFavorites(context, loadAllFavorites(context).filterNot { it.id == id && it.type == type })
+            SyncManager.favoriteChanged(context, type, id, deleted = true)
         } catch (e: Exception) {
             Log.e(TAG, "Error removing favorite", e)
         }
     }
-    
+
     fun clearAllFavorites(context: Context) {
-        try {
-            val file = File(context.filesDir, "favorites.json")
-            if (file.exists()) {
-                file.delete()
-            }
-            Log.d(TAG, "All favorites cleared")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error clearing all favorites", e)
-        }
+        val all = loadAllFavorites(context)
+        writeFavorites(context, emptyList())
+        all.forEach { SyncManager.favoriteChanged(context, it.type, it.id, deleted = true) }
     }
-    
-    fun isFavorite(context: Context, id: Int, type: String): Boolean {
-        return try {
-            val favorites = loadAllFavorites(context)
-            favorites.any { it.id == id && it.type == type }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error checking if favorite exists", e)
-            false
-        }
-    }
-    
+
+    fun isFavorite(context: Context, id: Int, type: String): Boolean =
+        loadAllFavorites(context).any { it.id == id && it.type == type }
+
+    @Synchronized
     fun loadAllFavorites(context: Context): List<FavoriteItem> {
         return try {
             val file = File(context.filesDir, "favorites.json")
-            if (file.exists()) {
-                val jsonString = file.readText()
-                Json.decodeFromString<List<FavoriteItem>>(jsonString)
-            } else {
-                emptyList()
-            }
+            if (file.exists()) favoritesJson.decodeFromString<List<FavoriteItem>>(file.readText()) else emptyList()
         } catch (e: Exception) {
             Log.e(TAG, "Error loading all favorites", e)
             emptyList()
         }
     }
-    
+
+    /** Replaces the stored list as is (used by the sync, which already stamped the items). */
+    @Synchronized
+    fun writeFavorites(context: Context, favorites: List<FavoriteItem>) {
+        try {
+            File(context.filesDir, "favorites.json").writeText(favoritesJson.encodeToString(favorites))
+        } catch (e: Exception) {
+            Log.e(TAG, "Error writing favorites", e)
+        }
+    }
+
     // Function to save favorite to movie or series database when navigating to it
     fun saveFavoriteToDatabase(context: Context, favorite: FavoriteItem) {
         try {

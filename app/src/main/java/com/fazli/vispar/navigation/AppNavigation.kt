@@ -18,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.fazli.vispar.screens.AboutScreen
+import com.fazli.vispar.screens.AccountScreen
 import com.fazli.vispar.screens.FavoritesScreen
 import com.fazli.vispar.screens.MoviesScreen
 import com.fazli.vispar.screens.SearchScreen
@@ -95,6 +96,9 @@ fun AppNavigation(
         }
         composable(route = AppScreens.Favorites.route) {
             FavoritesScreen(navController)
+        }
+        composable(route = AppScreens.Account.route) {
+            AccountScreen(navController)
         }
         composable(route = AppScreens.About.route) {
             AboutScreen(navController)

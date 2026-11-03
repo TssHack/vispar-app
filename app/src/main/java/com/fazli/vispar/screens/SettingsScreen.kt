@@ -2,6 +2,12 @@ package com.fazli.vispar.screens
 
 import androidx.compose.ui.res.stringResource
 import com.fazli.vispar.R
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.rounded.Verified
+import androidx.compose.runtime.collectAsState
+import com.fazli.vispar.navigation.AppScreens
+import com.fazli.vispar.account.AccountState
+import com.fazli.vispar.account.AccountManager
 
 import android.content.Intent
 import android.util.Log
@@ -237,6 +243,9 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             item { LargeTitle(stringResource(R.string.settings), stringResource(R.string.settings_subtitle)) }
+
+            // Account
+            item { AccountCard(onClick = { navController?.navigate(AppScreens.Account.route) }) }
 
             // Appearance
             item {
@@ -717,4 +726,45 @@ private fun SpinningIcon() {
         tint = Glass.colors.accent,
         modifier = Modifier.size(22.dp).graphicsLayer { rotationZ = rotation }
     )
+}
+
+
+/** Profile summary at the top of Settings; opens sign-in or the profile. */
+@Composable
+private fun AccountCard(onClick: () -> Unit) {
+    val colors = Glass.colors
+    val state by AccountManager.state.collectAsState()
+    val profile = (state as? AccountState.SignedIn)?.profile
+    GlassSurface(Modifier.fillMaxWidth(), shape = RoundedRectangle(Glass.CardRadius), onClick = onClick) {
+        Row(
+            Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Avatar(profile, size = 58.dp)
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        when {
+                            profile == null -> stringResource(R.string.login_cta)
+                            profile.displayName.isBlank() -> stringResource(R.string.profile_no_name)
+                            else -> profile.displayName
+                        },
+                        style = GlassType.Title2,
+                        color = colors.content,
+                        maxLines = 1
+                    )
+                    if (profile?.verified == true) {
+                        Icon(Icons.Rounded.Verified, stringResource(R.string.verified), tint = VerifiedBlue, modifier = Modifier.size(20.dp))
+                    }
+                }
+                Text(
+                    if (profile == null) stringResource(R.string.login_cta_msg) else stringResource(R.string.account_card_msg),
+                    style = GlassType.Caption,
+                    color = colors.contentSecondary
+                )
+            }
+            Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = colors.contentTertiary, modifier = Modifier.size(14.dp))
+        }
+    }
 }

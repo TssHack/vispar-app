@@ -4,6 +4,10 @@ import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.fazli.vispar.utils.AppLanguage
+import com.fazli.vispar.account.AccountManager
+import com.fazli.vispar.account.AppNotices
+import com.fazli.vispar.account.SyncManager
+import com.fazli.vispar.data.api.Api
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
@@ -57,6 +61,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppLanguage.ensureInitialized(this)
+        Api.init(this)
+        AccountManager.init(this)
         // Portrait on phones and tablets; TVs have a fixed orientation.
         if (!DeviceUtils.isTv(this)) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
@@ -65,6 +71,12 @@ class MainActivity : AppCompatActivity() {
         setContent {
             MainApp()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Pick up changes made on the user's other devices (e.g. the TV) when the app comes back.
+        SyncManager.schedule(this, 1_500)
     }
 }
 
@@ -161,6 +173,7 @@ fun MainScreen(
                 }
             }
 
+            AppNotices()
             GlassOverlayLayer(overlayHost, chromeBackdrop)
         }
     }

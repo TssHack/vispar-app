@@ -179,6 +179,8 @@ class VideoPlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.fazli.vispar.data.api.Api.init(this)
+        com.fazli.vispar.account.AccountManager.init(this)
         if (!DeviceUtils.isTv(this)) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         }

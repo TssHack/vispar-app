@@ -4,27 +4,21 @@ import com.fazli.vispar.data.model.Country
 import com.fazli.vispar.data.model.Genre
 import com.fazli.vispar.data.model.Movie
 import com.fazli.vispar.data.model.Source
+import com.fazli.vispar.data.api.Api
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
 
 class MovieRepository {
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
+    private val client get() = Api.client
     
-    private val BASE_URL = "https://hostinnegar.com/api/movie/by/filtres/0/created"
-    private val API_KEY = "4F5A9C3D9A86FA54EACEDDD635185"
     
     suspend fun getMovies(page: Int = 0): List<Movie> {
         return withContext(Dispatchers.IO) {
             try {
-                val url = "$BASE_URL/$page/$API_KEY"
+                val url = Api.movies(page)
                 val request = Request.Builder()
                     .url(url)
                     .build()

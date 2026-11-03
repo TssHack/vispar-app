@@ -5,31 +5,21 @@ import com.fazli.vispar.data.model.Genre
 import com.fazli.vispar.data.model.Poster
 import com.fazli.vispar.data.model.SearchResult
 import com.fazli.vispar.data.model.Source
+import com.fazli.vispar.data.api.Api
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.TimeUnit
 
 class SearchRepository {
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
+    private val client get() = Api.client
     
-    private val BASE_URL = "https://hostinnegar.com/api/search"
-    private val API_KEY = "4F5A9C3D9A86FA54EACEDDD635185"
     
     suspend fun search(query: String): SearchResult {
         return withContext(Dispatchers.IO) {
             try {
-                // Properly encode the query for URL paths
-                val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8.toString()).replace("+", "%20")
-                val url = "$BASE_URL/$encodedQuery/$API_KEY/"
+                val url = Api.search(query)
                 val request = Request.Builder()
                     .url(url)
                     .build()

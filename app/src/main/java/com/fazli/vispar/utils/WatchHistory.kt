@@ -2,6 +2,7 @@ package com.fazli.vispar.utils
 
 import android.content.Context
 import android.util.Log
+import com.fazli.vispar.account.SyncManager
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -53,13 +54,26 @@ object WatchHistory {
         val updated = listOf(entry.copy(updatedAt = System.currentTimeMillis())) +
                 all(context).filterNot { it.url == entry.url }
         write(context, updated.take(MAX_ENTRIES))
+        SyncManager.progressChanged(context, entry.url, deleted = false)
     }
 
     @Synchronized
-    fun remove(context: Context, url: String) = write(context, all(context).filterNot { it.url == url })
+    fun remove(context: Context, url: String) {
+        write(context, all(context).filterNot { it.url == url })
+        SyncManager.progressChanged(context, url, deleted = true)
+    }
 
     @Synchronized
-    fun clear(context: Context) = write(context, emptyList())
+    fun clear(context: Context) {
+        val urls = all(context).map { it.url }
+        write(context, emptyList())
+        urls.forEach { SyncManager.progressChanged(context, it, deleted = true) }
+    }
+
+    /** Replaces the history with entries merged by the sync (newest first, capped). */
+    @Synchronized
+    fun replaceAll(context: Context, entries: List<WatchEntry>) =
+        write(context, entries.sortedByDescending { it.updatedAt }.take(MAX_ENTRIES))
 
     private fun write(context: Context, entries: List<WatchEntry>) {
         try {
