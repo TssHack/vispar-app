@@ -1,5 +1,7 @@
 package com.fazli.vispar.ui.glass
 
+import com.fazli.vispar.R
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
@@ -64,11 +66,11 @@ data class GlassColors(
  * "Reduce Transparency": no blur or refraction at all, which is also far cheaper to render and is
  * the default on Android TV boxes.
  */
-enum class GlassMaterial(val label: String, val blurScale: Float, val tintScale: Float) {
-    Clear("شفاف", 0.35f, 0.55f),
-    Regular("شیشه‌ای", 1f, 1f),
-    Frosted("مات", 1.9f, 1.4f),
-    Solid("بدون شفافیت", 0f, 0f),
+enum class GlassMaterial(@param:androidx.annotation.StringRes val label: Int, val blurScale: Float, val tintScale: Float) {
+    Clear(R.string.glass_clear, 0.35f, 0.55f),
+    Regular(R.string.glass_regular, 1f, 1f),
+    Frosted(R.string.glass_frosted, 1.9f, 1.4f),
+    Solid(R.string.glass_solid, 0f, 0f),
 }
 
 /** True when the user picked the monochrome (black/white) accent. */

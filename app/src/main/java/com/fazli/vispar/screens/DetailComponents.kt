@@ -1,5 +1,8 @@
 package com.fazli.vispar.screens
 
+import androidx.compose.ui.res.stringResource
+import com.fazli.vispar.R
+
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
@@ -186,7 +189,7 @@ fun DetailHeader(
                 overflow = TextOverflow.Ellipsis
             )
             val meta = listOfNotNull(
-                countries.takeIf { it.isNotEmpty() }?.joinToString("، "),
+                countries.takeIf { it.isNotEmpty() }?.joinToString(stringResource(R.string.list_separator)),
                 year.takeIf { it > 0 }?.toString()
             ).joinToString("  •  ")
             if (meta.isNotEmpty()) {
@@ -251,7 +254,7 @@ fun DescriptionCard(text: String, modifier: Modifier = Modifier) {
                 .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text("خلاصه داستان", style = GlassType.Headline, color = colors.content)
+            Text(stringResource(R.string.synopsis), style = GlassType.Headline, color = colors.content)
             Text(
                 text,
                 style = GlassType.Body,
@@ -261,7 +264,7 @@ fun DescriptionCard(text: String, modifier: Modifier = Modifier) {
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                if (expanded) "بستن" else "ادامه…",
+                if (expanded) stringResource(R.string.show_less) else stringResource(R.string.show_more),
                 style = GlassType.CaptionBold,
                 color = colors.accent
             )
@@ -278,7 +281,7 @@ fun FavoriteToggle(isFavorite: Boolean, onToggle: () -> Unit) {
         LiquidIconButton(
             onClick = onToggle,
             icon = if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-            contentDescription = "مورد علاقه",
+            contentDescription = stringResource(R.string.favorite),
             iconTint = if (isFavorite) colors.heart else colors.content
         )
     }

@@ -1,5 +1,8 @@
 package com.fazli.vispar.components
 
+import androidx.compose.ui.res.stringResource
+import com.fazli.vispar.R
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,18 +49,18 @@ fun DownloadOptionsDialog(
         Color(0xFFFF9500), Color(0xFF30B0C7), Color(0xFFFF2D55)
     )
     val options: List<Triple<ImageVector, String, () -> Unit>> = listOf(
-        Triple(Icons.Rounded.ContentCopy, "کپی لینک", onCopyLink),
-        Triple(Icons.Rounded.Language, "دانلود با مرورگر", onDownloadWithBrowser),
-        Triple(Icons.Rounded.Download, "دانلود با ADM", onDownloadWithADM),
-        Triple(Icons.Rounded.PlayCircle, "باز کردن در VLC Player", onOpenInVLC),
-        Triple(Icons.Rounded.SmartDisplay, "باز کردن در MX Player", onOpenInMXPlayer),
-        Triple(Icons.Rounded.OndemandVideo, "باز کردن در KM Player", onOpenInKMPlayer),
+        Triple(Icons.Rounded.ContentCopy, stringResource(R.string.copy_link), onCopyLink),
+        Triple(Icons.Rounded.Language, stringResource(R.string.download_browser), onDownloadWithBrowser),
+        Triple(Icons.Rounded.Download, stringResource(R.string.download_adm), onDownloadWithADM),
+        Triple(Icons.Rounded.PlayCircle, stringResource(R.string.open_vlc), onOpenInVLC),
+        Triple(Icons.Rounded.SmartDisplay, stringResource(R.string.open_mx), onOpenInMXPlayer),
+        Triple(Icons.Rounded.OndemandVideo, stringResource(R.string.open_km), onOpenInKMPlayer),
     )
 
     GlassDialog(onDismissRequest = onDismiss) {
         DialogHeader(
-            title = "گزینه‌های دانلود",
-            message = "نحوه دانلود ویدیوی ${source.quality} را انتخاب کنید",
+            title = stringResource(R.string.download_options),
+            message = stringResource(R.string.download_options_msg, source.quality),
             icon = Icons.Rounded.Download
         )
         GlassSurface(
@@ -81,7 +84,7 @@ fun DownloadOptionsDialog(
                 }
             }
         }
-        DialogAction(text = "انصراف", onClick = onDismiss, style = DialogActionStyle.Plain)
+        DialogAction(text = stringResource(R.string.cancel), onClick = onDismiss, style = DialogActionStyle.Plain)
     }
 }
 
@@ -108,6 +111,6 @@ fun QualityPickerDialog(
                 )
             }
         }
-        DialogAction(text = "انصراف", onClick = onDismiss, style = DialogActionStyle.Plain)
+        DialogAction(text = stringResource(R.string.cancel), onClick = onDismiss, style = DialogActionStyle.Plain)
     }
 }

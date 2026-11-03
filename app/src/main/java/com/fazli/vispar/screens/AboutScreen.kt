@@ -1,5 +1,7 @@
 package com.fazli.vispar.screens
 
+import androidx.compose.ui.res.stringResource
+
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -58,7 +60,7 @@ fun AboutScreen(navController: NavController?) {
     }
 
     GlassScaffold(
-        title = "درباره",
+        title = stringResource(R.string.about_short),
         onBack = { navController?.popBackStack() }
     ) { padding ->
         Column(
@@ -79,15 +81,15 @@ fun AboutScreen(navController: NavController?) {
             ) {
                 Image(
                     painter = painterResource(R.drawable.splash_logo),
-                    contentDescription = "لوگوی ویسپار",
+                    contentDescription = stringResource(R.string.logo),
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.size(80.dp)
                 )
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("ویسپار", style = GlassType.LargeTitle, color = colors.content)
+                Text(stringResource(R.string.app_name), style = GlassType.LargeTitle, color = colors.content)
                 Text(
-                    "دنیای فیلم و سریال، پشت یک لایه شیشه",
+                    stringResource(R.string.tagline),
                     style = GlassType.Callout,
                     color = colors.contentSecondary,
                     textAlign = TextAlign.Center
@@ -99,9 +101,9 @@ fun AboutScreen(navController: NavController?) {
                     Modifier.fillMaxWidth().padding(vertical = 16.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    InfoStat(Icons.Rounded.NewReleases, BuildConfig.VERSION_NAME, "نسخه")
-                    InfoStat(Icons.Rounded.Code, "${BuildConfig.VERSION_CODE}", "بیلد")
-                    InfoStat(Icons.Rounded.Memory, getArchitecture(), "معماری")
+                    InfoStat(Icons.Rounded.NewReleases, BuildConfig.VERSION_NAME, stringResource(R.string.version))
+                    InfoStat(Icons.Rounded.Code, "${BuildConfig.VERSION_CODE}", stringResource(R.string.build))
+                    InfoStat(Icons.Rounded.Memory, getArchitecture(), stringResource(R.string.architecture))
                 }
             }
 
@@ -111,17 +113,17 @@ fun AboutScreen(navController: NavController?) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text("توسعه یافته توسط احسان فضلی", style = GlassType.Headline, color = colors.content)
-                    Text("برنامه نویس فول استک", style = GlassType.Caption, color = colors.contentSecondary)
+                    Text(stringResource(R.string.developed_by), style = GlassType.Headline, color = colors.content)
+                    Text(stringResource(R.string.fullstack), style = GlassType.Caption, color = colors.contentSecondary)
                 }
             }
 
-            SectionHeader("ارتباط با ما", Modifier.padding(horizontal = 0.dp))
+            SectionHeader(stringResource(R.string.contact_us), Modifier.padding(horizontal = 0.dp))
             GlassSurface(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(vertical = 6.dp)) {
                     GlassRow(
                         icon = Icons.AutoMirrored.Rounded.Send,
-                        title = "کانال تلگرام",
+                        title = stringResource(R.string.telegram_channel),
                         subtitle = "t.me/nexzoteam",
                         iconTint = Color(0xFF2AABEE),
                         onClick = { open("https://t.me/nexzoteam") }
@@ -129,7 +131,7 @@ fun AboutScreen(navController: NavController?) {
                     GlassDivider()
                     GlassRow(
                         icon = Icons.AutoMirrored.Rounded.Send,
-                        title = "تلگرام توسعه‌دهنده",
+                        title = stringResource(R.string.developer_telegram),
                         subtitle = "t.me/Devehsan",
                         iconTint = Color(0xFF2AABEE),
                         onClick = { open("https://t.me/Devehsan") }
@@ -137,7 +139,7 @@ fun AboutScreen(navController: NavController?) {
                     GlassDivider()
                     GlassRow(
                         icon = Icons.Rounded.Email,
-                        title = "ایمیل توسعه‌دهنده",
+                        title = stringResource(R.string.developer_email),
                         subtitle = "ehsanfazlinejad@gmail.com",
                         iconTint = Color(0xFFFF9500),
                         onClick = { open("ehsanfazlinejad@gmail.com", isEmail = true) }
@@ -146,7 +148,7 @@ fun AboutScreen(navController: NavController?) {
             }
 
             Text(
-                "© ${Calendar.getInstance().get(Calendar.YEAR)} ویسپار. تمامی حقوق محفوظ است.",
+                stringResource(R.string.copyright, Calendar.getInstance().get(Calendar.YEAR)),
                 style = GlassType.Caption,
                 color = colors.contentTertiary,
                 textAlign = TextAlign.Center,
@@ -172,9 +174,9 @@ fun getArchitecture(): String = try {
         "armeabi-v7a" -> "ARM32"
         "x86_64" -> "x86_64"
         "x86" -> "x86"
-        null -> "ناشناخته"
+        null -> "—"
         else -> abi
     }
 } catch (e: Exception) {
-    "ناشناخته"
+    "—"
 }

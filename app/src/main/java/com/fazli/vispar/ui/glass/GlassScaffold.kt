@@ -1,5 +1,8 @@
 package com.fazli.vispar.ui.glass
 
+import androidx.compose.ui.res.stringResource
+import com.fazli.vispar.R
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -144,7 +147,7 @@ fun GlassTopBar(
                 LiquidIconButton(
                     onClick = onBack,
                     icon = Icons.AutoMirrored.Rounded.ArrowBackIos,
-                    contentDescription = "بازگشت",
+                    contentDescription = stringResource(R.string.back),
                     iconSize = 18.dp
                 )
             }

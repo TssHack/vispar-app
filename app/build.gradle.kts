@@ -26,11 +26,26 @@ android {
         buildConfig = true
     }
 
-    // حذف بخش امضای release — دیگر keystore استفاده نمی‌شود
+    // Release signing: a real key comes from environment variables (CI secrets, never committed).
+    // Without them the release APK is signed with the debug key so it still installs for testing.
+    val releaseKeystore = System.getenv("VISPAR_KEYSTORE")?.let { file(it) }?.takeIf { it.exists() }
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = System.getenv("VISPAR_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("VISPAR_KEY_ALIAS")
+                keyPassword = System.getenv("VISPAR_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
-            // بدون امضا
+            // R8: removes unused code (most of material-icons-extended) and optimises Compose.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -55,14 +70,6 @@ android {
     }
 
 
-    // پشتیبانی از صفحه‌نمایش‌های مختلف (مثلاً تلویزیون)
-    sourceSets {
-        getByName("main") {
-            res {
-                srcDirs("src/main/res", "src/main/res/values-television")
-            }
-        }
-    }
 
     // تنظیمات lint تا بیلد متوقف نشود
     lint {
@@ -80,6 +87,7 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation("androidx.appcompat:appcompat:1.7.1")
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))

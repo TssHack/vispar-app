@@ -1,5 +1,8 @@
 package com.fazli.vispar.screens
 
+import androidx.compose.ui.res.stringResource
+import com.fazli.vispar.R
+
 import android.content.Intent
 import android.util.Log
 import androidx.compose.animation.core.LinearEasing
@@ -46,6 +49,7 @@ import com.fazli.vispar.formatSpeed
 import com.fazli.vispar.ui.glass.GlassMaterial
 import com.fazli.vispar.ui.glass.LiquidToggle
 import com.fazli.vispar.ui.glass.tvFocusable
+import com.fazli.vispar.utils.AppLanguage
 import com.fazli.vispar.utils.WatchHistory
 import androidx.compose.material.icons.rounded.Subtitles
 import androidx.compose.material3.Icon
@@ -114,9 +118,9 @@ data class GitHubRelease(
 )
 
 private val themeModes = listOf(
-    Triple(ThemeMode.LIGHT, "روشن", Icons.Rounded.LightMode),
-    Triple(ThemeMode.DARK, "تاریک", Icons.Rounded.DarkMode),
-    Triple(ThemeMode.SYSTEM, "سیستم", Icons.Rounded.BrightnessAuto),
+    Triple(ThemeMode.LIGHT, R.string.theme_light, Icons.Rounded.LightMode),
+    Triple(ThemeMode.DARK, R.string.theme_dark, Icons.Rounded.DarkMode),
+    Triple(ThemeMode.SYSTEM, R.string.theme_system, Icons.Rounded.BrightnessAuto),
 )
 
 private val json = Json { ignoreUnknownKeys = true }
@@ -197,15 +201,15 @@ fun SettingsScreen(
             }
             isCheckingUpdate = false
             when {
-                newer == null -> showToast(context, "خطا در بررسی به‌روزرسانی")
-                newer.isEmpty() -> showToast(context, "برنامه به‌روز است")
+                newer == null -> showToast(context, context.getString(R.string.update_check_error))
+                newer.isEmpty() -> showToast(context, context.getString(R.string.up_to_date))
                 else -> latestVersionUrl = newer
             }
         }
     }
 
     GlassScaffold(
-        title = "تنظیمات",
+        title = stringResource(R.string.settings),
         titleAlpha = {
             if (listState.firstVisibleItemIndex > 0) 1f
             else (listState.firstVisibleItemScrollOffset / with(density) { 56.dp.toPx() }).coerceIn(0f, 1f)
@@ -215,7 +219,7 @@ fun SettingsScreen(
                 LiquidIconButton(
                     onClick = { it.navigate("favorites") },
                     icon = Icons.Rounded.Favorite,
-                    contentDescription = "علاقه‌مندی‌ها",
+                    contentDescription = stringResource(R.string.favorites),
                     iconTint = colors.heart
                 )
             }
@@ -232,12 +236,33 @@ fun SettingsScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            item { LargeTitle("تنظیمات", "ظاهر و پخش را به سلیقه خودت تنظیم کن") }
+            item { LargeTitle(stringResource(R.string.settings), stringResource(R.string.settings_subtitle)) }
 
             // Appearance
             item {
-                SettingsCard(icon = Icons.Rounded.Palette, title = "ظاهر") {
-                    Label("حالت نمایش")
+                SettingsCard(icon = Icons.Rounded.Palette, title = stringResource(R.string.appearance)) {
+                    Label(stringResource(R.string.language))
+                    val languages = listOf(
+                        AppLanguage.Persian to stringResource(R.string.language_fa),
+                        AppLanguage.English to stringResource(R.string.language_en),
+                        AppLanguage.System to stringResource(R.string.theme_system),
+                    )
+                    val currentLanguage = remember { AppLanguage.current() }
+                    LiquidTabs(
+                        selectedIndex = languages.indexOfFirst { it.first == currentLanguage }.coerceAtLeast(0),
+                        onTabSelected = { AppLanguage.apply(languages[it].first) },
+                        tabsCount = languages.size,
+                        height = 52.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        languages.forEach { (language, label) ->
+                            LiquidTab(onClick = { AppLanguage.apply(language) }) {
+                                Text(label, style = GlassType.Headline, color = colors.content, maxLines = 1)
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Label(stringResource(R.string.display_mode))
                     LiquidTabs(
                         selectedIndex = themeModes.indexOfFirst { it.first == themeSettings.themeMode }.coerceAtLeast(0),
                         onTabSelected = { updateTheme(themeSettings.copy(themeMode = themeModes[it].first)) },
@@ -248,18 +273,18 @@ fun SettingsScreen(
                         themeModes.forEach { (mode, label, icon) ->
                             LiquidTab(onClick = { updateTheme(themeSettings.copy(themeMode = mode)) }) {
                                 Icon(icon, null, tint = colors.content, modifier = Modifier.size(20.dp))
-                                Text(label, style = GlassType.CaptionBold.copy(fontSize = 11.sp), color = colors.content)
+                                Text(stringResource(label), style = GlassType.CaptionBold.copy(fontSize = 11.sp), color = colors.content)
                             }
                         }
                     }
                     Spacer(Modifier.height(6.dp))
-                    Label("رنگ اصلی")
+                    Label(stringResource(R.string.accent_color))
                     AccentPalette(
                         selected = themeSettings.primaryColor,
                         onSelect = { updateTheme(themeSettings.copy(primaryColor = it)) }
                     )
                     Spacer(Modifier.height(6.dp))
-                    Label("جنس شیشه")
+                    Label(stringResource(R.string.glass_material))
                     LiquidTabs(
                         selectedIndex = themeSettings.glassMaterial.ordinal,
                         onTabSelected = { updateTheme(themeSettings.copy(glassMaterial = GlassMaterial.entries[it])) },
@@ -269,24 +294,24 @@ fun SettingsScreen(
                     ) {
                         GlassMaterial.entries.forEach { material ->
                             LiquidTab(onClick = { updateTheme(themeSettings.copy(glassMaterial = material)) }) {
-                                Text(material.label, style = GlassType.CaptionBold.copy(fontSize = 11.sp), color = colors.content, maxLines = 1)
+                                Text(stringResource(material.label), style = GlassType.CaptionBold.copy(fontSize = 11.sp), color = colors.content, maxLines = 1)
                             }
                         }
                     }
                     Text(
-                        "«بدون شفافیت» سریع‌ترین حالت است و روی تلویزیون به صورت پیش‌فرض فعال می‌شود.",
+                        stringResource(R.string.glass_material_hint),
                         style = GlassType.Caption,
                         color = colors.contentTertiary
                     )
                     ToggleRow(
-                        title = "پوسترهای کوچک‌تر",
-                        subtitle = "نمایش عنوان‌های بیشتر در هر ردیف",
+                        title = stringResource(R.string.compact_posters),
+                        subtitle = stringResource(R.string.compact_posters_msg),
                         checked = themeSettings.compactGrid,
                         onCheckedChange = { updateTheme(themeSettings.copy(compactGrid = it)) }
                     )
                     ToggleRow(
-                        title = "بازخورد لمسی",
-                        subtitle = "لرزش کوتاه هنگام لمس دکمه‌ها و تب‌ها",
+                        title = stringResource(R.string.haptics),
+                        subtitle = stringResource(R.string.haptics_msg),
                         checked = themeSettings.haptics,
                         onCheckedChange = { updateTheme(themeSettings.copy(haptics = it)) }
                     )
@@ -295,20 +320,20 @@ fun SettingsScreen(
 
             // Player & subtitles
             item {
-                SettingsCard(icon = Icons.Rounded.Subtitles, title = "پخش‌کننده و زیرنویس") {
+                SettingsCard(icon = Icons.Rounded.Subtitles, title = stringResource(R.string.player_and_subtitles)) {
                     ToggleRow(
-                        title = "پخش خودکار",
-                        subtitle = "ویدیو بلافاصله پس از باز شدن پخش شود",
+                        title = stringResource(R.string.autoplay),
+                        subtitle = stringResource(R.string.autoplay_msg),
                         checked = playerSettings.autoplay,
                         onCheckedChange = { updatePlayer(playerSettings.copy(autoplay = it)) }
                     )
                     ToggleRow(
-                        title = "ادامه از جای قبلی",
-                        subtitle = "پخش از همان لحظه‌ای که متوقف کرده بودید",
+                        title = stringResource(R.string.resume),
+                        subtitle = stringResource(R.string.resume_msg),
                         checked = playerSettings.resumePlayback,
                         onCheckedChange = { updatePlayer(playerSettings.copy(resumePlayback = it)) }
                     )
-                    Label("سرعت پیش‌فرض پخش")
+                    Label(stringResource(R.string.default_speed))
                     LiquidTabs(
                         selectedIndex = VideoPlayerSettings.SPEEDS.indexOf(playerSettings.playbackSpeed).coerceAtLeast(0),
                         onTabSelected = { updatePlayer(playerSettings.copy(playbackSpeed = VideoPlayerSettings.SPEEDS[it])) },
@@ -324,7 +349,7 @@ fun SettingsScreen(
                     }
                     Spacer(Modifier.height(6.dp))
                     SubtitlePreview(subtitleSettings)
-                    ValueLabel("زمان جلو/عقب رفتن", "${playerSettings.seekTimeSeconds} ثانیه")
+                    ValueLabel(stringResource(R.string.seek_step), stringResource(R.string.n_seconds, playerSettings.seekTimeSeconds))
                     LiquidSlider(
                         value = playerSettings.seekTimeSeconds.toFloat(),
                         onValueChange = { v ->
@@ -334,7 +359,7 @@ fun SettingsScreen(
                         valueRange = 5f..30f,
                         steps = 24
                     )
-                    ValueLabel("اندازه متن زیرنویس", "${subtitleSettings.textSize.toInt()}sp")
+                    ValueLabel(stringResource(R.string.subtitle_size), "${subtitleSettings.textSize.toInt()}sp")
                     LiquidSlider(
                         value = subtitleSettings.textSize,
                         onValueChange = { v ->
@@ -345,19 +370,19 @@ fun SettingsScreen(
                         steps = 19
                     )
                     SubtitleColorSetting(
-                        title = "رنگ متن",
+                        title = stringResource(R.string.text_color),
                         current = Color(subtitleSettings.textColor),
                         options = listOf(Color.Yellow, Color.White, Color(0xFF64D2FF), Color(0xFF30D158), Color(0xFFFF9F0A)),
                         onSelect = { updateSubtitles(subtitleSettings.copy(textColor = it.toArgb())) }
                     )
                     SubtitleColorSetting(
-                        title = "رنگ پس‌زمینه",
+                        title = stringResource(R.string.background_color),
                         current = Color(subtitleSettings.backgroundColor),
                         options = listOf(Color.Transparent, Color.Black, Color.Black.copy(alpha = 0.5f), Color(0xFF1C1C1E), Color.White),
                         onSelect = { updateSubtitles(subtitleSettings.copy(backgroundColor = it.toArgb())) }
                     )
                     SubtitleColorSetting(
-                        title = "رنگ حاشیه",
+                        title = stringResource(R.string.border_color),
                         current = Color(subtitleSettings.borderColor),
                         options = listOf(Color.Transparent, Color.Black, Color.White, Color.Red, Color.Blue),
                         onSelect = { updateSubtitles(subtitleSettings.copy(borderColor = it.toArgb())) }
@@ -371,14 +396,14 @@ fun SettingsScreen(
                     Column(Modifier.padding(vertical = 6.dp)) {
                         GlassRow(
                             icon = Icons.Rounded.CleaningServices,
-                            title = "پاک کردن حافظه موقت",
-                            subtitle = "تصاویر ذخیره شده: $cacheSize",
+                            title = stringResource(R.string.clear_cache),
+                            subtitle = stringResource(R.string.cached_images, cacheSize),
                             iconTint = Color(0xFF30B0C7),
                             onClick = {
                                 scope.launch {
                                     withContext(Dispatchers.IO) { clearImageCache(context) }
                                     cacheSize = withContext(Dispatchers.IO) { formatBytes(cacheBytes(context)) }
-                                    showToast(context, "حافظه موقت پاک شد")
+                                    showToast(context, context.getString(R.string.cache_cleared))
                                 }
                             },
                             trailing = null
@@ -386,8 +411,8 @@ fun SettingsScreen(
                         GlassDivider()
                         GlassRow(
                             icon = Icons.Rounded.History,
-                            title = "پاک کردن تاریخچه تماشا",
-                            subtitle = "حذف فهرست «ادامه تماشا»",
+                            title = stringResource(R.string.clear_history),
+                            subtitle = stringResource(R.string.clear_history_msg),
                             iconTint = Color(0xFFFF9500),
                             onClick = { showClearHistoryDialog = true },
                             trailing = null
@@ -402,24 +427,24 @@ fun SettingsScreen(
                     Column(Modifier.padding(vertical = 6.dp)) {
                         GlassRow(
                             icon = Icons.Rounded.Favorite,
-                            title = "علاقه‌مندی‌ها",
-                            subtitle = "فیلم‌ها و سریال‌های ذخیره شده",
+                            title = stringResource(R.string.favorites),
+                            subtitle = stringResource(R.string.saved_titles),
                             iconTint = colors.heart,
                             onClick = { navController?.navigate("favorites") }
                         )
                         GlassDivider()
                         GlassRow(
                             icon = Icons.Rounded.Info,
-                            title = "درباره ویسپار",
-                            subtitle = "نسخه ${BuildConfig.VERSION_NAME}",
+                            title = stringResource(R.string.about_vispar),
+                            subtitle = stringResource(R.string.version_x, BuildConfig.VERSION_NAME),
                             iconTint = Color(0xFF8E8E93),
                             onClick = { navController?.navigate("about") }
                         )
                         GlassDivider()
                         GlassRow(
                             icon = Icons.Rounded.SystemUpdate,
-                            title = "بررسی به‌روزرسانی",
-                            subtitle = "دریافت آخرین نسخه از گیت‌هاب",
+                            title = stringResource(R.string.check_updates),
+                            subtitle = stringResource(R.string.check_updates_msg),
                             iconTint = Color(0xFF34C759),
                             onClick = { checkForUpdates() },
                             trailing = if (isCheckingUpdate) {
@@ -431,8 +456,8 @@ fun SettingsScreen(
                         GlassDivider()
                         GlassRow(
                             icon = Icons.Rounded.RestartAlt,
-                            title = "بازنشانی تنظیمات",
-                            subtitle = "بازگشت همه گزینه‌ها به حالت پیش‌فرض",
+                            title = stringResource(R.string.reset_settings),
+                            subtitle = stringResource(R.string.reset_settings_msg),
                             iconTint = colors.danger,
                             onClick = { showResetDialog = true },
                             trailing = null
@@ -445,15 +470,15 @@ fun SettingsScreen(
 
     if (showClearHistoryDialog) {
         GlassAlertDialog(
-            title = "پاک کردن تاریخچه تماشا",
-            message = "فهرست «ادامه تماشا» و جای ذخیره شده همه ویدیوها حذف می‌شود.",
-            confirmText = "پاک کردن",
+            title = stringResource(R.string.clear_history),
+            message = stringResource(R.string.clear_history_confirm),
+            confirmText = stringResource(R.string.clear),
             onConfirm = {
                 WatchHistory.clear(context)
                 showClearHistoryDialog = false
-                showToast(context, "تاریخچه تماشا پاک شد")
+                showToast(context, context.getString(R.string.history_cleared))
             },
-            dismissText = "انصراف",
+            dismissText = stringResource(R.string.cancel),
             onDismiss = { showClearHistoryDialog = false },
             icon = Icons.Rounded.History,
             destructive = true
@@ -462,16 +487,16 @@ fun SettingsScreen(
 
     if (showResetDialog) {
         GlassAlertDialog(
-            title = "بازنشانی تنظیمات",
-            message = "آیا مطمئن هستید که می‌خواهید تمام تنظیمات را به مقادیر پیش‌فرض بازنشانی کنید؟",
-            confirmText = "بازنشانی",
+            title = stringResource(R.string.reset_settings),
+            message = stringResource(R.string.reset_settings_confirm),
+            confirmText = stringResource(R.string.reset),
             onConfirm = {
                 updateTheme(ThemeSettings())
                 updateSubtitles(SubtitleSettings.DEFAULT)
                 updatePlayer(VideoPlayerSettings.DEFAULT)
                 showResetDialog = false
             },
-            dismissText = "انصراف",
+            dismissText = stringResource(R.string.cancel),
             onDismiss = { showResetDialog = false },
             icon = Icons.Rounded.RestartAlt,
             destructive = true
@@ -480,14 +505,14 @@ fun SettingsScreen(
 
     latestVersionUrl?.let { url ->
         GlassAlertDialog(
-            title = "به‌روزرسانی موجود است",
-            message = "نسخه جدیدی از برنامه موجود است. آیا مایلید اکنون آن را دانلود کنید؟",
-            confirmText = "دانلود",
+            title = stringResource(R.string.update_available),
+            message = stringResource(R.string.update_available_msg),
+            confirmText = stringResource(R.string.download),
             onConfirm = {
                 latestVersionUrl = null
                 runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
             },
-            dismissText = "بعداً",
+            dismissText = stringResource(R.string.later),
             onDismiss = { latestVersionUrl = null },
             icon = Icons.Rounded.SystemUpdate
         )
@@ -594,7 +619,7 @@ private fun AccentPalette(selected: Color, onSelect: (Color) -> Unit) {
             ) {
                 if (isSelected) {
                     Icon(
-                        Icons.Rounded.Check, "انتخاب شده",
+                        Icons.Rounded.Check, stringResource(R.string.selected),
                         tint = if (color.toArgb() == MonochromeAccent.toArgb()) colors.accent else Color.White,
                         modifier = Modifier
                             .size(22.dp)
@@ -625,7 +650,7 @@ private fun SubtitlePreview(settings: SubtitleSettings) {
     ) {
         val border = Color(settings.borderColor)
         Text(
-            "این یک نمونه زیرنویس است",
+            stringResource(R.string.subtitle_sample),
             color = Color(settings.textColor),
             fontSize = settings.textSize.sp,
             fontWeight = FontWeight.Bold,
@@ -674,7 +699,7 @@ private fun SubtitleColorSetting(
                             tint = if (option.alpha == 0f || option.toArgb() == Color.White.toArgb() || option.toArgb() == Color.Yellow.toArgb()) colors.accent else Color.White,
                             modifier = Modifier.size(16.dp)
                         )
-                        option.alpha == 0f -> Icon(Icons.Rounded.Block, "بدون رنگ", tint = colors.contentTertiary, modifier = Modifier.size(16.dp))
+                        option.alpha == 0f -> Icon(Icons.Rounded.Block, stringResource(R.string.no_color), tint = colors.contentTertiary, modifier = Modifier.size(16.dp))
                     }
                 }
             }
@@ -688,7 +713,7 @@ private fun SpinningIcon() {
     val rotation by transition.animateFloat(0f, 360f, infiniteRepeatable(tween(900, easing = LinearEasing)), label = "r")
     Icon(
         Icons.Rounded.Sync,
-        "در حال بررسی",
+        stringResource(R.string.checking),
         tint = Glass.colors.accent,
         modifier = Modifier.size(22.dp).graphicsLayer { rotationZ = rotation }
     )

@@ -77,6 +77,9 @@ The video player renders into a `TextureView`, so its glass controls refract the
 - **Continue watching** shelf on the Movies and Series tabs
 - Clear image cache and watch history
 
+### Languages
+- Persian (right-to-left) and English (left-to-right), switchable in Settings; Persian is the default
+
 ### Android TV
 - Launcher banner, glass sidebar, focus rings and lift on every control
 - Remote-controlled player: OK = play/pause, ←/→ = seek, ↑/↓ = controls, media keys supported

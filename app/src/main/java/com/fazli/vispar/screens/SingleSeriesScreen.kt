@@ -1,5 +1,8 @@
 package com.fazli.vispar.screens
 
+import androidx.compose.ui.res.stringResource
+import com.fazli.vispar.R
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -98,12 +101,12 @@ fun SingleSeriesScreen(
         if (isFavorite) {
             StorageUtils.removeFavorite(context, seriesId, "series")
             isFavorite = false
-            showToast(context, "از موارد مورد علاقه حذف شد")
+            showToast(context, context.getString(R.string.removed_from_favorites))
         } else {
             series?.let {
                 StorageUtils.saveFavorite(context, it.toFavorite())
                 isFavorite = true
-                showToast(context, "به موارد مورد علاقه اضافه شد")
+                showToast(context, context.getString(R.string.added_to_favorites))
             }
         }
     }
@@ -144,7 +147,7 @@ fun SingleSeriesScreen(
         scrollOffset = { listState.scrollOffsetPx() }
     ) { backdrop ->
         GlassScaffold(
-            title = series?.title ?: "جزئیات سریال",
+            title = series?.title ?: stringResource(R.string.series_details),
             titleAlpha = { ((listState.scrollOffsetPx() - 260f) / 140f).coerceIn(0f, 1f) },
             onBack = { navController.popBackStack() },
             actions = {
@@ -164,8 +167,8 @@ fun SingleSeriesScreen(
                 )
 
                 loaded -> DetailNotFound(
-                    title = "سریال یافت نشد",
-                    message = "متاسفانه اطلاعات سریال مورد نظر در دسترس نیست",
+                    title = stringResource(R.string.series_not_found),
+                    message = stringResource(R.string.series_not_found_msg),
                     padding = padding
                 )
 
@@ -177,7 +180,7 @@ fun SingleSeriesScreen(
     playPickerFor?.let { episode ->
         QualityPickerDialog(
             title = episode.title,
-            message = "کیفیت را برای پخش انتخاب کنید",
+            message = stringResource(R.string.choose_quality_to_play),
             sources = episode.sources,
             icon = Icons.Rounded.PlayArrow,
             onPick = { source ->
@@ -190,8 +193,8 @@ fun SingleSeriesScreen(
 
     downloadPickerFor?.let { episode ->
         QualityPickerDialog(
-            title = "انتخاب کیفیت برای دانلود",
-            message = "یک گزینه کیفیت برای دانلود انتخاب کنید",
+            title = stringResource(R.string.choose_download_quality),
+            message = stringResource(R.string.choose_download_quality_msg),
             sources = episode.sources,
             icon = Icons.Rounded.Download,
             primary = false,
@@ -251,7 +254,7 @@ private fun SeriesDetails(
                 ) {
                     Icon(Icons.Rounded.PlayArrow, null, tint = colors.onAccent, modifier = Modifier.size(26.dp))
                     Text(
-                        "پخش ${season?.title ?: "قسمت اول"}",
+                        stringResource(R.string.play_x, season?.title ?: stringResource(R.string.first_episode)),
                         style = GlassType.Headline,
                         color = colors.onAccent,
                         maxLines = 1
@@ -266,17 +269,17 @@ private fun SeriesDetails(
             viewModel.isLoading -> item(key = "seasons-loading") {
                 Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     LiquidLoader()
-                    Text("در حال بارگذاری فصل‌ها...", style = GlassType.Callout, color = colors.contentSecondary, modifier = Modifier.padding(top = 12.dp))
+                    Text(stringResource(R.string.loading_seasons), style = GlassType.Callout, color = colors.contentSecondary, modifier = Modifier.padding(top = 12.dp))
                 }
             }
 
             viewModel.errorMessage != null -> item(key = "seasons-error") {
                 StatusView(
                     icon = Icons.Rounded.CloudOff,
-                    title = "خطا در بارگذاری فصل‌ها",
+                    title = stringResource(R.string.seasons_error),
                     message = viewModel.errorMessage,
                     iconTint = colors.danger,
-                    actionText = "تلاش مجدد",
+                    actionText = stringResource(R.string.retry),
                     actionIcon = Icons.Rounded.Refresh,
                     onAction = { viewModel.loadSeasons(series.id) },
                     modifier = Modifier.fillMaxWidth()
@@ -284,19 +287,19 @@ private fun SeriesDetails(
             }
 
             seasons.isEmpty() -> item(key = "seasons-empty") {
-                StatusView(icon = Icons.Rounded.LayersClear, title = "فصلی موجود نیست", modifier = Modifier.fillMaxWidth())
+                StatusView(icon = Icons.Rounded.LayersClear, title = stringResource(R.string.no_seasons), modifier = Modifier.fillMaxWidth())
             }
 
             else -> {
                 item(key = "seasons-title") {
-                    SectionHeader("فصل‌ها", trailing = "${seasons.size} فصل")
+                    SectionHeader(stringResource(R.string.seasons), trailing = stringResource(R.string.n_seasons, seasons.size))
                 }
                 item(key = "seasons-picker") {
                     SeasonPicker(seasons, selectedSeason) { selectedSeason = it }
                 }
                 if (season != null) {
                     item(key = "episodes-title") {
-                        SectionHeader(season.title, trailing = "${season.episodes.size} قسمت")
+                        SectionHeader(season.title, trailing = stringResource(R.string.n_episodes, season.episodes.size))
                     }
                     itemsIndexed(season.episodes, key = { _, e -> "e${season.id}-${e.id}" }) { index, episode ->
                         EpisodeCard(
@@ -402,7 +405,7 @@ private fun EpisodeCard(number: Int, episode: Episode, onPlay: () -> Unit, onDow
                 Text(episode.title, style = GlassType.Headline, color = colors.content, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 val meta = listOfNotNull(
                     episode.duration?.takeIf { it.isNotBlank() },
-                    episode.sources.size.takeIf { it > 1 }?.let { "$it کیفیت" }
+                    episode.sources.size.takeIf { it > 1 }?.let { stringResource(R.string.n_qualities, it) }
                 ).joinToString("  •  ")
                 if (meta.isNotEmpty()) {
                     Text(meta, style = GlassType.Caption, color = colors.contentSecondary)
@@ -412,7 +415,7 @@ private fun EpisodeCard(number: Int, episode: Episode, onPlay: () -> Unit, onDow
                 LiquidIconButton(
                     onClick = onDownload,
                     icon = Icons.Rounded.Download,
-                    contentDescription = "دانلود",
+                    contentDescription = stringResource(R.string.download),
                     size = 40.dp,
                     iconSize = 20.dp
                 )

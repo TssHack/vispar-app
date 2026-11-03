@@ -1,5 +1,8 @@
 package com.fazli.vispar.screens
 
+import androidx.compose.ui.res.stringResource
+import com.fazli.vispar.R
+
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -95,12 +98,12 @@ fun SingleMovieScreen(
         if (isFavorite) {
             StorageUtils.removeFavorite(context, movieId, "movie")
             isFavorite = false
-            showToast(context, "از موارد مورد علاقه حذف شد")
+            showToast(context, context.getString(R.string.removed_from_favorites))
         } else {
             movie?.let {
                 StorageUtils.saveFavorite(context, it.toFavorite())
                 isFavorite = true
-                showToast(context, "به موارد مورد علاقه اضافه شد")
+                showToast(context, context.getString(R.string.added_to_favorites))
             }
         }
     }
@@ -110,7 +113,7 @@ fun SingleMovieScreen(
         scrollOffset = { scroll.value.toFloat() }
     ) { backdrop ->
         GlassScaffold(
-            title = movie?.title ?: "جزئیات فیلم",
+            title = movie?.title ?: stringResource(R.string.movie_details),
             titleAlpha = { ((scroll.value - 260f) / 140f).coerceIn(0f, 1f) },
             onBack = { navController.popBackStack() },
             actions = {
@@ -137,8 +140,8 @@ fun SingleMovieScreen(
                 )
 
                 loaded -> DetailNotFound(
-                    title = "فیلم یافت نشد",
-                    message = "متاسفانه اطلاعات فیلم مورد نظر در دسترس نیست",
+                    title = stringResource(R.string.movie_not_found),
+                    message = stringResource(R.string.movie_not_found_msg),
                     padding = padding
                 )
 
@@ -166,8 +169,8 @@ fun SingleMovieScreen(
 
     if (pickQualityToPlay) {
         QualityPickerDialog(
-            title = "انتخاب کیفیت",
-            message = "کیفیت پخش را انتخاب کنید",
+            title = stringResource(R.string.choose_quality),
+            message = stringResource(R.string.choose_play_quality),
             sources = movie?.sources.orEmpty(),
             icon = Icons.Rounded.PlayArrow,
             onPick = { source ->
@@ -219,12 +222,12 @@ private fun MovieDetails(
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(Icons.Rounded.PlayArrow, null, tint = colors.onAccent, modifier = Modifier.size(26.dp))
-                    Text("پخش فیلم", style = GlassType.Headline, color = colors.onAccent)
+                    Text(stringResource(R.string.play_movie), style = GlassType.Headline, color = colors.onAccent)
                 }
                 LiquidIconButton(
                     onClick = { onDownload(movie.sources.first()) },
                     icon = Icons.Rounded.Download,
-                    contentDescription = "دانلود",
+                    contentDescription = stringResource(R.string.download),
                     size = 54.dp
                 )
             }
@@ -234,7 +237,7 @@ private fun MovieDetails(
         DescriptionCard(movie.description)
 
         if (movie.sources.isNotEmpty()) {
-            SectionHeader("کیفیت‌های موجود", trailing = "${movie.sources.size} کیفیت")
+            SectionHeader(stringResource(R.string.available_qualities), trailing = stringResource(R.string.n_qualities, movie.sources.size))
             Column(
                 Modifier.padding(horizontal = Glass.ScreenPadding),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -273,11 +276,11 @@ fun SourceRow(source: Source, onClick: () -> Unit, onPlay: () -> Unit, onDownloa
                     Text(source.type.uppercase(), style = GlassType.Caption, color = colors.contentTertiary)
                 }
             }
-            LiquidIconButton(onClick = onDownload, icon = Icons.Rounded.Download, contentDescription = "دانلود", size = 42.dp, iconSize = 20.dp)
+            LiquidIconButton(onClick = onDownload, icon = Icons.Rounded.Download, contentDescription = stringResource(R.string.download), size = 42.dp, iconSize = 20.dp)
             LiquidIconButton(
                 onClick = onPlay,
                 icon = Icons.Rounded.PlayArrow,
-                contentDescription = "پخش",
+                contentDescription = stringResource(R.string.play),
                 tint = colors.accent,
                 size = 42.dp,
                 iconSize = 22.dp
@@ -296,12 +299,12 @@ fun SourceOptionsDialog(
     GlassDialog(onDismissRequest = onDismiss) {
         DialogHeader(
             title = source.quality,
-            message = "یک عمل برای این کیفیت ویدیو انتخاب کنید",
+            message = stringResource(R.string.choose_action),
             icon = Icons.Rounded.HighQuality
         )
-        DialogAction("پخش در برنامه", onPlay, DialogActionStyle.Primary, Icons.Rounded.PlayArrow)
-        DialogAction("گزینه‌های دانلود", onDownload, DialogActionStyle.Secondary, Icons.Rounded.Download)
-        DialogAction("انصراف", onDismiss, DialogActionStyle.Plain)
+        DialogAction(stringResource(R.string.play_in_app), onPlay, DialogActionStyle.Primary, Icons.Rounded.PlayArrow)
+        DialogAction(stringResource(R.string.download_options), onDownload, DialogActionStyle.Secondary, Icons.Rounded.Download)
+        DialogAction(stringResource(R.string.cancel), onDismiss, DialogActionStyle.Plain)
     }
 }
 

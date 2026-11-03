@@ -1,5 +1,7 @@
 package com.fazli.vispar.navigation
 
+import com.fazli.vispar.R
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -65,7 +67,7 @@ fun SidebarNavigation(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("ویسپار", style = GlassType.Headline, color = colors.accent)
+        Text(stringResource(R.string.app_name), style = GlassType.Headline, color = colors.accent)
         Spacer(Modifier.height(12.dp))
         AppScreens.screens.filter { it.showSidebar }.forEach { screen ->
             val selected = currentRoute == screen.route

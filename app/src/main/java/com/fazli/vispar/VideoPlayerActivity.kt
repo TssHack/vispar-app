@@ -1,5 +1,7 @@
 package com.fazli.vispar
 
+import androidx.compose.ui.res.stringResource
+
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -13,7 +15,7 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.FrameLayout
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -149,7 +151,7 @@ data class PlayerMeta(
     val type: String = "movie",
 )
 
-class VideoPlayerActivity : ComponentActivity() {
+class VideoPlayerActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_VIDEO_URL = "video_url"
         private const val EXTRA_TITLE = "title"
@@ -203,7 +205,6 @@ class VideoPlayerActivity : ComponentActivity() {
             // The player is always dark: glass is tuned for video content.
             CompositionLocalProvider(
                 LocalGlassColors provides glassColors(isDark = true, accent = theme.primaryColor, material = theme.glassMaterial),
-                LocalLayoutDirection provides LayoutDirection.Rtl,
                 LocalIsTv provides isTv,
             ) {
                 VideoPlayerScreen(meta, onBack = ::finish) { exoPlayer = it }
@@ -297,7 +298,7 @@ fun VideoPlayerScreen(
                 playWhenReady = settings.autoplay
             }
         } catch (e: Exception) {
-            playerError = e.message ?: "خطا در راه‌اندازی پخش‌کننده"
+            playerError = e.message ?: context.getString(R.string.player_init_error)
             null
         }
     }
@@ -333,7 +334,7 @@ fun VideoPlayerScreen(
             context,
             WatchEntry(
                 url = meta.url,
-                title = meta.title.ifBlank { "ویدیو" },
+                title = meta.title.ifBlank { context.getString(R.string.video) },
                 subtitle = meta.subtitle,
                 image = meta.image,
                 contentId = meta.contentId,
@@ -358,7 +359,7 @@ fun VideoPlayerScreen(
             }
 
             override fun onPlayerError(error: PlaybackException) {
-                playerError = error.message ?: "خطا در پخش ویدیو"
+                playerError = error.message ?: context.getString(R.string.playback_error)
             }
         }
         exoPlayer?.addListener(listener)
@@ -457,10 +458,10 @@ fun VideoPlayerScreen(
             if (playerError != null) {
                 StatusView(
                     icon = Icons.Rounded.ErrorOutline,
-                    title = "پخش ویدیو ممکن نیست",
+                    title = stringResource(R.string.cannot_play),
                     message = playerError,
                     iconTint = colors.danger,
-                    actionText = "بازگشت",
+                    actionText = stringResource(R.string.back),
                     onAction = onBack,
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -499,13 +500,13 @@ fun VideoPlayerScreen(
                 SeekIndicator(
                     visible = seekFeedback == -1,
                     icon = Icons.Rounded.FastRewind,
-                    label = "${settings.seekTimeSeconds} ثانیه",
+                    label = stringResource(R.string.n_seconds, settings.seekTimeSeconds),
                     modifier = Modifier.align(Alignment.CenterStart).padding(start = 64.dp)
                 )
                 SeekIndicator(
                     visible = seekFeedback == 1,
                     icon = Icons.Rounded.FastForward,
-                    label = "${settings.seekTimeSeconds} ثانیه",
+                    label = stringResource(R.string.n_seconds, settings.seekTimeSeconds),
                     modifier = Modifier.align(Alignment.CenterEnd).padding(end = 64.dp)
                 )
 
@@ -546,7 +547,7 @@ fun VideoPlayerScreen(
 
         if (showSpeedPicker) {
             GlassDialog(onDismissRequest = { showSpeedPicker = false }) {
-                DialogHeader(title = "سرعت پخش", icon = Icons.Rounded.Speed)
+                DialogHeader(title = stringResource(R.string.playback_speed), icon = Icons.Rounded.Speed)
                 VideoPlayerSettings.SPEEDS.forEach { option ->
                     DialogAction(
                         text = formatSpeed(option),
@@ -610,7 +611,7 @@ private fun PlayerChrome(
             LiquidIconButton(
                 onClick = onBack,
                 icon = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "بازگشت",
+                contentDescription = stringResource(R.string.back),
                 iconTint = Color.White
             )
             if (meta.title.isNotBlank()) {
@@ -639,7 +640,7 @@ private fun PlayerChrome(
                 LiquidIconButton(
                     onClick = { onSeekBy(-seekSeconds * 1000L) },
                     icon = Icons.Rounded.Replay10,
-                    contentDescription = "عقب",
+                    contentDescription = stringResource(R.string.rewind),
                     iconTint = Color.White,
                     size = 56.dp,
                     iconSize = 28.dp
@@ -648,7 +649,7 @@ private fun PlayerChrome(
                     LiquidIconButton(
                         onClick = onTogglePlay,
                         icon = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                        contentDescription = if (isPlaying) "توقف" else "پخش",
+                        contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
                         iconTint = Color.White,
                         size = 84.dp,
                         iconSize = 44.dp,
@@ -659,7 +660,7 @@ private fun PlayerChrome(
                 LiquidIconButton(
                     onClick = { onSeekBy(seekSeconds * 1000L) },
                     icon = Icons.Rounded.Forward10,
-                    contentDescription = "جلو",
+                    contentDescription = stringResource(R.string.forward),
                     iconTint = Color.White,
                     size = 56.dp,
                     iconSize = 28.dp

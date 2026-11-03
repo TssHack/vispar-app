@@ -2,7 +2,8 @@ package com.fazli.vispar
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
+import com.fazli.vispar.utils.AppLanguage
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
@@ -28,9 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -54,9 +53,10 @@ import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberCombinedBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppLanguage.ensureInitialized(this)
         // Portrait on phones and tablets; TVs have a fixed orientation.
         if (!DeviceUtils.isTv(this)) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
@@ -74,17 +74,15 @@ fun MainApp() {
     val themeManager = remember { ThemeManager(context) }
     var themeSettings by remember { mutableStateOf(themeManager.loadThemeSettings()) }
 
-    // The whole app is right-to-left (Persian).
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        visparTheme(themeSettings) {
-            MainScreen(
-                themeSettings = themeSettings,
-                onThemeSettingsChanged = {
-                    themeSettings = it
-                    themeManager.saveThemeSettings(it)
-                }
-            )
-        }
+    // Layout direction comes from the locale: right-to-left for Persian, left-to-right for English.
+    visparTheme(themeSettings) {
+        MainScreen(
+            themeSettings = themeSettings,
+            onThemeSettingsChanged = {
+                themeSettings = it
+                themeManager.saveThemeSettings(it)
+            }
+        )
     }
 }
 

@@ -1,5 +1,8 @@
 package com.fazli.vispar.screens
 
+import androidx.compose.ui.res.stringResource
+import com.fazli.vispar.R
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -35,13 +38,13 @@ fun MoviesScreen(
     val (continueWatching, removeContinue) = rememberContinueWatching("movie")
 
     CatalogScreen(
-        title = "فیلم‌ها",
-        subtitle = "تازه‌ترین فیلم‌های جهان، یک لمس فاصله",
+        title = stringResource(R.string.movies),
+        subtitle = stringResource(R.string.movies_subtitle),
         items = items,
         isLoading = viewModel.isLoading,
         isLoadingMore = viewModel.isLoadingMore,
         errorMessage = viewModel.errorMessage,
-        errorTitle = "خطا در بارگذاری فیلم‌ها",
+        errorTitle = stringResource(R.string.movies_error),
         onRetry = { viewModel.retry() },
         onRefresh = { viewModel.refresh() },
         onLoadMore = { viewModel.loadMoreMovies() },

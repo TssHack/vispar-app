@@ -19,3 +19,15 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# --- Vispar ---
+# kotlinx.serialization: keep generated serializers of the app's @Serializable models.
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.**
+-keepclassmembers @kotlinx.serialization.Serializable class com.fazli.vispar.** {
+    *** Companion;
+    *** INSTANCE;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.fazli.vispar.**$$serializer { *; }
+# Media3 PlayerView is inflated from XML.
+-keep class androidx.media3.ui.PlayerView { <init>(...); }

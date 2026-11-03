@@ -1,5 +1,8 @@
 package com.fazli.vispar.screens
 
+import androidx.compose.ui.res.stringResource
+import com.fazli.vispar.R
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,14 +62,14 @@ fun FavoritesScreen(navController: NavController) {
     }
 
     GlassScaffold(
-        title = "علاقه‌مندی‌ها",
+        title = stringResource(R.string.favorites),
         onBack = { navController.popBackStack() },
         actions = {
             if (favorites.isNotEmpty()) {
                 LiquidIconButton(
                     onClick = { confirmClearAll = true },
                     icon = Icons.Rounded.DeleteSweep,
-                    contentDescription = "حذف همه",
+                    contentDescription = stringResource(R.string.delete_all),
                     iconTint = colors.danger
                 )
             }
@@ -76,8 +79,8 @@ fun FavoritesScreen(navController: NavController) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 StatusView(
                     icon = Icons.Rounded.FavoriteBorder,
-                    title = "هنوز مورد علاقه‌ای اضافه نشده",
-                    message = "برای افزودن به مورد علاقه‌ها، روی آیکون قلب در صفحه جزئیات ضربه بزنید",
+                    title = stringResource(R.string.no_favorites),
+                    message = stringResource(R.string.no_favorites_msg),
                     iconTint = colors.heart
                 )
             }
@@ -93,7 +96,7 @@ fun FavoritesScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item(key = "title") {
-                    LargeTitle("علاقه‌مندی‌ها", "${favorites.size} عنوان ذخیره شده", Modifier.padding(bottom = 4.dp))
+                    LargeTitle(stringResource(R.string.favorites), stringResource(R.string.n_saved, favorites.size), Modifier.padding(bottom = 4.dp))
                 }
                 items(favorites, key = { "${it.type}-${it.id}" }) { favorite ->
                     FavoriteCard(
@@ -113,7 +116,7 @@ fun FavoritesScreen(navController: NavController) {
                         onDelete = {
                             StorageUtils.removeFavorite(context, favorite.id, favorite.type)
                             favorites = StorageUtils.loadAllFavorites(context)
-                            showToast(context, "از موارد مورد علاقه حذف شد")
+                            showToast(context, context.getString(R.string.removed_from_favorites))
                         }
                     )
                 }
@@ -123,16 +126,16 @@ fun FavoritesScreen(navController: NavController) {
 
     if (confirmClearAll) {
         GlassAlertDialog(
-            title = "حذف تمام موارد مورد علاقه",
-            message = "آیا از حذف تمام موارد مورد علاقه مطمئن هستید؟ این عمل قابل بازگشت نیست.",
-            confirmText = "حذف همه",
+            title = stringResource(R.string.delete_all_favorites),
+            message = stringResource(R.string.delete_all_favorites_msg),
+            confirmText = stringResource(R.string.delete_all),
             onConfirm = {
                 StorageUtils.clearAllFavorites(context)
                 favorites = emptyList()
                 confirmClearAll = false
-                showToast(context, "تمام موارد مورد علاقه حذف شدند")
+                showToast(context, context.getString(R.string.all_favorites_deleted))
             },
-            dismissText = "انصراف",
+            dismissText = stringResource(R.string.cancel),
             onDismiss = { confirmClearAll = false },
             icon = Icons.Rounded.DeleteSweep,
             destructive = true
@@ -166,7 +169,7 @@ private fun FavoriteCard(
                         tint = colors.accent.copy(alpha = 0.25f),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 3.dp)
                     ) {
-                        Text(if (favorite.type == "movie") "فیلم" else "سریال", style = GlassType.CaptionBold, color = colors.content)
+                        Text(if (favorite.type == "movie") stringResource(R.string.movie) else stringResource(R.string.serie), style = GlassType.CaptionBold, color = colors.content)
                     }
                     if (favorite.year > 0) {
                         Text("${favorite.year}", style = GlassType.Caption, color = colors.contentSecondary)
@@ -182,7 +185,7 @@ private fun FavoriteCard(
             LiquidIconButton(
                 onClick = onDelete,
                 icon = Icons.Rounded.DeleteOutline,
-                contentDescription = "حذف",
+                contentDescription = stringResource(R.string.delete),
                 iconTint = colors.danger,
                 size = 42.dp,
                 iconSize = 20.dp

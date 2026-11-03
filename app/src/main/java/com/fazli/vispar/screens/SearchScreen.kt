@@ -1,5 +1,8 @@
 package com.fazli.vispar.screens
 
+import androidx.compose.ui.res.stringResource
+import com.fazli.vispar.R
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -48,7 +51,7 @@ import com.fazli.vispar.ui.search.SearchViewModel
 import com.fazli.vispar.ui.glass.LocalPosterColumns
 import com.fazli.vispar.utils.StorageUtils
 
-private val searchFilters = listOf("همه", "فیلم", "سریال")
+private val searchFilters = listOf(R.string.all, R.string.movie, R.string.serie)
 
 @Composable
 fun SearchScreen(
@@ -89,7 +92,7 @@ fun SearchScreen(
     }
 
     GlassScaffold(
-        title = "جستجو",
+        title = stringResource(R.string.search),
         titleAlpha = { compactTitleAlpha(gridState, with(density) { 56.dp.toPx() }) },
     ) { padding ->
         LazyVerticalGrid(
@@ -106,13 +109,13 @@ fun SearchScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item(span = { GridItemSpan(maxLineSpan) }, key = "title") {
-                LargeTitle("جستجو", "فیلم یا سریال مورد نظرت رو پیدا کن")
+                LargeTitle(stringResource(R.string.search), stringResource(R.string.search_subtitle))
             }
             item(span = { GridItemSpan(maxLineSpan) }, key = "field") {
                 GlassSearchField(
                     value = viewModel.searchQuery,
                     onValueChange = { viewModel.updateSearchQuery(it) },
-                    placeholder = "جستجوی فیلم و سریال...",
+                    placeholder = stringResource(R.string.search_placeholder),
                     onClear = { viewModel.clearSearch() },
                     onSearch = { focusManager.clearFocus() },
                     focusRequester = focusRequester
@@ -129,7 +132,7 @@ fun SearchScreen(
                     ) {
                         searchFilters.forEachIndexed { index, label ->
                             LiquidTab(onClick = { filter = index }) {
-                                Text(label, style = GlassType.Headline, color = colors.content)
+                                Text(stringResource(label), style = GlassType.Headline, color = colors.content)
                             }
                         }
                     }
@@ -146,10 +149,10 @@ fun SearchScreen(
                 viewModel.errorMessage != null -> item(span = { GridItemSpan(maxLineSpan) }, key = "error") {
                     StatusView(
                         icon = Icons.Rounded.CloudOff,
-                        title = "خطا در جستجو",
-                        message = viewModel.errorMessage ?: "خطای نامشخص",
+                        title = stringResource(R.string.search_error),
+                        message = viewModel.errorMessage ?: stringResource(R.string.unknown_error),
                         iconTint = colors.danger,
-                        actionText = "تلاش مجدد",
+                        actionText = stringResource(R.string.retry),
                         actionIcon = Icons.Rounded.Refresh,
                         onAction = { viewModel.updateSearchQuery(viewModel.searchQuery) },
                         modifier = Modifier.fillMaxWidth()
@@ -165,7 +168,7 @@ fun SearchScreen(
                             poster.genres.firstOrNull()?.title
                         ).joinToString(" • "),
                         rating = poster.imdb,
-                        badge = if (poster.isMovie()) "فیلم" else "سریال",
+                        badge = if (poster.isMovie()) stringResource(R.string.movie) else stringResource(R.string.serie),
                         onClick = { open(poster) }
                     )
                 }
@@ -173,8 +176,8 @@ fun SearchScreen(
                 viewModel.searchQuery.isNotEmpty() -> item(span = { GridItemSpan(maxLineSpan) }, key = "empty") {
                     StatusView(
                         icon = Icons.Rounded.SearchOff,
-                        title = "نتیجه‌ای یافت نشد",
-                        message = "با کلیدواژه دیگری امتحان کنید",
+                        title = stringResource(R.string.no_results),
+                        message = stringResource(R.string.no_results_msg),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -182,8 +185,8 @@ fun SearchScreen(
                 else -> item(span = { GridItemSpan(maxLineSpan) }, key = "hint") {
                     StatusView(
                         icon = Icons.Rounded.TravelExplore,
-                        title = "جستجوی فیلم و سریال",
-                        message = "برای شروع جستجو، کلیدواژه را وارد کنید",
+                        title = stringResource(R.string.search_hint_title),
+                        message = stringResource(R.string.search_hint_msg),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

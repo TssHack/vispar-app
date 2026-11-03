@@ -1,5 +1,8 @@
 package com.fazli.vispar.screens
 
+import androidx.compose.ui.res.stringResource
+import com.fazli.vispar.R
+
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -89,7 +92,7 @@ fun ContinueWatchingShelf(entries: List<WatchEntry>, onRemove: (String) -> Unit)
     if (entries.isEmpty()) return
     val context = LocalContext.current
     Column {
-        SectionHeader("ادامه تماشا", Modifier.padding(horizontal = 0.dp))
+        SectionHeader(stringResource(R.string.continue_watching), Modifier.padding(horizontal = 0.dp))
         LazyRow(
             contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -127,7 +130,7 @@ private fun ContinueCard(entry: WatchEntry, onClick: () -> Unit, onRemove: () ->
             LiquidIconButton(
                 onClick = onRemove,
                 icon = Icons.Rounded.Close,
-                contentDescription = "حذف از ادامه تماشا",
+                contentDescription = stringResource(R.string.remove_from_continue),
                 iconTint = Color.White,
                 backdrop = art,
                 size = 32.dp,
@@ -162,7 +165,7 @@ private fun ContinueCard(entry: WatchEntry, onClick: () -> Unit, onRemove: () ->
                     )
                     val remaining = ((entry.durationMs - entry.positionMs) / 60_000).coerceAtLeast(0)
                     if (entry.durationMs > 0) {
-                        Text("$remaining دقیقه مانده", style = GlassType.Caption, color = Color.White.copy(alpha = 0.75f))
+                        Text(stringResource(R.string.minutes_left, remaining.toInt()), style = GlassType.Caption, color = Color.White.copy(alpha = 0.75f))
                     }
                 }
                 entry.subtitle?.let {

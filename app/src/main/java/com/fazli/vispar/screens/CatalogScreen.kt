@@ -1,5 +1,8 @@
 package com.fazli.vispar.screens
 
+import androidx.compose.ui.res.stringResource
+import com.fazli.vispar.R
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -105,7 +108,7 @@ fun CatalogScreen(
         title = title,
         titleAlpha = { compactTitleAlpha(gridState, with(density) { 56.dp.toPx() }) },
         actions = {
-            LiquidIconButton(onClick = onRefresh, icon = Icons.Rounded.Refresh, contentDescription = "بارگذاری مجدد")
+            LiquidIconButton(onClick = onRefresh, icon = Icons.Rounded.Refresh, contentDescription = stringResource(R.string.reload))
         }
     ) { padding ->
         when {
@@ -120,7 +123,7 @@ fun CatalogScreen(
                     title = errorTitle,
                     message = errorMessage,
                     iconTint = colors.danger,
-                    actionText = "تلاش مجدد",
+                    actionText = stringResource(R.string.retry),
                     actionIcon = Icons.Rounded.Refresh,
                     onAction = onRetry
                 )
@@ -269,7 +272,7 @@ fun SpotlightCard(item: CatalogItem, onClick: () -> Unit) {
             backdrop = artLayer,
             tint = colors.accent.copy(alpha = 0.85f),
         ) {
-            Text("تازه‌ترین", style = GlassType.CaptionBold, color = colors.onAccent)
+            Text(stringResource(R.string.newest), style = GlassType.CaptionBold, color = colors.onAccent)
         }
 
         Row(
@@ -296,7 +299,7 @@ fun SpotlightCard(item: CatalogItem, onClick: () -> Unit) {
                         Text(" ${formatRating(item.rating)}  •  ", style = GlassType.Caption, color = Color.White.copy(alpha = 0.85f))
                     }
                     Text(
-                        listOfNotNull(item.year.takeIf { it > 0 }?.toString(), item.genres.take(2).joinToString("، ").ifBlank { null })
+                        listOfNotNull(item.year.takeIf { it > 0 }?.toString(), item.genres.take(2).joinToString(stringResource(R.string.list_separator)).ifBlank { null })
                             .joinToString("  •  "),
                         style = GlassType.Caption,
                         color = Color.White.copy(alpha = 0.85f),
@@ -307,7 +310,7 @@ fun SpotlightCard(item: CatalogItem, onClick: () -> Unit) {
             }
             LiquidButton(onClick = onClick, backdrop = artLayer, tint = colors.accent, height = 44.dp) {
                 Icon(Icons.Rounded.PlayArrow, null, tint = colors.onAccent, modifier = Modifier.size(20.dp))
-                Text("مشاهده", style = GlassType.Headline, color = colors.onAccent)
+                Text(stringResource(R.string.view), style = GlassType.Headline, color = colors.onAccent)
             }
         }
     }
@@ -324,11 +327,11 @@ fun InlineError(message: String, onRetry: () -> Unit) {
         ) {
             Icon(Icons.Rounded.CloudOff, null, tint = colors.danger)
             Column(Modifier.weight(1f)) {
-                Text("خطا در بارگذاری موارد بیشتر", style = GlassType.Headline, color = colors.content)
+                Text(stringResource(R.string.load_more_error), style = GlassType.Headline, color = colors.content)
                 Text(message, style = GlassType.Caption, color = colors.contentSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
             LiquidButton(onClick = onRetry, height = 40.dp, contentPadding = PaddingValues(horizontal = 14.dp)) {
-                Text("تلاش مجدد", style = GlassType.CaptionBold, color = colors.content)
+                Text(stringResource(R.string.retry), style = GlassType.CaptionBold, color = colors.content)
             }
         }
     }

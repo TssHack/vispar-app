@@ -1,5 +1,8 @@
 package com.fazli.vispar.ui.glass
 
+import androidx.compose.ui.res.stringResource
+import com.fazli.vispar.R
+
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -366,7 +369,7 @@ fun GlassSearchField(
             LiquidIconButton(
                 onClick = onClear,
                 icon = Icons.Rounded.Close,
-                contentDescription = "پاک کردن",
+                contentDescription = stringResource(R.string.clear),
                 size = 38.dp,
                 iconSize = 18.dp
             )
