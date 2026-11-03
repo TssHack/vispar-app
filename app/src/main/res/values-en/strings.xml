@@ -221,4 +221,15 @@
     <string name="update_now">Update</string>
     <string name="announcement">Announcement</string>
     <string name="got_it">Got it</string>
+    <string name="login_subtitle_short">Just your mobile number, no password</string>
+    <string name="login_no_password">We\'ll text you a 5-digit code</string>
+    <string name="login_sent_to">Sent to</string>
+    <string name="name_title">Welcome!</string>
+    <string name="name_subtitle">What should we call you?</string>
+    <string name="name_continue">Continue</string>
+    <string name="name_later">Later</string>
+    <string name="perk_sync">Favourites everywhere</string>
+    <string name="perk_tv">Continue on TV</string>
+    <string name="perk_free">Completely free</string>
+    <string name="close">Close</string>
 </resources>

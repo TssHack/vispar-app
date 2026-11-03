@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.fazli.vispar.screens.AboutScreen
 import com.fazli.vispar.screens.AccountScreen
+import com.fazli.vispar.screens.RequireAccount
 import com.fazli.vispar.screens.FavoritesScreen
 import com.fazli.vispar.screens.MoviesScreen
 import com.fazli.vispar.screens.SearchScreen
@@ -108,14 +109,19 @@ fun AppNavigation(
             arguments = listOf(navArgument("movieId") { defaultValue = "0" })
         ) { backStackEntry ->
             val movieId = backStackEntry.arguments?.getString("movieId")?.toIntOrNull() ?: 0
-            SingleMovieScreen(movieId = movieId, navController = navController)
+            // Browsing is open; opening a title needs an account (and comes back here after sign-in).
+            RequireAccount(onClose = { navController.popBackStack() }) {
+                SingleMovieScreen(movieId = movieId, navController = navController)
+            }
         }
         composable(
             route = AppScreens.SingleSeries.route,
             arguments = listOf(navArgument("seriesId") { defaultValue = "0" })
         ) { backStackEntry ->
             val seriesId = backStackEntry.arguments?.getString("seriesId")?.toIntOrNull() ?: 0
-            SingleSeriesScreen(seriesId = seriesId, navController = navController)
+            RequireAccount(onClose = { navController.popBackStack() }) {
+                SingleSeriesScreen(seriesId = seriesId, navController = navController)
+            }
         }
     }
 }

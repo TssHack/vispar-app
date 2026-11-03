@@ -68,7 +68,10 @@ fun rememberContinueWatching(type: String): Pair<List<WatchEntry>, (String) -> U
         entries = WatchHistory.continueWatching(context, type)
         onPauseOrDispose { }
     }
-    return entries to { url: String ->
+    // Personal history is only shown to a signed-in user (playing needs an account anyway).
+    val account by com.fazli.vispar.account.AccountManager.state.collectAsState()
+    val visible = if (account is com.fazli.vispar.account.AccountState.SignedIn) entries else emptyList()
+    return visible to { url: String ->
         WatchHistory.remove(context, url)
         entries = entries.filterNot { it.url == url }
     }

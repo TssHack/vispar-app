@@ -106,185 +106,36 @@ val VerifiedBlue = Color(0xFF1D9BF0)
 @Composable
 fun AccountScreen(navController: NavController?) {
     val state by AccountManager.state.collectAsState()
-    GlassScaffold(
-        title = stringResource(R.string.account),
-        onBack = { navController?.popBackStack() }
-    ) { padding ->
-        AnimatedContent(
-            targetState = state is AccountState.SignedIn,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "account"
-        ) { signedIn ->
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = Glass.ScreenPadding)
-                    .padding(top = padding.calculateTopPadding(), bottom = padding.calculateBottomPadding()),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+    val needsName by AccountManager.needsName.collectAsState()
+    val profile = (state as? AccountState.SignedIn)?.profile
+    AnimatedContent(
+        targetState = profile != null && !needsName,
+        transitionSpec = { fadeIn() togetherWith fadeOut() },
+        label = "account"
+    ) { ready ->
+        if (!ready || profile == null) {
+            LoginFlow(onClose = { navController?.popBackStack() })
+        } else {
+            GlassScaffold(
+                title = stringResource(R.string.account),
+                onBack = { navController?.popBackStack() }
+            ) { padding ->
                 Column(
-                    Modifier.widthIn(max = 520.dp).fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(18.dp)
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = Glass.ScreenPadding)
+                        .padding(top = padding.calculateTopPadding(), bottom = padding.calculateBottomPadding()),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    val profile = (state as? AccountState.SignedIn)?.profile
-                    if (signedIn && profile != null) ProfileContent(profile) else LoginContent()
+                    Column(
+                        Modifier.widthIn(max = 520.dp).fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(18.dp)
+                    ) {
+                        ProfileContent(profile)
+                    }
                 }
-            }
-        }
-    }
-}
-
-// ---- Sign in -------------------------------------------------------------------------------------
-
-@Composable
-private fun LoginContent() {
-    val colors = Glass.colors
-    val scope = rememberCoroutineScope()
-    var phone by rememberSaveable { mutableStateOf("") }
-    var code by rememberSaveable { mutableStateOf("") }
-    var codeSent by rememberSaveable { mutableStateOf(false) }
-    var busy by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var resendIn by rememberSaveable { mutableIntStateOf(0) }
-    val context = LocalContext.current
-    val codeFocus = remember { FocusRequester() }
-
-    LaunchedEffect(codeSent, resendIn) {
-        if (resendIn > 0) {
-            delay(1000)
-            resendIn--
-        }
-    }
-
-    fun messageFor(e: Throwable): String = context.getString(
-        when ((e as? ApiException)?.code) {
-            "bad_phone" -> R.string.err_bad_phone
-            "cooldown", "too_many_requests" -> R.string.err_too_many
-            "sms_failed", "unavailable" -> R.string.err_sms_failed
-            "wrong_code" -> R.string.err_wrong_code
-            "code_expired" -> R.string.err_code_expired
-            "too_many_attempts" -> R.string.err_too_many_attempts
-            "blocked" -> R.string.err_blocked
-            "network" -> R.string.err_network
-            else -> R.string.err_generic
-        }
-    )
-
-    fun sendCode() {
-        val normalized = normalizePhone(phone)
-        if (normalized == null) {
-            error = context.getString(R.string.err_bad_phone)
-            return
-        }
-        if (busy) return
-        busy = true
-        error = null
-        scope.launch {
-            try {
-                resendIn = AccountManager.requestCode(normalized)
-                phone = normalized
-                codeSent = true
-                code = ""
-            } catch (e: Exception) {
-                error = messageFor(e)
-            }
-            busy = false
-        }
-    }
-
-    fun verify() {
-        if (busy || code.length != 5) return
-        busy = true
-        error = null
-        scope.launch {
-            try {
-                AccountManager.verifyCode(phone, code)
-            } catch (e: Exception) {
-                error = messageFor(e)
-                code = ""
-            }
-            busy = false
-        }
-    }
-
-    LaunchedEffect(codeSent) { if (codeSent) runCatching { codeFocus.requestFocus() } }
-
-    Spacer(Modifier.height(8.dp))
-    HeroIcon(if (codeSent) Icons.Rounded.Sms else Icons.Rounded.Person)
-    Text(
-        stringResource(if (codeSent) R.string.login_enter_code else R.string.login_title),
-        style = GlassType.Title,
-        color = colors.content,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth()
-    )
-    Text(
-        if (codeSent) stringResource(R.string.login_code_sent_to, phone) else stringResource(R.string.login_subtitle),
-        style = GlassType.Callout,
-        color = colors.contentSecondary,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth()
-    )
-
-    if (!codeSent) {
-        GlassField(
-            value = phone,
-            onValueChange = { phone = it.filter { c -> c.isDigit() || c == '+' || c == ' ' }.take(16); error = null },
-            placeholder = "09xx xxx xxxx",
-            icon = Icons.Rounded.PhoneAndroid,
-            keyboardType = KeyboardType.Phone,
-            onDone = { sendCode() },
-        )
-        PrimaryButton(stringResource(R.string.login_send_code), busy, enabled = phone.isNotBlank()) { sendCode() }
-    } else {
-        GlassField(
-            value = code,
-            onValueChange = {
-                code = it.map { c -> persianToAscii(c) }.filter { c -> c.isDigit() }.joinToString("").take(5)
-                error = null
-                if (code.length == 5) verify()
-            },
-            placeholder = "• • • • •",
-            icon = Icons.Rounded.Lock,
-            keyboardType = KeyboardType.NumberPassword,
-            centered = true,
-            focusRequester = codeFocus,
-            onDone = { verify() },
-        )
-        PrimaryButton(stringResource(R.string.login_verify), busy, enabled = code.length == 5) { verify() }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextAction(stringResource(R.string.login_change_number)) {
-                codeSent = false
-                code = ""
-                error = null
-            }
-            if (resendIn > 0) {
-                Text(
-                    stringResource(R.string.login_resend_in, resendIn),
-                    style = GlassType.Callout,
-                    color = colors.contentTertiary,
-                    modifier = Modifier.padding(8.dp)
-                )
-            } else {
-                TextAction(stringResource(R.string.login_resend)) { sendCode() }
-            }
-        }
-    }
-
-    error?.let {
-        Text(it, style = GlassType.Callout, color = colors.danger, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-    }
-
-    if (!codeSent) {
-        GlassSurface(Modifier.fillMaxWidth(), shape = RoundedRectangle(Glass.CardRadius)) {
-            Column(Modifier.padding(vertical = 6.dp)) {
-                GlassRow(Icons.Rounded.Favorite, stringResource(R.string.benefit_favorites), subtitle = stringResource(R.string.benefit_favorites_msg), iconTint = colors.heart, trailing = null)
-                GlassDivider()
-                GlassRow(Icons.Rounded.Tv, stringResource(R.string.benefit_tv), subtitle = stringResource(R.string.benefit_tv_msg), iconTint = Color(0xFF5E5CE6), trailing = null)
-                GlassDivider()
-                GlassRow(Icons.Rounded.Verified, stringResource(R.string.benefit_free), subtitle = stringResource(R.string.benefit_free_msg), iconTint = Color(0xFF34C759), trailing = null)
             }
         }
     }
@@ -444,7 +295,7 @@ private fun ProfileContent(profile: Profile) {
         var saving by remember { mutableStateOf(false) }
         GlassDialog(onDismissRequest = { editName = false }) {
             DialogHeader(stringResource(R.string.edit_name), stringResource(R.string.edit_name_msg), Icons.Rounded.Person)
-            GlassField(value = name, onValueChange = { name = it.take(40) }, placeholder = stringResource(R.string.name_placeholder), icon = Icons.Rounded.Edit, keyboardType = KeyboardType.Text)
+            GlassTextField(value = name, onValueChange = { name = it.take(40) }, placeholder = stringResource(R.string.name_placeholder), icon = Icons.Rounded.Edit, keyboardType = KeyboardType.Text)
             DialogAction(stringResource(R.string.save), onClick = {
                 if (!saving) {
                     saving = true
@@ -535,105 +386,13 @@ fun Avatar(profile: Profile?, size: androidx.compose.ui.unit.Dp = 88.dp) {
     }
 }
 
-@Composable
-private fun HeroIcon(icon: ImageVector) {
-    val colors = Glass.colors
-    Box(
-        Modifier
-            .size(96.dp)
-            .glass(LocalBackdrop.current, Capsule(), colors, GlassStyle.Floating, tint = colors.glassTint),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(icon, null, tint = colors.content, modifier = Modifier.size(44.dp))
-    }
-}
 
-@Composable
-private fun GlassField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    icon: ImageVector,
-    keyboardType: KeyboardType,
-    centered: Boolean = false,
-    focusRequester: FocusRequester = remember { FocusRequester() },
-    onDone: () -> Unit = {},
-) {
-    val colors = Glass.colors
-    val ltr = keyboardType != KeyboardType.Text
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(58.dp)
-            .glass(LocalBackdrop.current, Capsule(), colors, GlassStyle(blur = 10.dp, refractionHeight = 14.dp, refractionAmount = 28.dp))
-            .padding(horizontal = 20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Icon(icon, null, tint = colors.contentSecondary, modifier = Modifier.size(22.dp))
-        // Numbers are always typed left to right, even in the Persian UI.
-        CompositionLocalProvider(LocalLayoutDirection provides if (ltr) LayoutDirection.Ltr else LocalLayoutDirection.current) {
-            Box(Modifier.weight(1f), contentAlignment = if (centered) Alignment.Center else Alignment.CenterStart) {
-                val style = (if (centered) GlassType.Title2.copy(letterSpacing = 8.sp) else GlassType.Headline)
-                    .copy(color = colors.content, textAlign = if (centered) TextAlign.Center else TextAlign.Start)
-                if (value.isEmpty()) {
-                    Text(placeholder, style = style.copy(color = colors.contentTertiary), maxLines = 1, modifier = Modifier.fillMaxWidth())
-                }
-                BasicTextField(
-                    value = value,
-                    onValueChange = onValueChange,
-                    singleLine = true,
-                    textStyle = style,
-                    cursorBrush = SolidColor(colors.accent),
-                    keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { onDone() }),
-                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester)
-                )
-            }
-        }
-    }
-}
 
-@Composable
-private fun PrimaryButton(text: String, busy: Boolean, enabled: Boolean, onClick: () -> Unit) {
-    val colors = Glass.colors
-    LiquidButton(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        tint = colors.accent,
-        height = 54.dp,
-        enabled = enabled && !busy,
-    ) {
-        if (busy) LiquidLoader(size = 28.dp)
-        else Text(text, style = GlassType.Headline, color = colors.onAccent)
-    }
-}
 
-@Composable
-private fun TextAction(text: String, onClick: () -> Unit) {
-    LiquidButton(onClick = onClick, height = 40.dp, surfaceColor = Color.Transparent) {
-        Text(text, style = GlassType.Callout, color = Glass.colors.accent)
-    }
-}
 
 // ---- Helpers -------------------------------------------------------------------------------------
 
-private fun persianToAscii(c: Char): Char = when (c) {
-    in '۰'..'۹' -> '0' + (c - '۰')
-    in '٠'..'٩' -> '0' + (c - '٠')
-    else -> c
-}
 
-/** Same rules as the server: +98…, 0098…, 98…, 9…, Persian digits → 09XXXXXXXXX, or null. */
-fun normalizePhone(input: String): String? {
-    var d = input.map { persianToAscii(it) }.filter { it.isDigit() }.joinToString("")
-    when {
-        d.startsWith("0098") -> d = "0" + d.drop(4)
-        d.startsWith("98") && d.length == 12 -> d = "0" + d.drop(2)
-        d.startsWith("9") && d.length == 10 -> d = "0$d"
-    }
-    return d.takeIf { it.length == 11 && it.startsWith("09") }
-}
 
 @Composable
 private fun memberSince(iso: String): String? {

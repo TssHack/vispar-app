@@ -4,4 +4,5 @@
     <color name="white">#FFFFFFFF</color>
     <!-- Window colour before Compose draws: matches the glass background, no white flash. -->
     <color name="window_background">#FFFFFFFF</color>
+    <color name="vispar_icon_background">#FF050506</color>
 </resources>

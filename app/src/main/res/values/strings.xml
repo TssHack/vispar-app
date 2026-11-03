@@ -223,4 +223,15 @@
     <string name="update_now">به‌روزرسانی</string>
     <string name="announcement">اطلاعیه</string>
     <string name="got_it">متوجه شدم</string>
+    <string name="login_subtitle_short">فقط با شمارهٔ موبایل، بدون رمز عبور</string>
+    <string name="login_no_password">با ادامه، یک کد ۵ رقمی برایتان پیامک می‌شود</string>
+    <string name="login_sent_to">ارسال شد به</string>
+    <string name="name_title">خوش آمدید!</string>
+    <string name="name_subtitle">چه اسمی صدایتان کنیم؟</string>
+    <string name="name_continue">ادامه</string>
+    <string name="name_later">بعداً</string>
+    <string name="perk_sync">علاقه‌مندی‌ها همه‌جا</string>
+    <string name="perk_tv">ادامه روی تلویزیون</string>
+    <string name="perk_free">کاملاً رایگان</string>
+    <string name="close">بستن</string>
 </resources>

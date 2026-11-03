@@ -15,8 +15,8 @@ android {
         applicationId = "com.fazli.vispar"
         minSdk = 24
         targetSdk = 36
-        versionCode = 9
-        versionName = "2.0.0"
+        versionCode = 10
+        versionName = "2.1.0"
 
         // The Vispar server: proxies the content API and hosts accounts and sync.
         buildConfigField("String", "API_BASE", "\"https://vispar.zarrinpcshop.com/v1\"")

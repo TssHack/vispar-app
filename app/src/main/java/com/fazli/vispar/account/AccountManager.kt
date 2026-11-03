@@ -88,6 +88,10 @@ object AccountManager {
 
     val isSignedIn: Boolean get() = _state.value is AccountState.SignedIn
 
+    private val _needsName = MutableStateFlow(false)
+    /** True right after a first sign-in, until the user has chosen a display name. */
+    val needsName: StateFlow<Boolean> = _needsName.asStateFlow()
+
     fun init(context: Context) {
         if (::prefs.isInitialized) return
         appContext = context.applicationContext
@@ -97,6 +101,7 @@ object AccountManager {
         }
         if (profile != null && prefs.getString("refresh", null) != null) {
             _state.value = AccountState.SignedIn(profile)
+            _needsName.value = prefs.getBoolean("needs_name", false)
         }
     }
 
@@ -122,6 +127,7 @@ object AccountManager {
         val tokens = Api.json.decodeFromJsonElement(TokenResponse.serializer(), call(post("/auth/otp/verify", body)))
         val profile = tokens.user ?: throw ApiException("internal", "no profile in response")
         saveTokens(tokens)
+        setNeedsName(profile.displayName.isBlank())
         saveProfile(profile)
         SyncManager.onSignedIn(appContext)
         return profile
@@ -142,7 +148,16 @@ object AccountManager {
             authedJson(Request.Builder().url(Api.BASE + "/me").patch(body.toBody()))
         )
         saveProfile(profile)
+        if (profile.displayName.isNotBlank()) setNeedsName(false)
         return profile
+    }
+
+    /** Lets a new user continue without a name (it can be set later from the profile). */
+    fun skipName() = setNeedsName(false)
+
+    private fun setNeedsName(value: Boolean) {
+        prefs.edit().putBoolean("needs_name", value).apply()
+        _needsName.value = value
     }
 
     suspend fun devices(): List<Device> =
@@ -262,6 +277,7 @@ object AccountManager {
 
     private fun clearSession() {
         prefs.edit().clear().apply()
+        _needsName.value = false
         _state.value = AccountState.SignedOut
     }
 
