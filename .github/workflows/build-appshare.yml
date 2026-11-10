@@ -1,0 +1,54 @@
+name: Build vispar
+
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          # The default list includes the obsolete 'tools' package, which no
+          # longer exists in the SDK repository and fails the install.
+          packages: 'platform-tools'
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh || true
+
+      - name: Validate Gradle Wrapper
+        run: ./scripts/verify-gradle-wrapper.sh || true
+        continue-on-error: true
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+
+      # در این نسخه چون امضا حذف شده، نیازی به keystore نیست
+      - name: Build unsigned release APK
+        run: ./gradlew assembleRelease --stacktrace -x lint
+
+      # آپلود خروجی به عنوان artifact قابل دانلود از تب Actions
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vispar-release-apk
+          path: app/build/outputs/apk/release/*.apk

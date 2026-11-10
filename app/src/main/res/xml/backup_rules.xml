@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sign-in tokens and sync bookkeeping are per device: never restore them onto another phone. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="vispar_account.xml" />
+    <exclude domain="sharedpref" path="vispar_sync.xml" />
+    <exclude domain="file" path="sync_tombstones.json" />
+</full-backup-content>

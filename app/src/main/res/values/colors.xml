@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <!-- Window colour before Compose draws: matches the glass background, no white flash. -->
+    <color name="window_background">#FFFFFFFF</color>
+    <color name="vispar_icon_background">#FF050506</color>
+</resources>

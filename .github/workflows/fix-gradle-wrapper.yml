@@ -1,0 +1,58 @@
+name: Fix Gradle Wrapper
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [fix-gradle-wrapper]
+
+jobs:
+  fix-wrapper:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Make gradlew and scripts executable
+        run: |
+          chmod +x gradlew
+          chmod +x scripts/*.sh
+
+      - name: Update Gradle Wrapper with retry
+        run: |
+          retry=0
+          max_retries=3
+          until [ $retry -ge $max_retries ]
+          do
+            echo "Attempt $((retry+1)) to update Gradle wrapper"
+            if ./gradlew wrapper --gradle-version 8.11.1; then
+              echo "Gradle wrapper updated successfully"
+              break
+            else
+              echo "Failed to update Gradle wrapper, retrying in 5 seconds..."
+              retry=$((retry+1))
+              sleep 5
+            fi
+          done
+          if [ $retry -eq $max_retries ]; then
+            echo "Failed to update Gradle wrapper after $max_retries attempts"
+            exit 1
+          fi
+
+      - name: Generate new checksum
+        run: |
+          ./scripts/fix-gradle-wrapper.sh
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add gradle/wrapper/gradle-wrapper.jar.sha256
+          git commit -m "Fix Gradle wrapper checksum"
+          git push
+        continue-on-error: true

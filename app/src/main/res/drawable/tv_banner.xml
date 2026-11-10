@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 16:9 banner shown in the Android TV launcher row. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#FF000000"
+                android:startColor="#FF1C1C1E" />
+            <size
+                android:width="320dp"
+                android:height="180dp" />
+        </shape>
+    </item>
+    <item
+        android:width="112dp"
+        android:height="112dp"
+        android:gravity="center">
+        <bitmap
+            android:filter="true"
+            android:src="@drawable/splash_logo" />
+    </item>
+</layer-list>

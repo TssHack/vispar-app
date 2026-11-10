@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- TV with antenna -->
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFFFF" android:strokeWidth="1.8" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M5,7h14a2.5,2.5 0,0 1,2.5 2.5v8a2.5,2.5 0,0 1,-2.5 2.5h-14a2.5,2.5 0,0 1,-2.5 -2.5v-8a2.5,2.5 0,0 1,2.5 -2.5z" />
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFFFF" android:strokeWidth="1.8" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M8.5,3l3.5,4l3.5,-4" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M10.6,11.1v4.8c0,0.5 0.5,0.8 0.9,0.5l3.6,-2.4c0.4,-0.3 0.4,-0.8 0,-1.1l-3.6,-2.4c-0.4,-0.3 -0.9,0 -0.9,0.6z" />
+</vector>
