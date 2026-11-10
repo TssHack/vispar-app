@@ -19,3 +19,4 @@ key.properties
 *.jks
 *.keystore
 temp_hash.txt
+/out

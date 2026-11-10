@@ -1,6 +1,7 @@
 package com.fazli.vispar.utils
 
 import android.app.UiModeManager
+import com.fazli.vispar.BuildConfig
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -12,6 +13,7 @@ object DeviceUtils {
      * Check if the device is a TV
      */
     fun isTv(context: Context): Boolean {
+        if (BuildConfig.TV_BUILD) return true
         val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
         return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
     }
@@ -38,7 +40,8 @@ object DeviceUtils {
     fun posterColumns(resources: Resources, compact: Boolean): Int {
         val metrics = resources.displayMetrics
         val widthDp = metrics.widthPixels / metrics.density
-        val isTv = resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION
+        val isTv = BuildConfig.TV_BUILD ||
+            resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION
         return when {
             isTv -> if (compact) 6 else 5
             widthDp >= 840 -> if (compact) 6 else 5
@@ -50,7 +53,8 @@ object DeviceUtils {
     fun getGridColumns(resources: Resources): Int {
         val displayMetrics = resources.displayMetrics
         val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
-        val isTv = resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION
+        val isTv = BuildConfig.TV_BUILD ||
+            resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION
         
         return when {
             isTv -> 4 // More columns for TV screens

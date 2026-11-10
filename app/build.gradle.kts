@@ -1,6 +1,3 @@
-import java.io.FileInputStream
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -12,7 +9,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.fazli.vispar"
+        applicationId = "com.vispar.fazli"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -29,7 +26,11 @@ android {
         buildConfig = true
     }
 
-    // Release signing: a real key comes from environment variables (CI secrets, never committed).
+    // Release signing: the key comes from environment variables (CI secrets, never committed).
+    //   VISPAR_KEYSTORE           path to the keystore file
+    //   VISPAR_KEYSTORE_PASSWORD  keystore password
+    //   VISPAR_KEY_ALIAS          optional, defaults to "vispar"
+    //   VISPAR_KEY_PASSWORD       optional, defaults to the keystore password
     // Without them the release APK is signed with the debug key so it still installs for testing.
     val releaseKeystore = System.getenv("VISPAR_KEYSTORE")?.let { file(it) }?.takeIf { it.exists() }
     signingConfigs {
@@ -37,9 +38,24 @@ android {
             create("release") {
                 storeFile = releaseKeystore
                 storePassword = System.getenv("VISPAR_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("VISPAR_KEY_ALIAS")
-                keyPassword = System.getenv("VISPAR_KEY_PASSWORD")
+                keyAlias = System.getenv("VISPAR_KEY_ALIAS")?.takeIf { it.isNotBlank() } ?: "vispar"
+                keyPassword = System.getenv("VISPAR_KEY_PASSWORD")?.takeIf { it.isNotBlank() }
+                    ?: System.getenv("VISPAR_KEYSTORE_PASSWORD")
             }
+        }
+    }
+
+    // Two editions of the same app. "tv" always uses the TV interface, for boxes that do not
+    // report themselves as a television; "mobile" picks the interface from the device.
+    flavorDimensions += "device"
+    productFlavors {
+        create("mobile") {
+            dimension = "device"
+            buildConfigField("boolean", "TV_BUILD", "false")
+        }
+        create("tv") {
+            dimension = "device"
+            buildConfigField("boolean", "TV_BUILD", "true")
         }
     }
 
@@ -59,11 +75,13 @@ android {
         }
     }
 
-    // خروجی ساده، بدون split
+    // One APK per CPU architecture plus a universal APK that runs everywhere.
     splits {
         abi {
-            isEnable = false
-            isUniversalApk = false
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
+            isUniversalApk = true
         }
     }
 
