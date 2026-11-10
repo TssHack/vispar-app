@@ -1,335 +1,174 @@
-# vispar - Movie & TV Series Streaming App
-
 <p align="center">
-  <img src="app/src/main/res/drawable-nodpi/splash_logo.png" alt="vispar Logo" width="150"/>
+  <img src="app/src/main/res/drawable-nodpi/splash_logo.png" alt="Vispar" width="140">
 </p>
 
-vispar is a modern Android streaming application built with Jetpack Compose and Kotlin. The app provides a sleek user interface for browsing movies and TV series, playing videos, and customizing the viewing experience. With a focus on user experience and performance, vispar delivers high-quality streaming content in an intuitive and visually appealing interface.
+<h1 align="center">Vispar</h1>
 
-## 🚀 Key Features
+<p align="center">
+  <b>Movies and series behind liquid glass.</b><br>
+  A native Android and Android TV client, written in Kotlin and Jetpack Compose.
+</p>
 
-### 🎬 Content Discovery
-- **Browse Movies & Series**: Attractive grid layout for discovering content
-- **Powerful Search**: Search across both movies and TV series with real-time results
-- **Detailed Information**: Comprehensive details for each movie and series including ratings, genres, and descriptions
+<p align="center">
+  <a href="https://github.com/TssHack/vispar-app/actions/workflows/android.yml"><img alt="Android builds" src="https://github.com/TssHack/vispar-app/actions/workflows/android.yml/badge.svg"></a>
+  <a href="https://github.com/TssHack/vispar-app/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/TssHack/vispar-app?label=release"></a>
+  <img alt="Kotlin 2.4" src="https://img.shields.io/badge/Kotlin-2.4-7F52FF?logo=kotlin&logoColor=white">
+  <img alt="Jetpack Compose" src="https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white">
+  <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-3DDC84?logo=android&logoColor=white">
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-black"></a>
+</p>
 
-### ▶️ Media Playback
-- **Custom Video Player**: Built with ExoPlayer for smooth video playback
-- **Multiple Quality Options**: Choose from various quality options for playback and download
-- **Download Options**: Multiple download methods including browser, ADM, and VLC
-- **Fullscreen Experience**: Optimized landscape mode for immersive viewing
+<p align="center">
+  <a href="https://github.com/TssHack/vispar-app/releases/latest"><b>Download</b></a> · <a href="README.fa.md">فارسی</a> · <a href="https://ehsanfazli.ir">Developer</a>
+</p>
 
-### ❤️ Favorites Management
-- **Save Content**: Add movies and series to your favorites list
-- **Quick Access**: Easily access your saved content from the Favorites screen
-- **Organize**: Remove items from favorites with individual delete options
-- **Bulk Actions**: Clear all favorites with a single action
+<!-- screenshots:hero -->
 
-### 🎨 Personalization
-- **Theme Customization**: Light, dark, and system themes with color options
-- **Subtitle Settings**: Customize subtitle appearance (background, text color, border, size)
-- **Liquid Glass UI**: A refractive, iOS-style glass interface built with [AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass) that adapts to all screen sizes
+---
 
-### 📱 User Experience
-- **Intuitive Navigation**: Bottom navigation for mobile/tablet and sidebar navigation for TV
-- **Error Handling**: Retry mechanisms for failed requests
-- **Loading States**: Shimmer loading animations for smooth user experience
-- **Season & Episode Management**: Easy navigation through TV series seasons and episodes
+## Why Vispar
 
-### 📺 Android TV Support
-- **Optimized Layout**: Sidebar navigation for better TV experience
-- **Full Screen Support**: Content fills the entire TV screen
-- **Remote Control Navigation**: D-pad optimized navigation
-- **Cross-Platform Compatibility**: Works on mobile, tablet, and TV with adaptive UI
+Vispar is a Persian-first streaming client that is built natively for Android. The whole interface is drawn as liquid glass: panels blur and bend what is behind them, buttons swell under the finger, and the player controls refract the film that is playing.
 
-## 🛠️ Tech Stack
+- **One app, two rooms.** A floating glass tab bar on phones and tablets, a sidebar with focus rings and D-pad navigation on Android TV.
+- **Right-to-left from the start.** Persian is the default language, English is one tap away, and layout direction follows the language.
+- **Small.** The release APK is about 3.7 MB.
 
-- **Kotlin** - Primary programming language
-- **Jetpack Compose** - Modern toolkit for building native UI
-- **ExoPlayer** - Media playback library
-- **Kotlin Serialization** - JSON serialization
-- **Coil** - Image loading library
-- **Liquid Glass (Backdrop)** - Real-time blur, lens refraction and specular highlights via [Kyant0/AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass)
-- **Navigation Component** - For seamless screen transitions
-- **ViewModel & LiveData** - For state management
-- **Coroutines** - For asynchronous operations
-- **OkHttp** - For network requests
-- **Leanback** - Android TV support library
+## Highlights
 
-## 💧 Liquid Glass Design
+| | |
+| --- | --- |
+| **Liquid glass interface** | Real-time blur, lens refraction and specular highlights, with four materials to choose from: Clear, Glass, Frosted and No transparency. |
+| **Player** | Built on Media3 ExoPlayer with HLS and DASH. Playback speed from 0.75x to 2x, configurable skip interval, resume from the last position, autoplay, styled subtitles and a buffering indicator. |
+| **Continue watching** | A shelf on the Movies and Series tabs that picks up where you stopped. |
+| **Favourites** | Save films and series, remove them one by one or clear the list. |
+| **Search** | One search across movies and series. |
+| **Account and sync** | Sign in with a mobile number and an SMS code. Favourites and Continue Watching stay the same on your phone and your TV, and you can sign out other devices remotely. |
+| **Downloads** | Pick a quality and hand the file to the browser, ADM or VLC. |
+| **Personal** | Light, dark or system theme, monochrome or system accent colours, compact posters, haptic feedback. |
+| **Android TV** | Launcher banner, glass sidebar, focus rings on every control, and a player you can drive with the remote. |
 
-The UI is built on a small design system in `app/src/main/java/com/fazli/vispar/ui/glass`:
+<!-- screenshots:phone -->
 
-- **AmbientBackground** – Apple-style neutral canvas: pure black in dark mode, white to system grey in light mode.
-- **GlassSurface / glass()** – blurred, saturated and lens-refracted panels; nested controls refract their parent panel.
-- **LiquidButton / LiquidIconButton** – capsule buttons that swell and follow the finger like a drop of water.
-- **LiquidTabs** – the floating tab bar and segmented controls, with a draggable lens that stretches with velocity.
-- **LiquidSlider** – a glass thumb that magnifies the track with chromatic aberration while dragged.
-- **GlassScaffold** – floating glass top bar plus a progressive "scroll edge" blur under the status bar.
-- **GlassDialog** – dialogs rendered in an in-window overlay so they can refract the whole screen.
+<!-- screenshots:tv -->
 
-The video player renders into a `TextureView`, so its glass controls refract the playing video.
+## Download
 
-### Options
-- **Glass material**: Clear / Glass / Frosted / No transparency (fastest; default on Android TV)
-- **Compact posters**, **haptic feedback**, monochrome or Apple system accent colours
-- **Player**: autoplay, resume from last position, default playback speed (0.75x–2x), seek step
-- **Continue watching** shelf on the Movies and Series tabs
-- Clear image cache and watch history
+Every [release](https://github.com/TssHack/vispar-app/releases/latest) carries signed APKs in two editions.
 
-### Languages
-- Persian (right-to-left) and English (left-to-right), switchable in Settings; Persian is the default
+| Edition | File | Use it for |
+| --- | --- | --- |
+| Phone and tablet | `Vispar-<version>-android-<abi>.apk` | Phones and tablets. It also switches to the TV interface on a device that reports itself as a television. |
+| Android TV | `Vispar-<version>-android-tv-<abi>.apk` | TVs and TV boxes. It always uses the TV interface, including on boxes that identify as a tablet. |
 
-### Android TV
-- Launcher banner, glass sidebar, focus rings and lift on every control
-- Remote-controlled player: OK = play/pause, ←/→ = seek, ↑/↓ = controls, media keys supported
+Pick the architecture that matches the device, or take `universal` if you are not sure.
 
-Full blur needs Android 12+, refraction needs Android 13+. Older devices fall back to a frosted tint.
+| `<abi>` | Devices |
+| --- | --- |
+| `universal` | Everything. Slightly larger. |
+| `arm64-v8a` | Most phones from the last several years, newer TVs and boxes. |
+| `armeabi-v7a` | Older phones and many TV boxes. |
+| `x86_64`, `x86` | Emulators and Intel-based devices. |
 
-## 🏗️ Architecture
+Both editions share one application ID and one signing key, so either can be installed over the other. `SHA256SUMS.txt` in each release lists the checksums.
 
-The app follows a clean architecture pattern with the following components:
+Vispar needs Android 7.0 (API 24) or newer. Full blur needs Android 12, and refraction needs Android 13; older devices fall back to a frosted tint.
 
-- **UI Layer** - Jetpack Compose screens and components
-- **Data Layer** - Models and repositories for data management
-- **Domain Layer** - Business logic and use cases
-- **Utils** - Helper classes and extensions
-- **Navigation** - Single-activity architecture with Compose Navigation
-- **State Management** - ViewModel for UI state handling
+## Remote control
 
-## Getting Started
+| Key | In the app | In the player |
+| --- | --- | --- |
+| D-pad | Move focus | Left and right seek, up and down show the controls |
+| OK | Open | Play or pause |
+| Back | Go back | Close the player |
+| Media keys | | Play, pause, seek |
 
-### Prerequisites
+## Build from source
 
-- Android Studio Ladybug or later
-- Android SDK API 37
-- JDK 17+
+You need JDK 17 or newer and the Android SDK (API 37). Android Studio installs both.
 
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/code3-dev/vispar.git
-   ```
-
-2. Open the project in Android Studio
-
-3. Build and run the project
-
-### Building
-
-To build the debug APK:
 ```bash
-./gradlew assembleDebug
+git clone https://github.com/TssHack/vispar-app.git
 ```
 
-To build the release APK:
+```bash
+cd vispar-app
+```
+
 ```bash
 ./gradlew assembleRelease
 ```
 
-### Fixing Gradle Wrapper Issues
+The APKs land in `app/build/outputs/apk/mobile/release` and `app/build/outputs/apk/tv/release`. To build one edition only, run `assembleMobileRelease` or `assembleTvRelease`.
 
-If you encounter Gradle wrapper validation errors (especially in CI/CD environments), you can fix them using the provided scripts:
+### Signing
 
-On Unix/Linux/macOS:
-```bash
-./scripts/fix-gradle-wrapper.sh
-```
+Without a key, release builds are signed with the debug key so they still install for testing. To sign with your own key, set these before building:
 
-On Windows:
-```cmd
-scripts\fix-gradle-wrapper.bat
-```
+| Variable | Value |
+| --- | --- |
+| `VISPAR_KEYSTORE` | Path to the keystore file |
+| `VISPAR_KEYSTORE_PASSWORD` | Keystore password |
+| `VISPAR_KEY_ALIAS` | Optional. Defaults to `vispar` |
+| `VISPAR_KEY_PASSWORD` | Optional. Defaults to the keystore password |
 
-You can also verify the integrity of the Gradle wrapper:
+### Releases
 
-On Unix/Linux/macOS:
-```bash
-./scripts/verify-gradle-wrapper.sh
-```
+[`android.yml`](.github/workflows/android.yml) builds both editions for every architecture on each push to `main`. Pushing a tag that matches the version, such as `v1.0.0`, signs the APKs with the key stored in the repository secrets `VISPAR_KEYSTORE_BASE64` and `VISPAR_KEYSTORE_PASSWORD`, checks every signature, and attaches the files to the GitHub release.
 
-On Windows:
-```cmd
-scripts\verify-gradle-wrapper.bat
-```
-
-These scripts will regenerate the Gradle wrapper checksums which are required for validation.
-
-## Project Structure
+## Project layout
 
 ```
-app/
-├── src/
-│   ├── main/
-│   │   ├── java/com/fazli/vispar/
-│   │   │   ├── components/           # Reusable UI components
-│   │   │   ├── data/                 # Data layer
-│   │   │   │   ├── model/            # Data models (Movie, Series, etc.)
-│   │   │   │   └── repository/       # Data repositories
-│   │   │   ├── navigation/           # Navigation graph and components
-│   │   │   ├── screens/              # Compose screens
-│   │   │   ├── ui/                   # UI components and theme
-│   │   │   │   ├── movies/           # Movie-specific UI components
-│   │   │   │   ├── search/           # Search-specific UI components
-│   │   │   │   ├── series/           # Series-specific UI components
-│   │   │   │   └── theme/            # Theme definitions and management
-│   │   │   ├── utils/                # Utility classes
-│   │   │   ├── MainActivity.kt       # Main application activity
-│   │   │   └── VideoPlayerActivity.kt # Video player activity
-│   │   └── res/                      # Resources
-│   │       ├── drawable/             # Drawable resources
-│   │       ├── values/               # Default resources
-│   │       ├── values-television/    # TV-specific resources
-│   │       └── ...                   # Other resources
-│   └── test/                         # Unit tests
-├── build.gradle.kts                  # App build configuration
-└── ...
+app/src/main/java/com/fazli/vispar
+├── MainActivity.kt            Single activity, navigation host
+├── VideoPlayerActivity.kt     Player
+├── account/                   Sign-in, sync, announcements and forced updates
+├── data/                      API client, models and repositories
+├── navigation/                Routes, glass tab bar, TV sidebar
+├── screens/                   Movies, series, details, search, favourites, settings
+├── ui/glass/                  The liquid glass design system
+├── ui/theme/                  Theme and theme settings
+└── utils/                     Device, language, storage and watch history helpers
 ```
 
-## Key Components
+### The glass design system
 
-### Video Player
+Everything on screen is assembled from a small set of components in `ui/glass`:
 
-The app features a custom video player built with ExoPlayer that supports:
+| Component | What it does |
+| --- | --- |
+| `AmbientBackground` | The neutral canvas: pure black in dark mode, white to system grey in light mode. |
+| `GlassSurface`, `glass()` | Blurred, saturated, lens-refracted panels. Nested controls refract their parent panel. |
+| `LiquidButton` | Capsule buttons that swell and follow the finger like a drop of water. |
+| `LiquidTabs` | The floating tab bar and segmented controls, with a draggable lens that stretches with velocity. |
+| `LiquidSlider` | A glass thumb that magnifies the track while dragged. |
+| `LiquidToggle` | A switch with a liquid glass thumb. |
+| `GlassScaffold` | A floating glass top bar with a progressive blur under the status bar. |
+| `GlassDialog` | Dialogs drawn in an in-window overlay so they can refract the whole screen. |
 
-- Play/Pause controls
-- Progress seeking
-- Subtitle customization
-- Fullscreen landscape mode
+The player renders into a `TextureView`, which is what lets its controls refract the video.
 
-### Settings
+## Built with
 
-Users can customize their experience through the settings screen:
+- [Kotlin](https://kotlinlang.org) and [Jetpack Compose](https://developer.android.com/compose) with Material 3
+- [AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass) (Backdrop) for blur, refraction and highlights
+- [Media3 ExoPlayer](https://developer.android.com/media/media3) for playback
+- [Coil](https://coil-kt.github.io/coil/) for images
+- [OkHttp](https://square.github.io/okhttp/), kotlinx.serialization and coroutines for networking
+- Navigation Compose and Leanback
 
-- Theme mode (Light/Dark/System)
-- Primary and secondary color selection
-- Subtitle settings (colors and text size)
+## Related
 
-## 📱 App Screens
+[TssHack/vispar](https://github.com/TssHack/vispar) is the cross-platform Vispar, built with React Native for Android, iOS, the web and desktop.
 
-### 🎬 Movies Screen
-- Browse latest movies in an attractive grid layout
-- Pull-to-refresh functionality
-- Infinite scrolling for loading more content
-- Error handling with retry option
-- Shimmer loading animations
+## Contributing
 
-### 📺 Series Screen
-- Browse TV series with comprehensive information
-- Season and episode organization
-- Pull-to-refresh and infinite scrolling
-- Error handling with retry option
+Issues and pull requests are welcome. For anything larger than a small fix, please open an issue first so the approach can be agreed before you write the code.
 
-### ❤️ Favorites Screen
-- View all saved movies and series in one place
-- Individual item deletion
-- Bulk deletion of all favorites
-- Direct navigation to content details
-- Visual indicators for content type and ratings
+## License
 
-### 🔍 Search Screen
-- Real-time search across movies and series
-- Instant results as you type
-- Error handling with retry button
-- Clear search functionality
+[MIT](LICENSE)
 
-### 📄 Single Movie Screen
-- Detailed movie information
-- Multiple quality options for playback
-- Download options (Browser, ADM, VLC)
-- Custom video player integration
-- Add/remove from favorites
+## Author
 
-### 📺 Single Series Screen
-- Comprehensive series details
-- Season navigation and episode listing
-- Multiple quality options per episode
-- Download options for each episode
-- Error handling with retry functionality
-- Add/remove from favorites
-
-### ⚙️ Settings Screen
-- Theme customization (Light/Dark/System)
-- Primary and secondary color selection
-- Subtitle settings (colors and text size)
-- Reset to default options
-
-### 🏠 Navigation
-The app uses adaptive navigation:
-- **Mobile/Tablet**: Bottom navigation bar for switching between screens
-- **TV**: Sidebar navigation for better remote control experience
-
-## 📺 Android TV Remote Control Guide
-
-### Navigation Controls
-- **D-Pad (Arrow Keys)**: Navigate between UI elements, scroll through lists, and move focus
-- **Select (OK) Button**: Confirm selections, open items, play/pause media
-- **Back Button**: Navigate to previous screen or exit the app
-- **Home Button**: Return to the main launcher
-
-### Sidebar Navigation (TV Only)
-- Use the **Up/Down** arrow keys to navigate between menu items in the sidebar
-- Press **Select (OK)** to open the selected section (Movies, Series, Search, Settings)
-
-### Content Browsing
-- Use **Left/Right** arrow keys to navigate between items in a row
-- Use **Up/Down** arrow keys to move between rows
-- Press **Select (OK)** to open details for a selected movie or series
-
-### Media Playback Controls
-- **Play/Pause**: Press the **Select (OK)** button or **Play/Pause** button when focused on the player
-- **Seek Forward/Backward**: Use the **Left/Right** arrow keys to skip 10 seconds
-- **Volume Control**: Use the **Up/Down** arrow keys on the directional pad or volume buttons on the remote
-- **Exit Fullscreen**: Press the **Back** button to exit fullscreen mode and return to the content details
-
-### Search Functionality (TV)
-- Navigate to the Search section using the sidebar
-- The on-screen keyboard can be controlled with the D-pad
-- **Up/Down/Left/Right**: Move between keyboard keys
-- **Select (OK)**: Press the selected key
-- **Backspace**: Press the back button to delete characters
-
-### Settings Navigation (TV)
-- In the Settings screen, use **Up/Down** to navigate between options
-- For toggle switches, press **Select (OK)** to toggle on/off
-- For color pickers and other options, press **Select (OK)** to open the selection dialog
-
-### Favorites Management (TV)
-- Access the Favorites screen through the Settings menu
-- Navigate through saved items using the D-pad
-- Press **Select (OK)** to open a saved item
-- Use the context menu to remove individual items or clear all favorites
-
-### General Tips for TV Navigation
-1. **Focus Highlighting**: The currently selected item is highlighted with a border or background color
-2. **Smooth Scrolling**: Content lists support smooth scrolling with the D-pad
-3. **Quick Access**: The sidebar is always accessible for quick navigation between main sections
-4. **Exit App**: Press the **Back** button repeatedly until you exit the app
-
-## 🤝 Contributing
-
-We welcome contributions to vispar! Here's how you can help:
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a pull request
-
-Please ensure your code follows the existing style and includes appropriate tests.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [ExoPlayer](https://exoplayer.dev/) for media playback
-- [Coil](https://coil-kt.github.io/coil/) for image loading
-- [Material Design](https://m3.material.io/) for UI components
-- [Leanback](https://developer.android.com/training/tv/start/start) for TV support
-
-## 📞 Contact
-
-For support or inquiries, please open an issue on GitHub.
+**Ehsan Fazli** · [ehsanfazli.ir](https://ehsanfazli.ir) · [@TssHack](https://github.com/TssHack)
