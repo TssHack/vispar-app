@@ -22,7 +22,11 @@
   <a href="https://tsshack.github.io/vispar-website/"><b>Website</b></a> · <a href="https://github.com/TssHack/vispar-app/releases/latest"><b>Download</b></a> · <a href="README.fa.md">فارسی</a> · <a href="https://ehsanfazli.ir">Developer</a>
 </p>
 
-<!-- screenshots:hero -->
+<p align="center">
+  <img src="docs/screenshots/splash.webp" width="32%" alt="Splash screen in dark mode">
+  &nbsp;
+  <img src="docs/screenshots/movies.webp" width="32%" alt="Movies tab in light mode with the glass bottom bar">
+</p>
 
 ---
 
@@ -47,10 +51,6 @@ Vispar is a Persian-first streaming client that is built natively for Android. T
 | **Downloads** | Pick a quality and hand the file to the browser, ADM or VLC. |
 | **Personal** | Light, dark or system theme, monochrome or system accent colours, compact posters, haptic feedback. |
 | **Android TV** | Launcher banner, glass sidebar, focus rings on every control, and a player you can drive with the remote. |
-
-<!-- screenshots:phone -->
-
-<!-- screenshots:tv -->
 
 ## Download
 

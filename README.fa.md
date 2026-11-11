@@ -24,7 +24,11 @@
   <a href="https://tsshack.github.io/vispar-website/"><b>وبسایت</b></a> · <a href="https://github.com/TssHack/vispar-app/releases/latest"><b>دانلود</b></a> · <a href="README.md">English</a> · <a href="https://ehsanfazli.ir">توسعه‌دهنده</a>
 </p>
 
-<!-- screenshots:hero -->
+<p align="center">
+  <img src="docs/screenshots/splash.webp" width="32%" alt="صفحهٔ شروع در حالت تیره">
+  &nbsp;
+  <img src="docs/screenshots/movies.webp" width="32%" alt="برگهٔ فیلم‌ها در حالت روشن با نوار پایین شیشه‌ای">
+</p>
 
 ---
 
@@ -49,10 +53,6 @@
 | **دانلود** | کیفیت را انتخاب کنید و فایل را به مرورگر، ADM یا VLC بسپارید. |
 | **شخصی‌سازی** | پوستهٔ روشن، تیره یا سیستم، رنگ‌های تک‌رنگ یا سیستمی، پوسترهای فشرده و بازخورد لمسی. |
 | **Android TV** | بنر لانچر، نوار کناری شیشه‌ای، حلقهٔ فوکوس روی همهٔ کنترل‌ها و پخش‌کننده‌ای که با ریموت کار می‌کند. |
-
-<!-- screenshots:phone -->
-
-<!-- screenshots:tv -->
 
 ## دانلود
 
