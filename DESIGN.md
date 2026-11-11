@@ -1,13 +1,13 @@
 # Vispar design
 
-The website follows the app: Apple-style monochrome, Persian first, and liquid glass used in one place only, where it is the product itself.
+The website (`website/`, Next.js, static export) follows the app: Apple-style monochrome, Persian first, and liquid glass used in one place only, where it is the product itself.
 
 ## Direction
 
 - **Subject:** a free Android and Android TV app for watching movies and series, whose interface is drawn as liquid glass.
 - **Audience:** Persian-speaking Android and TV-box owners, plus developers who arrive from GitHub.
 - **Page job:** let people see what the glass looks like, then download the right APK.
-- **The one bold thing:** a glass lens in the hero that bends the wordmark behind it. Visitors can drag it and switch its material, the same four materials the app offers in Settings. Nothing else on the page uses blur or glass, except the navigation capsule, which mirrors the app's tab bar.
+- **The one bold thing:** a glass lens in the hero that bends the wordmark behind it. Visitors can drag it and switch its material, the same four materials the app offers in Settings. Glass appears in only two other places, both copied from the app: the navigation capsule and the interactive tab-bar demo.
 
 ## Color
 
@@ -61,9 +61,10 @@ Persian needs taller lines than Latin; body stays near 65 characters wide.
 
 - The 3D bolt from `app/src/main/res/drawable-nodpi/splash_logo.png` is the only illustration.
 - Icons are inline SVG strokes at 1.75px, drawn for this page.
-- App screenshots go in the marked frames in the screens section once they exist; no invented UI.
+- No app screenshots yet. The tab-bar demo uses plain poster blocks, never invented titles or artwork; add a screens section when real screenshots exist.
 
 ## Motion
 
-- The lens drifts slowly on its own until someone touches it; with reduced motion it stays still.
-- Material changes animate the lens over 400ms. Nothing else animates on load.
+- On load the two headline lines rise out of a blur and the lens stage settles in; that is the only load animation.
+- The lens drifts slowly until someone touches it. Material changes animate over 400ms; segmented pills and the tab-bar drop move on a spring.
+- With reduced motion, everything appears in place and nothing drifts.
