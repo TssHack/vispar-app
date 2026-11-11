@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/TssHack/vispar-app/releases/latest"><b>Download</b></a> · <a href="README.fa.md">فارسی</a> · <a href="https://ehsanfazli.ir">Developer</a>
+  <a href="https://tsshack.github.io/vispar-website/"><b>Website</b></a> · <a href="https://github.com/TssHack/vispar-app/releases/latest"><b>Download</b></a> · <a href="README.fa.md">فارسی</a> · <a href="https://ehsanfazli.ir">Developer</a>
 </p>
 
 <!-- screenshots:hero -->
